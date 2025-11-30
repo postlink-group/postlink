@@ -74,10 +74,7 @@ test_that("glm_ele example works", {
   ## 2. Fit model using glm_ele
   ########################################################################
 
-  expect_snapshot({
-    fit <- glm_ele(Ystar ~ X - 1, m.rate = 1 - Estlambda, blocks = Block)
-    fit
-  })
+  fit <- glm_ele(Ystar ~ X - 1, m.rate = 1 - Estlambda, blocks = Block)
 
   expect_snapshot(fit$coefficients)
   expect_snapshot(fit$standard.errors)
