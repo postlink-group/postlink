@@ -85,3 +85,28 @@ test_that("glm_ele example works", {
   expect_snapshot(predict(fit))
 
 })
+
+# -------------------------------------------------------
+# Robustness Tests for glm_ele
+# -------------------------------------------------------
+
+test_that("glm_ele fails with non-numeric X", {
+ X_bad <- data.frame(a = c("a", "b", "c"))
+ y <- rnorm(3)
+
+ expect_error(
+  glm_ele(y ~ X_bad, m.rate = 1, Eslambda = 0.2, blocks = NULL)
+ )
+})
+
+test_that("glm_ele fails with constant predictor", {
+ X_const <- data.frame(a = rep(1, 20))
+ y <- rnorm(20)
+
+ expect_error(
+  glm_ele(y ~ X_const, m.rate = 1, Eslambda = 0.2, blocks = NULL),
+  regexp = "(invalid|constant|singular)",
+  ignore.case = TRUE
+ )
+})
+
