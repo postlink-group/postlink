@@ -9,6 +9,7 @@ glm_ele(
   data = NULL,
   family = "gaussian",
   m.rate,
+  audit.size = NULL,
   blocks,
   weight.matrix = "all",
   control = list(init.beta = "default"),
@@ -27,6 +28,10 @@ the right of "~" and the response on the left.}
 
 \item{m.rate}{block-wise mismatch rates (should be a vector with length equal
 to the number of blocks) - by default assume a single block.}
+
+\item{audit.size}{a vector of block sizes in the audit sample (selected by
+simple random sampling) if used to estimate the m.rate (optional). If a
+single value is provided, assume the same value for all blocks and put out a warning.}
 
 \item{blocks}{block indicators.}
 
