@@ -19,7 +19,7 @@
 \item{...}{for additional predict arguments}
 }
 \value{
-matrix of predictions w/ se and point-wise confidence bands
+matrix of predictions w/ standard errors and point-wise confidence bands
 }
 \description{
 Return predicted values from an `spline_mixture()` object

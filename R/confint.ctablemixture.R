@@ -8,7 +8,7 @@
 #'
 #' @returns a data frame with the upper and lower confidence limits for each
 #' cell probability. These limits are labelled as (1-level)/2 and
-#' 1 - (1-level)/2 (e.g., 2.5% and 97.5% for level 0.95).
+#' 1 - (1-level)/2 (e.g., 2.5\% and 97.5\% for level 0.95).
 #'
 #' @export
 confint.ctablemixture <- function(object, level = 0.95,...){

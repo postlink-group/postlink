@@ -6,7 +6,7 @@
 #'
 #' @returns a list of results from the function called depending on the "family" specified.
 #' \item{call}{the matched call}
-#' \item{coefficients}{a matrix with the outcome model's coefficient estimates, standard errors, t or z values, and p-values}#'
+#' \item{coefficients}{a matrix with the outcome model's coefficient estimates, standard errors, t or z values, and p-values}
 #'
 #' @export
 summary.coxph_ele <- function(object,...){

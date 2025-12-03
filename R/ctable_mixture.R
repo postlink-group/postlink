@@ -30,6 +30,13 @@
 #' \item{m.rate}{the mismatch rate assumed.}
 #' \item{call}{the matched call.}
 #'
+#' @note
+#' The reference below discusses the underlying methodology in more detail.
+#'
+#' @references Slawski, M., West, B. T., Bukke, P., Diao, G., Wang, Z., & Ben-David, E. (2023).
+#' A General Framework for Regression with Mismatched Data Based on Mixture Modeling.
+#' Under Review. < \doi{10.48550/arXiv.2306.00909} >\cr
+#'
 #' @export
 ctable_mixture <- function(formula, data = NULL, m.rate,
                            control = list(max.iter = 100, tol = 1E-4),...){

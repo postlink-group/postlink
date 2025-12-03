@@ -5,7 +5,7 @@
 #' @param digits the number of significant digits to print
 #' @param ... for additional print arguments
 #'
-#' @returns invisibly returns the `spling_mixture()` object
+#' @returns invisibly returns the `spline_mixture()` object
 #' that is provided as an argument
 #'
 #' @export

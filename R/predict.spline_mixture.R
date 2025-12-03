@@ -4,7 +4,7 @@
 #' @param x the result of a call to `spline_mixture()`
 #' @param ... for additional predict arguments
 #'
-#' @returns matrix of predictions w/ se and point-wise confidence bands
+#' @returns matrix of predictions w/ standard errors and point-wise confidence bands
 #'
 #' @export
 predict.spline_mixture <- function(x, newdata, se.fit = FALSE,

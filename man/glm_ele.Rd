@@ -58,7 +58,7 @@ The function currently supports Gaussian, gamma, Poisson, and logistic (binary)
 models. Block-wise mismatch rates are assumed to be known.
 }
 \note{
-The references below discuss the implemented framework in more detail.
+The reference below discusses the implemented framework in more detail.
 }
 \references{
 Chambers, R. (2009). Regression analysis of probability-linked data.\cr

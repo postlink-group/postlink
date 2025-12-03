@@ -16,7 +16,7 @@
 \value{
 a data frame with the upper and lower confidence limits for each
 cell probability. These limits are labelled as (1-level)/2 and
-1 - (1-level)/2 (e.g., 2.5% and 97.5% for level 0.95).
+1 - (1-level)/2 (e.g., 2.5\% and 97.5\% for level 0.95).
 }
 \description{
 Compute confidence intervals for the cell probabilities from the fitted model.

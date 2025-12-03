@@ -4,7 +4,7 @@
 #' @param x the result of a call to `spline_mixture()`
 #' @param ... for additional vcov arguments
 #'
-#' @returns variance-covariance matrix
+#' @returns Return the variance-covariance matrix.
 #'
 #' @export
 vcov.spline_mixture <- function(x,...){

@@ -14,7 +14,9 @@
 \item{...}{for additional confint arguments}
 }
 \value{
-a matrix with the confidence intervals
+a matrix with the upper and lower confidence limits for each
+outcome model coefficient. These limits are labelled as (1-level)/2 and
+1 - (1-level)/2 (e.g., 2.5\% and 97.5\% for level 0.95).
 }
 \description{
 Return confidence intervals for coefficients

@@ -14,7 +14,7 @@
 \item{...}{for additional print arguments}
 }
 \value{
-invisibly returns the `spling_mixture()` object
+invisibly returns the `spline_mixture()` object
 that is provided as an argument
 }
 \description{

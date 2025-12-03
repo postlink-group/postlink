@@ -12,7 +12,7 @@
 \item{...}{for additional vcov arguments}
 }
 \value{
-variance-covariance matrix
+Return the variance-covariance matrix.
 }
 \description{
 Extract the variance-covariance matrix

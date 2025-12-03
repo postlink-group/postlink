@@ -49,3 +49,11 @@ presence of mismatches, however, the relative frequencies in the table will be b
 fitting a mixture between a saturated model and an independence model. The mixture proportions for these models are
 "1 – m.rate" and "m.rate", respectively. The mismatch rate cannot be estimated but needs to be pre-specified.
 }
+\note{
+The reference below discusses the underlying methodology in more detail.
+}
+\references{
+Slawski, M., West, B. T., Bukke, P., Diao, G., Wang, Z., & Ben-David, E. (2023).
+A General Framework for Regression with Mismatched Data Based on Mixture Modeling.
+Under Review. < \doi{10.48550/arXiv.2306.00909} >\cr
+}
