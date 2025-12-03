@@ -14,6 +14,9 @@
 #' "log" for Poisson and Gamma, and "logit" for binomial).
 #' @param m.rate block-wise mismatch rates (should be a vector with length equal
 #' to the number of blocks) - by default assume a single block.
+#' @param audit.size a vector of block sizes in the audit sample (selected by
+#' simple random sampling) if used to estimate the m.rate (optional). If a
+#' single value is provided, assume the same value for all blocks and put out a warning.
 #' @param blocks block indicators.
 #' @param weight.matrix the type of weight matrix ("ratio-type",
 #' "Lahiri-Larsen", "BLUE", or "all" (default))
@@ -40,7 +43,8 @@
 #'
 #' @export
 glm_ele <- function(formula, data = NULL, family = "gaussian",
-                    m.rate, blocks, weight.matrix = "all",
+                    m.rate, audit.size = NULL,
+                    blocks, weight.matrix = "all",
                     control = list(init.beta = "default"),...){
 
  dcontrols <- list(...)
@@ -127,6 +131,10 @@ glm_ele <- function(formula, data = NULL, family = "gaussian",
   lambda <- rep(lambda, length(unique(blocks)))
  }
 
+ if(length(audit.size) == 1 && length(unique(blocks)) != 1){
+  audit.size <- rep(audit.size, length(unique(blocks)))
+ }
+
  # Efficient matrix calculation (to avoid materializing Eq)
  IEq.M <- function(M, lambda, blocks, type = "Eq"){
   nq <- as.numeric(tapply(y, INDEX = blocks, FUN = length))
@@ -192,6 +200,41 @@ glm_ele <- function(formula, data = NULL, family = "gaussian",
    Exp <- (lambda[blocks] - gamma[blocks])*v + (gamma[blocks])*vsum
   }
   return(Exp + Vq)
+ }
+
+ # Estimate G' Delta G when lambda is estimated from an audit sample
+ # Contribution to the variance
+ Delta_fun <- function(beta_hat, family, audit.size, Gq){
+  if(is.null(audit.size)){
+   return(matrix(0, ncol(Gq), ncol(Gq)))
+  }
+  fq <- fq_fun(family, beta_hat)$fq
+
+  # Efficient computation of residuals (f-fbar) per block
+  fqbar <- ave(fq, blocks)
+  r <- fq - fqbar
+
+  # Compute scalar factors k per block (M per block)
+  Mq_vec <- tapply(y, blocks, length)
+  M <- Mq_vec[match(blocks, names(Mq_vec))]
+
+  # Get audit size and lambda mapped to N
+  m <- audit.size[blocks]
+  lam <- lambda[blocks]
+
+  # k factor vector (constant within blocks)
+  # Delta ~ k * (r %*% t(r))
+  k <- (M/(M-1))^2 * lam * (1-lam) / m
+
+  # We need G' Delta G = sum_q k_q * (G_q' r_q) (G_q' r_q)'
+  Z <- sweep(Gq, 1, r, `*`) # Weight G rows by residuals r
+  U <- rowsum(Z, blocks)
+  k_unique <- tapply(k, blocks, FUN = function(x) x[1])
+  U_scaled <- sweep(U, 1, sqrt(k_unique), `*`)
+
+  # crossprod (U_scaled' U_scaled) equals sum_q (sqrt(k) G'r) (sqrt(k) G'r)'
+  # which equals sum_q k G' r r' G
+  return(crossprod(U_scaled))
  }
 
  # Define E(Y_q) = f_q(\beta)
@@ -260,8 +303,12 @@ glm_ele <- function(formula, data = NULL, family = "gaussian",
   # Obtain (sandwich-estimator) variance
   dH <- -res$jac
   Gq <- Gq_fun(family, wm, coef[i,])
+
   Vy <- Var_y(coef[i,], family)
-  Vh <- crossprod(sweep(Gq, MAR = 1, FUN = "*", STAT = sqrt(Vy)))
+  Vh_diag <- crossprod(sweep(Gq, MAR = 1, FUN = "*", STAT = sqrt(Vy))) # diagonal part (Sigma)
+  Vh_delta <- Delta_fun(coef[i,], family, audit.size, Gq) # Delta correction
+  Vh <- Vh_diag + Vh_delta
+
   covhat[[i]] <- solve(dH) %*% Vh %*% t(solve(dH))
   var[i,] <- diag(covhat[[i]])
  }
