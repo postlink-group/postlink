@@ -4,20 +4,46 @@
 \alias{predict.glm_ele}
 \title{Predictions From a `glm_ele` Object}
 \usage{
-\method{predict}{glm_ele}(object, newdata, type = c("response", "link"))
+\method{predict}{glm_ele}(
+  object,
+  newdata = NULL,
+  weight.matrix,
+  type = c("link", "response"),
+  se.fit = FALSE,
+  dispersion = NULL,
+  interval = c("none", "confidence"),
+  level = 0.95,
+  na.action = na.pass,
+  ...
+)
 }
 \arguments{
 \item{object}{the result of a call to `glm_ele()`}
 
 \item{newdata}{optional new data to obtain predictions for. The original data is used by default.}
 
+\item{weight.matrix}{the weight matrix of interest if multiple were used ("ratio-type",
+"Lahiri-Larsen", "BLUE"). By default, it is the one corresponding to the first row of the coefficients matrix.}
+
 \item{type}{the type of prediction. The choices are predictions on the scale
 of the linear predictors ("link") or response ("response").}
+
+\item{se.fit}{an indicator of whether standard errors are required (TRUE or FALSE)}
+
+\item{dispersion}{the dispersion to be assumed when computing standard errors.
+By default, it is the value returned in the fit object.}
+
+\item{interval}{type of interval calculation.}
+
+\item{level}{required confidence level if interval is set to "confidence".}
+
+\item{na.action}{a function for what to do with missing values in `newdata`.
+The default is to predict "NA".}
 
 \item{...}{for future predict arguments}
 }
 \value{
-a vector of predictions based on arguments specified.
+a vector or matrix of predictions based on arguments specified.
 }
 \description{
 Obtain predictions from a `glm_ele()` object.

@@ -34,7 +34,7 @@
 #' \item{df.residual}{the residual degrees of freedom}
 #'
 #' @note
-#' The references below discuss the implemented framework in more detail.
+#' The reference below discusses the implemented framework in more detail.
 #'
 #' @references Chambers, R. (2009). Regression analysis of probability-linked data.\cr
 #'
@@ -111,12 +111,12 @@ glm_ele <- function(formula, data = NULL, family = "gaussian",
   weight.matrix = c("ratio-type", "Lahiri-Larsen", "BLUE")
  }
  if(missing(blocks)){
-   blocks <- rep(1, n)
-   warning("'blocks' argument is missing - assuming there is a single block.")
+  blocks <- rep(1, n)
+  warning("'blocks' argument is missing - assuming there is a single block.")
  }
  na_rows <- attr(mf, "na.action")
  if(!is.null(na_rows) && length(blocks) == n + length(na_rows)){
-   blocks <- blocks[-na_rows]
+  blocks <- blocks[-na_rows]
  }
  if(length(blocks) != n){
   stop(("Error: 'blocks' does not have a length equal to the number of
@@ -230,7 +230,7 @@ glm_ele <- function(formula, data = NULL, family = "gaussian",
  blocks <- match(blocks, sort(unique(blocks)))
  # Obtain results based on specified "weight.matrix"
  if("BLUE" %in% weight.matrix){
-   weights.find <- unique(c(weight.matrix, "Lahiri-Larsen"))
+  weights.find <- unique(c(weight.matrix, "Lahiri-Larsen"))
  }
  all.weights <- c("ratio-type", "Lahiri-Larsen", "BLUE")
  weights.find <- all.weights[all.weights %in% weights.find]
@@ -240,30 +240,30 @@ glm_ele <- function(formula, data = NULL, family = "gaussian",
  var <- matrix(nr = nwm, nc = p, data = NA)
  covhat <- list()
  for (i in 1:nwm){
-   wm <- weights.find[i]
+  wm <- weights.find[i]
 
-   # Define bias-adjusted estimating equation
-   AEE_fun <- function(beta_est){
-     Gq <- Gq_fun(family, wm, beta_est)
-     fq <- fq_fun(family, beta_est)$fq
-     Eqfq <- IEq.M(fq, lambda, blocks)
-     return(crossprod(Gq, y) - crossprod(Gq, Eqfq))
-   }
+  # Define bias-adjusted estimating equation
+  AEE_fun <- function(beta_est){
+   Gq <- Gq_fun(family, wm, beta_est)
+   fq <- fq_fun(family, beta_est)$fq
+   Eqfq <- IEq.M(fq, lambda, blocks)
+   return(crossprod(Gq, y) - crossprod(Gq, Eqfq))
+  }
 
-   # Obtain coefficient estimates
-   if(wm == "BLUE"){
-     init.beta <- coef[which(weights.find == "Lahiri-Larsen"),]
-   }
-   res <- nleqslv(init.beta, AEE_fun, jacobian = TRUE)
-   coef[i,] <- res$x
+  # Obtain coefficient estimates
+  if(wm == "BLUE"){
+   init.beta <- coef[which(weights.find == "Lahiri-Larsen"),]
+  }
+  res <- nleqslv(init.beta, AEE_fun, jacobian = TRUE)
+  coef[i,] <- res$x
 
-   # Obtain (sandwich-estimator) variance
-   dH <- -res$jac
-   Gq <- Gq_fun(family, wm, coef[i,])
-   Vy <- Var_y(coef[i,], family)
-   Vh <- crossprod(sweep(Gq, MAR = 1, FUN = "*", STAT = sqrt(Vy)))
-   covhat[[i]] <- solve(dH) %*% Vh %*% t(solve(dH))
-   var[i,] <- diag(covhat[[i]])
+  # Obtain (sandwich-estimator) variance
+  dH <- -res$jac
+  Gq <- Gq_fun(family, wm, coef[i,])
+  Vy <- Var_y(coef[i,], family)
+  Vh <- crossprod(sweep(Gq, MAR = 1, FUN = "*", STAT = sqrt(Vy)))
+  covhat[[i]] <- solve(dH) %*% Vh %*% t(solve(dH))
+  var[i,] <- diag(covhat[[i]])
  }
 
  # Return results
@@ -284,16 +284,16 @@ glm_ele <- function(formula, data = NULL, family = "gaussian",
 
  nwm <- length(weight.matrix)
  if(family %in% c("gamma", "gaussian")){
-   output <- append(output, list(sapply(c(1:nwm),
-                                        function(i) sigma2(coef[i,], family)),
-                                 n - p - 1))
-   names(output)[[(length(output)-1)]] <- "dispersion"
-   names(output)[[(length(output))]] <- "df.residual"
-   names(output$dispersion) <- weight.matrix
+  output <- append(output, list(sapply(c(1:nwm),
+                                       function(i) sigma2(coef[i,], family)),
+                                n - p - 1))
+  names(output)[[(length(output)-1)]] <- "dispersion"
+  names(output)[[(length(output))]] <- "df.residual"
+  names(output$dispersion) <- weight.matrix
  }
- x <- append(output, match.call())
- names(x)[[length(x)]] <- "call"
+ output$call <- match.call()
+ output$model <- mf
 
- class(x) <- "glm_ele"
- x
+ class(output) <- "glm_ele"
+ output
 }
