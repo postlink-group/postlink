@@ -47,8 +47,11 @@ predict.glm_mixture <- function(object, newdata = NULL,
   }
 
   # obtain se.fit
-  X_data <- if(is.null(newdata)){model.matrix(glm_object)} else{
-    model.matrix(glm_object$formula, data = newdata)
+  if(is.null(newdata)){
+   X_data <- model.matrix(glm_object)
+   } else{
+   mf <- model.frame(glm_object$formula, data = newdata, na.action = na.action)
+   X_data <- model.matrix(glm_object$formula, data = mf)
   }
 
   ncoef <- length(object$coefficients)
