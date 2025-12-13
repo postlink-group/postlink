@@ -129,7 +129,7 @@ glm_mixture <- function(formula, data,
  if(missing(formula)){ stop("Error: a formula for the outcome model is required")}
  if(!inherits(formula, "formula")){ stop("Error: formula should be a formula object")}
 
- if(!missing(data) && (!is.data.frame(data) & !is.list(data))){
+if(!(missing(data) | is.null(data)) && (!is.data.frame(data) & !is.list(data))){
   stop("Error: data should be a data.frame or list")}
 
  family <- match.arg(family)
