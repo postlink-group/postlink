@@ -50,7 +50,7 @@ coxph_ele <- function(formula, data,
  if(!inherits(formula, "formula")){ stop("Error: formula should be
                                          a formula object")}
 
- if(!missing(data) && (!is.data.frame(data) & !is.list(data))){
+if(!(missing(data) | is.null(data)) && (!is.data.frame(data) & !is.list(data))){
   stop("Error: data should be a data.frame or list")}
 
  # Define Z, delta, and T based on formula and data (if provided)
