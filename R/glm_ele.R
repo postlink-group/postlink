@@ -114,9 +114,9 @@ if(!(missing(data) | is.null(data)) && (!is.data.frame(data) & !is.list(data))){
  if(length(weight.matrix) == 1 && weight.matrix == "all"){
   weight.matrix = c("ratio-type", "Lahiri-Larsen", "BLUE")
  }
- if(missing(blocks)){
+ if(missing(blocks) | is.null(blocks)){
   blocks <- rep(1, n)
-  warning("'blocks' argument is missing - assuming there is a single block.")
+  warning("'blocks' argument is missing or NULL - assuming a single block for all observations.")
  }
  na_rows <- attr(mf, "na.action")
  if(!is.null(na_rows) && length(blocks) == n + length(na_rows)){
