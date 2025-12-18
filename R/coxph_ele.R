@@ -96,13 +96,18 @@ if(!(missing(data) | is.null(data)) && (!is.data.frame(data) & !is.list(data))){
  }
 
  # Define a_nu and blocks
+ if(missing(blocks) | is.null(blocks)){
+  blocks <- rep(1, n)
+  warning("'blocks' argument is missing or NULL - assuming a single block for all observations.")
+ }
+ # TO-DO: handling NA values for observations
+ #na_rows <- attr(mf, "na.action")
+ #if(!is.null(na_rows) && length(blocks) == n + length(na_rows)){
+ # blocks <- blocks[-na_rows]
+ #}
  if(length(blocks) != n){
   stop(("Error: 'blocks' does not have a length equal to the number of
         observations."))
- }
- if(missing(blocks)){
-  blocks <- rep(1, n)
-  warning("'blocks' argument is missing - assuming there are no blocks.")
  }
  a_nu <- 1 - m.rate
  if(length(a_nu) == 1 && length(unique(blocks)) != 1){
