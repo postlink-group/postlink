@@ -174,7 +174,19 @@ with.glm_mixtureBayes <- function(object, data, formula = object,
   return(out)
 }
 
+#' Print a pooled MI object from `glm_mixtureBayes`
+#' @description
+#' Print pooled estimates (Rubin's rules) computed from multiple imputations
+#' induced by posterior linkage draws.
+#'
+#' @param x an object of class \code{mi_link_pool_glm}.
+#' @param digits the number of significant digits to print.
+#' @param ... for additional print arguments.
+#'
+#' @returns invisibly returns the \code{mi_link_pool_glm} object that is provided.
+#'
 #' @export
+
 print.mi_link_pool_glm <- function(x, digits = max(3L, getOption("digits") - 2L), ...){
   # Compact, human-friendly summary for console output.
   cat("Multiple Imputation (from linkage draws):\n")

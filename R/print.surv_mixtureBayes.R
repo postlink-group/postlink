@@ -1,9 +1,15 @@
-#' Print a brief summary of a surv_mixtureBayes model
+#' Print a `surv_mixtureBayes` Object
+#' @description
+#' Print the model call and posterior mean coefficients for component 1.
 #'
-#' @param x An object of class \code{surv_mixtureBayes}.
-#' @param digits Minimum number of significant digits to show.
-#' @param ... Further arguments (unused).
+#' @param x an object of class \code{surv_mixtureBayes}.
+#' @param digits the number of significant digits to print.
+#' @param ... for additional print arguments (unused).
+#'
+#' @returns invisibly returns the \code{surv_mixtureBayes} object that is provided.
+#'
 #' @export
+
 print.surv_mixtureBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
   cat("Call:\n")
   print(x$call, quote = FALSE)
