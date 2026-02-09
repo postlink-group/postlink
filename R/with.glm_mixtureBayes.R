@@ -50,8 +50,9 @@
 #' @export
 #' @importFrom stats coef vcov cov lm glm qt model.frame model.matrix
 
-with.glm_mixtureBayes <- function(object, data, formula = object,
+with.glm_mixtureBayes <- function(object, data, formula = NULL,
                                   family = object$family, min_n = NULL, quietly = TRUE) {
+
   # Extract the matrix of linkage indicators from the fitted model:
   z_samples <- object$m_samples
 
@@ -84,16 +85,16 @@ with.glm_mixtureBayes <- function(object, data, formula = object,
   # ---- Helper: fit once (LM for gaussian, GLM otherwise); return coef & vcov ---
   fit_once <- function(df) {
     if (inherits(family, "family") && family$family == "gaussian"){
-      fit <- lm(formula, data = df)
+      fit <- stats::lm(formula, data = df)
     } else {
-      fit <- glm(formula, data = df, family = family)
+      fit <- stats::glm(formula, data = df, family = family)
     }
     list(coef = stats::coef(fit), vcov = stats::vcov(fit))
   }
 
   # ---- Determine p and default min_n ------------------------------------------
-  mf <- model.frame(formula, data = data)
-  Xtmp <- model.matrix(formula, mf)
+  mf <- stats::model.frame(formula, data = data)
+  Xtmp <- stats::model.matrix(formula, mf)
   p <- ncol(Xtmp)
   if (is.null(min_n)) min_n <- p + 1L
 

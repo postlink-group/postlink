@@ -34,7 +34,19 @@
 #'   \code{iterations=2000}, \code{seed=123}.
 #'
 #' @details
-#' The model assumes two latent groups. For each observation, if $z_i=1$, the outcome follows the specified survival distribution with parameters $(\beta_1, \phi_1)$ or $(\beta_1, \text{shape}_1,\text{scale}_1)$; if $z_i=2$, it follows the distribution with $(\beta_2, \phi_2)$ or $(\beta_2, \text{shape}_2,\text{scale}_2)$. The mixture weight $\theta = P(z_i=1)$ is given a prior (default $\text{Beta}(1,1)$). Covariates enter the model through a linear predictor: for Gamma, $\mu_{j}(i) = \exp(X_i \beta_j)$ is the mean for component $j$ and shape $\phi_j$ defines variability; for Weibull, the scale parameter for component $j$ is modulated by $\exp(-X_i \beta_j)$ (accelerated failure time model form).
+#' The model assumes two latent groups. For each observation, if \eqn{z_i = 1},
+#' the outcome follows the specified survival distribution with parameters
+#' \eqn{(\beta_1, \phi_1)} (Gamma) or \eqn{(\beta_1, \mathrm{shape}_1, \mathrm{scale}_1)}
+#' (Weibull). If \eqn{z_i = 2}, it follows the distribution with
+#' \eqn{(\beta_2, \phi_2)} (Gamma) or \eqn{(\beta_2, \mathrm{shape}_2, \mathrm{scale}_2)}
+#' (Weibull). The mixture weight \eqn{\theta = P(z_i = 1)} is given a prior
+#' (default \eqn{\mathrm{Beta}(1,1)}).
+#'
+#' Covariates enter the model through a linear predictor. For Gamma,
+#' \eqn{\mu_{j}(i) = \exp(X_i^\top \beta_j)} is the mean for component \eqn{j} and
+#' the shape \eqn{\phi_j} controls variability. For Weibull, the scale parameter
+#' for component \eqn{j} is modulated by \eqn{\exp(-X_i^\top \beta_j)} (accelerated
+#' failure time model form).
 #'
 #' Internally, the function will:
 #' \enumerate{
@@ -139,7 +151,7 @@ if(missing(formula)){ stop("Error: a formula for the outcome
   }
   if(missing(data)) data <- list()  # model.frame will look in environment if data not provided
 
-  model_frame <- model.frame(formula, data = data)  # will drop NAs automatically
+  model_frame <- stats::model.frame(formula, data = data)  # will drop NAs automatically
   # Check that response is a survival object
   if (!survival::is.Surv(model_frame[[1]])) {
     stop("Error: the response must be a 'Surv' survival object (e.g. Surv(time, status)).")

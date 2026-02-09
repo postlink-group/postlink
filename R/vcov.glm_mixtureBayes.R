@@ -4,6 +4,6 @@
 #' @param ... Not used.
 #' @return Posterior covariance matrix of component 1's coefficient vector.
 #' @export
-vcov.glm_mixtureBayes <- function(object,...){
-  return(cov(object$estimates$coefficients))
+vcov.glm_mixtureBayes <- function(object, ...) {
+ stats::cov(object$estimates$coefficients)
 }

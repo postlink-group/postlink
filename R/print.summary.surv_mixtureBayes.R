@@ -19,7 +19,7 @@ print.summary.surv_mixtureBayes <- function(x, digits = max(3L, getOption("digit
   # Component 1 (usually correct matches in linkage context)
   cat("(For Correct Matches):\n")
   cat("Outcome Model Coefficients:\n")
-  printCoefmat(x$coefficients, digits = digits, signif.stars = FALSE)
+  stats::printCoefmat(x$coefficients, digits = digits, signif.stars = FALSE)
   cat("\n")
   if(x$family == "gamma") {
     cat("Shape parameter (component 1):\n")
@@ -34,7 +34,7 @@ print.summary.surv_mixtureBayes <- function(x, digits = max(3L, getOption("digit
   # Component 2 (mismatches)
   cat("(For Mismatches):\n")
   cat("Outcome Model Coefficients:\n")
-  printCoefmat(x$m.coefficients, digits = digits, signif.stars = FALSE)
+  stats::printCoefmat(x$m.coefficients, digits = digits, signif.stars = FALSE)
   cat("\n")
   if(x$family == "gamma") {
     cat("Shape parameter (component 2):\n")

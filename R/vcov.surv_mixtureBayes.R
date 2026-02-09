@@ -6,5 +6,5 @@
 #' @export
 vcov.surv_mixtureBayes <- function(object, ...) {
   coef_draws <- object$estimates$coefficients  # S x p (comp1 coefficients)
-  return(cov(coef_draws))
+  return(stats::cov(coef_draws))
 }

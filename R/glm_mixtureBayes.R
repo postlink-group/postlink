@@ -31,7 +31,7 @@
 #' \enumerate{
 #'   \item Validates inputs and merges user priors with weakly-informative defaults;
 #'   \item Constructs \code{X}, \code{y} via \code{model.frame} / \code{model.matrix};
-#'   \item Generates Stan code using \code{generate_stan(components, priors)};
+#'   \item Generates Stan code using \code{generate_stan(components, priors = priors)};
 #'   \item Calls \code{rstan::stan_model()} and \code{rstan::sampling()} (using a single MCMC chain by default to avoid label-switching issues);
 #'   \item Extracts posterior draws and performs label-switching adjustment:
 #'     a global majority swap if label 2 dominates, then
@@ -50,7 +50,7 @@
 #' }
 #'
 #' @section Label switching:
-#' We first perform an optional global swap (1\(\leftrightarrow\)2) if label 2
+#' We first perform an optional global swap \eqn{(1 \leftrightarrow 2)} if label 2
 #' is more frequent overall, then align per-draw labels using
 #' \code{ECR-ITERATIVE-1} permutations. Component-specific parameters are permuted
 #' accordingly (e.g., \code{beta1}/\code{beta2}, and \code{sigma}/\code{phi}).
@@ -106,25 +106,25 @@ glm_mixtureBayes <- function(formula, data, family = "gaussian", priors = NULL,
   seed <- ifelse("seed" %in% names(control),
                  control$seed, sample.int(.Machine$integer.max, 1))
  }
- 
+
  if ("cores" %in% names(dcontrols)){
   cores <- dcontrols$cores
  } else {
   cores <- ifelse("cores" %in% names(control),
                   control$cores, getOption("mc.cores", 1))
  }
- 
+
  if(missing(formula)){ stop("Error: a formula for the outcome
                             model is required")}
  if(!inherits(formula, "formula")){ stop("Error: formula should be
                                          a formula object")}
- 
- if(!missing(data) && (!is.data.frame(data) && !is.list(data))){ 
+
+ if(!missing(data) && (!is.data.frame(data) && !is.list(data))){
   stop("Error: data should be a data.frame or list")}
- 
+
  if(!(family %in% c("gaussian", "poisson", "binomial", "gamma"))){
   stop("Error: the family should be gaussian, poisson, binomial, or gamma")}
- 
+
   components <- rep(family, 2)
 
   # build priors (default+user)
@@ -135,11 +135,11 @@ glm_mixtureBayes <- function(formula, data, family = "gaussian", priors = NULL,
     stop("Data should have at least one predictor and one response variable.")
   }
   if(missing(data)){data <- list()}
- 
+
  # Handle the formula & prepare the data
-  model_frame <- model.frame(formula, data)
-  y <- model.response(model_frame)
-  X <- model.matrix(formula, model_frame)
+  model_frame <- stats::model.frame(formula, data)
+  y <- stats::model.response(model_frame)
+  X <- stats::model.matrix(formula, model_frame)
   if(anyNA(X) || anyNA(y)) stop("NA values found in data")
 
   # stan data
@@ -156,7 +156,7 @@ glm_mixtureBayes <- function(formula, data, family = "gaussian", priors = NULL,
   z_samples <- posterior$z            # get z-samples from fit
 
   ##### Label switching adjustment #####
-  
+
   # --- 0) Optional global pre-alignment by majority label -----------------------
   # If label 2 is globally more frequent than label 1 across all draws and units,
   # flip all z labels (1 <-> 2) AND swap the corresponding component-specific
@@ -169,10 +169,10 @@ glm_mixtureBayes <- function(formula, data, family = "gaussian", priors = NULL,
   total_labels <- length(z_samples)  # S * N
   if (is.finite(count_label2) && count_label2 > total_labels / 2) {
     message("Global label swap performed: label 2 dominates label 1.")
-    
+
     # Flip z: 1 -> 2, 2 -> 1
     z_samples <- structure(3L - z_samples, dim = dim(z_samples))
-    
+
     # Swap component-specific parameters inside `posterior` if they exist
     swap_if_present <- function(lst, a, b) {
       if (all(c(a, b) %in% names(lst))) {
@@ -186,17 +186,17 @@ glm_mixtureBayes <- function(formula, data, family = "gaussian", priors = NULL,
     posterior <- swap_if_present(posterior, "sigma1", "sigma2")  # gaussian
     posterior <- swap_if_present(posterior, "phi1",   "phi2")    # gamma
   }
-  
+
   # --- 1) Iterative ECR alignment of labels across MCMC draws -------------------
   ls_out <- label.switching::label.switching(
     method = "ECR-ITERATIVE-1",
     z      = z_samples,  # S x N matrix with labels in {1,2}
     K      = 2
   )
-  
+
   # S x 2 permutation per draw (row i is the permutation for draw i)
   perm <- ls_out$permutations[["ECR-ITERATIVE-1"]]
-  
+
   # Map z by the inverse permutation for each draw
   map_z <- function(z, perm) {
     if (!is.matrix(z)) stop("`z` must be an S x N matrix.")
@@ -212,12 +212,12 @@ glm_mixtureBayes <- function(formula, data, family = "gaussian", priors = NULL,
     z
   }
   z_samples <- map_z(z_samples, perm)
-  
+
   # --- 2) Helper to permute paired component-specific parameters ----------------
   perm_pair <- function(a1, a2, perm){
     # a1, a2: numeric vector (length S) OR numeric matrix (S x p)
     if (!is.numeric(a1) || !is.numeric(a2)) stop("Inputs must be numeric.")
-    
+
     # Normalize to S x p matrices
     if (length(dim(a1)) == 1L) {  # vector size
       S <- length(a1); p <- 1L
@@ -234,36 +234,36 @@ glm_mixtureBayes <- function(formula, data, family = "gaussian", priors = NULL,
     if (!is.matrix(perm) || nrow(perm) != S || ncol(perm) != 2L) {
       stop("`perm` must be an S x 2 matrix (one permutation per draw).")
     }
-    
+
     # Stack to S x 2 x p, then apply permutations per draw
     arr <- array(NA_real_, dim = c(S, 2L, p))
     arr[, 1L, ] <- A1
     arr[, 2L, ] <- A2
     arrp <- label.switching::permute.mcmc(arr, permutations = perm)[[1]]
-    
+
     # If p == 1, permute.mcmc may return S x 2 (drop dims). Handle both cases.
     if (length(dim(arrp)) == 2L) {  # S x 2
       out1 <- as.numeric(arrp[, 1L])
       out2 <- as.numeric(arrp[, 2L])
       return(list(`1` = out1, `2` = out2))
     }
-    
+
     # Otherwise S x 2 x p
     out1 <- array(arrp[, 1L, , drop = FALSE], dim = c(S, p))
     out2 <- array(arrp[, 2L, , drop = FALSE], dim = c(S, p))
     if (p == 1L) { out1 <- as.numeric(out1); out2 <- as.numeric(out2) }
     list(`1` = out1, `2` = out2)
   }
-  
+
   # --- 3) Apply permutations to component-specific parameters -------------------
   # Extract then permute to match the ECR-aligned labels (per-draw permutations)
   beta1.p <- posterior$beta1          # S x p
   beta2.p <- posterior$beta2          # S x p
-  
+
   tmp <- perm_pair(beta1.p, beta2.p, perm)
   beta1.p <- tmp[[1]]
   beta2.p <- tmp[[2]]
-  
+
   if (family == "gamma") {
     phi1.p <- posterior$phi1          # S (or S x p if modeled that way)
     phi2.p <- posterior$phi2
@@ -271,7 +271,7 @@ glm_mixtureBayes <- function(formula, data, family = "gaussian", priors = NULL,
     phi1.p <- tmp[[1]]
     phi2.p <- tmp[[2]]
   }
-  
+
   if (family == "gaussian") {
     sigma1.p <- posterior$sigma1      # S (or S x p if modeled that way)
     sigma2.p <- posterior$sigma2
@@ -279,12 +279,12 @@ glm_mixtureBayes <- function(formula, data, family = "gaussian", priors = NULL,
     sigma1.p <- tmp[[1]]
     sigma2.p <- tmp[[2]]
   }
-  
- 
+
+
   if (is.null(posterior$z) || is.null(posterior$beta1) || is.null(posterior$beta2)) {
     stop("Error: Missing expected parameters in posterior")
   }
-  
+
   # Calculate statistics --------
   terms <- all.vars(formula[-2])
   if(ncol(beta1.p) > length(terms)){
@@ -294,7 +294,7 @@ glm_mixtureBayes <- function(formula, data, family = "gaussian", priors = NULL,
     colnames(beta1.p) <- terms
     colnames(beta2.p) <- terms
   }
-  
+
   x <- list(m_samples = z_samples,
             estimates = list(coefficients = beta1.p,
                              m.coefficients = beta2.p))
@@ -306,9 +306,9 @@ glm_mixtureBayes <- function(formula, data, family = "gaussian", priors = NULL,
     x$estimates$dispersion <- sigma1.p^2
     x$estimates$m.dispersion <- sigma2.p^2
   }
-  
+
   x <- c(x, family = family, call = match.call())
-  
+
   class(x) <- "glm_mixtureBayes"
   return(x)
 }

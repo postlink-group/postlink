@@ -142,9 +142,18 @@ with.surv_mixtureBayes <- function(object, data, formula = object$call$formula, 
 
 #' Print method for mi_link_pool objects
 #'
+#' @description
+#' Print pooled coefficient estimates from multiple-imputation pooling
+#' based on posterior linkage draws.
+#'
+#' @param x An object of class \code{mi_link_pool}.
+#' @param ... Additional arguments passed to \code{stats::printCoefmat()}.
+#'
+#' @returns Invisibly returns \code{x}.
+#'
 #' @export
 print.mi_link_pool <- function(x, ...) {
   cat("Pooled survival mixture model coefficients:\n")
   mat <- as.matrix(x$pooled)
-  printCoefmat(mat, P.values = FALSE, has.Pvalue = FALSE, signif.stars = FALSE, ...)
+  stats::printCoefmat(mat, P.values = FALSE, has.Pvalue = FALSE, signif.stars = FALSE, ...)
 }
