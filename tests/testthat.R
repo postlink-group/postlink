@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(PLDA)
+library(postlink)
 
-test_check("PLDA")
+test_check("postlink")

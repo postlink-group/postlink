@@ -1,0 +1,341 @@
+# NOTE:
+# This file depends on helpers defined in:
+#   - mixture_bayeshelpers.R         (fill_defaults, get_stan_definitions, ...)
+#   - mixture_bayessurvreg_helpers.R (generate_stan_surv, .normalize_surv_y, .validate_survreg_dist)
+# These helpers must be collated/loaded before this file.
+
+#' Bayesian Two-Component Mixture Survival Regression (with label-switching adjustment)
+#'
+#' Fit a two-component Bayesian parametric survival regression model in Stan
+#' with component distributions \code{"gamma"} or \code{"weibull"} (both components
+#' share the same family). Right-censored data are supported.
+#'
+#' This implementation function assumes upstream wrappers have already handled the
+#' formula/data interface and produced a design matrix \code{X} and survival response \code{y}.
+#'
+#' The function builds Stan code, compiles, samples, and then applies a
+#' label-switching correction (global majority swap + ECR-ITERATIVE-1) to align
+#' component labels across MCMC draws.
+#'
+#' @param X A numeric design matrix (N x K), typically from \code{model.matrix()}
+#'   upstream. Missing values are not allowed.
+#' @param y A survival response. Either a two-column numeric matrix with columns
+#'   \code{time} and \code{event} (event indicator 1=event, 0=censored), or a list with
+#'   elements \code{time} and \code{event}. Missing values are not allowed.
+#' @param dist One of \code{"gamma"} or \code{"weibull"}. Controls the component-specific
+#'   likelihood.
+#' @param priors A named \code{list} (or \code{NULL}) of prior specifications used
+#'   by the Stan generator. Any missing entries are filled by
+#'   \code{fill_defaults(priors, p_family = dist, model_type = "survival")}.
+#' @param control A named \code{list} of tuning parameters with defaults:
+#'   \itemize{
+#'     \item \code{iterations} (default \code{1e4}) total iterations per chain;
+#'     \item \code{burnin.iterations} (default \code{1e3}) warm-up iterations;
+#'     \item \code{seed} (default random integer);
+#'     \item \code{cores} (default \code{getOption("mc.cores", 1L)}).
+#'   }
+#'   Values in \code{...} override \code{control}.
+#' @param ... Optional overrides for elements in \code{control}, e.g.
+#'   \code{iterations = 4000}, \code{burnin.iterations = 1000}, \code{seed = 123},
+#'   \code{cores = 2}.
+#'
+#' @return An object of class \code{"survMixBayes"} containing (at least):
+#' \describe{
+#'   \item{\code{m_samples}}{Aligned \eqn{z} label matrix (S x N).}
+#'   \item{\code{estimates$coefficients}}{Component 1 coefficient draws (S x K).}
+#'   \item{\code{estimates$m.coefficients}}{Component 2 coefficient draws (S x K).}
+#'   \item{\code{estimates$theta}}{Mixing weight draws for component 1 (length S).}
+#'   \item{\code{estimates$shape}}{Component-specific shape draws (family-specific).}
+#'   \item{\code{estimates$m.shape}}{Component-specific shape draws for component 2 (family-specific).}
+#'   \item{\code{estimates$scale}}{Component-specific scale draws (Weibull only).}
+#'   \item{\code{estimates$m.scale}}{Component-specific scale draws for component 2 (Weibull only).}
+#'   \item{\code{family}}{The survival family string.}
+#'   \item{\code{call}}{The matched call.}
+#' }
+#'
+#' @section Label switching:
+#' We first perform an optional global swap \eqn{(1 \leftrightarrow 2)} if label 2
+#' is more frequent overall, then align per-draw labels using
+#' \code{ECR-ITERATIVE-1} permutations. Component-specific parameters are permuted
+#' accordingly (e.g., \code{beta1}/\code{beta2}, \code{phi}/\code{shape}/\code{scale}, and \code{theta}).
+#'
+#' @keywords internal
+#' @export
+#' @importFrom rstan stan_model sampling
+#' @import label.switching
+survregMixBayes <- function(X, y, dist = "weibull", priors = NULL,
+                            control = list(iterations = 1e4,
+                                           burnin.iterations = 1e3,
+                                           seed = sample.int(.Machine$integer.max, 1),
+                                           cores = getOption("mc.cores", 1L)),
+                            ...) {
+
+  dcontrols <- list(...)
+  iterations <- if ("iterations" %in% names(dcontrols)) {
+    dcontrols$iterations
+  } else if ("iterations" %in% names(control)) {
+    control$iterations
+  } else {
+    1e4
+  }
+
+  burnin.iterations <- if ("burnin.iterations" %in% names(dcontrols)) {
+    dcontrols$burnin.iterations
+  } else if ("burnin.iterations" %in% names(control)) {
+    control$burnin.iterations
+  } else {
+    1e3
+  }
+
+  seed <- if ("seed" %in% names(dcontrols)) {
+    dcontrols$seed
+  } else if ("seed" %in% names(control)) {
+    control$seed
+  } else {
+    sample.int(.Machine$integer.max, 1)
+  }
+
+  cores <- if ("cores" %in% names(dcontrols)) {
+    dcontrols$cores
+  } else if ("cores" %in% names(control)) {
+    control$cores
+  } else {
+    getOption("mc.cores", 1L)
+  }
+
+  dist <- .validate_survreg_dist(dist)
+  if (!(dist %in% c("gamma", "weibull"))) {
+    stop("Error: `dist` must be 'gamma' or 'weibull'.", call. = FALSE)
+  }
+
+  # Minimal input checks (formula/data checks handled upstream)
+  if (!is.matrix(X) || !is.numeric(X)) stop("`X` must be a numeric matrix.", call. = FALSE)
+  if (anyNA(X)) stop("NA values found in X.", call. = FALSE)
+
+  yn <- .normalize_surv_y(y)
+  time <- yn$time
+  event <- yn$event
+  if (length(time) != nrow(X)) stop("`y` must have length nrow(X).", call. = FALSE)
+  if (anyNA(time) || anyNA(event)) stop("NA values found in y.", call. = FALSE)
+
+  components <- rep(dist, 2L)
+
+  # build priors (default + user overrides)
+  priors <- fill_defaults(priors, p_family = dist, model_type = "survival")
+
+  stan_data <- list(N = nrow(X), K = ncol(X), X = X, time = as.vector(time), event = as.integer(event))
+
+  # compile & sample
+  model_code <- generate_stan_surv(components, priors = priors)
+  sm <- rstan::stan_model(model_code = model_code)
+  fit <- rstan::sampling(
+    sm,
+    data   = stan_data,
+    iter   = iterations,
+    warmup = burnin.iterations,
+    chains = 1,
+    seed   = seed,
+    cores  = cores
+  )
+
+  posterior <- rstan::extract(fit)
+  z_samples <- posterior$z
+
+  ##### Label switching adjustment #####
+
+  # --- 0) Optional global pre-alignment by majority label -----------------------
+  count_label2 <- sum(z_samples == 2L, na.rm = TRUE)
+  total_labels <- length(z_samples)  # S * N
+  if (is.finite(count_label2) && count_label2 > total_labels / 2) {
+    message("Global label swap performed: label 2 dominates label 1.")
+
+    # Flip z: 1 -> 2, 2 -> 1
+    z_samples <- structure(3L - z_samples, dim = dim(z_samples))
+
+    # Swap component-specific parameters inside `posterior` if they exist
+    swap_if_present <- function(lst, a, b) {
+      if (all(c(a, b) %in% names(lst))) {
+        tmp <- lst[[a]]
+        lst[[a]] <- lst[[b]]
+        lst[[b]] <- tmp
+      }
+      lst
+    }
+    posterior <- swap_if_present(posterior, "beta1", "beta2")
+    posterior <- swap_if_present(posterior, "phi1",  "phi2")     # gamma
+    posterior <- swap_if_present(posterior, "shape1","shape2")   # weibull
+    posterior <- swap_if_present(posterior, "scale1","scale2")   # weibull
+
+    if ("theta" %in% names(posterior)) posterior$theta <- 1 - posterior$theta
+  }
+
+  # --- 1) Iterative ECR alignment of labels across MCMC draws -------------------
+  ls_out <- label.switching::label.switching(
+    method = "ECR-ITERATIVE-1",
+    z      = z_samples,
+    K      = 2
+  )
+  perm <- ls_out$permutations[["ECR-ITERATIVE-1"]]
+
+  # Map z by the inverse permutation for each draw
+  map_z <- function(z, perm) {
+    if (!is.matrix(z)) stop("`z` must be an S x N matrix.", call. = FALSE)
+    S <- nrow(z); K <- ncol(perm)
+    if (K != 2L || nrow(perm) != S) stop("`perm` must be an S x 2 matrix of permutations.", call. = FALSE)
+    for (i in seq_len(S)) {
+      inv <- integer(K)
+      inv[perm[i, ]] <- seq_len(K)
+      z[i, ] <- inv[z[i, ]]
+    }
+    z
+  }
+  z_samples <- map_z(z_samples, perm)
+
+  # Helper to permute paired component-specific parameters
+  perm_pair <- function(a1, a2, perm) {
+    if (!is.numeric(a1) || !is.numeric(a2)) stop("Inputs must be numeric.", call. = FALSE)
+
+    if (is.null(dim(a1))) {
+      S <- length(a1); p <- 1L
+      A1 <- matrix(a1, ncol = 1L)
+      A2 <- matrix(a2, ncol = 1L)
+    } else {
+      S <- nrow(a1); p <- ncol(a1)
+      A1 <- a1; A2 <- a2
+    }
+    if (!identical(dim(A1), dim(A2))) stop("Shapes differ between component parameters.", call. = FALSE)
+    if (!is.matrix(perm) || nrow(perm) != S || ncol(perm) != 2L) {
+      stop("`perm` must be an S x 2 matrix (one permutation per draw).", call. = FALSE)
+    }
+
+    arr <- array(NA_real_, dim = c(S, 2L, p))
+    arr[, 1L, ] <- A1
+    arr[, 2L, ] <- A2
+    arrp <- label.switching::permute.mcmc(arr, permutations = perm)[[1]]
+
+    if (is.null(dim(arrp)) || length(dim(arrp)) == 2L) {
+      out1 <- as.numeric(arrp[, 1L])
+      out2 <- as.numeric(arrp[, 2L])
+      return(list(`1` = out1, `2` = out2))
+    }
+
+    out1 <- array(arrp[, 1L, , drop = FALSE], dim = c(S, p))
+    out2 <- array(arrp[, 2L, , drop = FALSE], dim = c(S, p))
+    if (p == 1L) { out1 <- as.numeric(out1); out2 <- as.numeric(out2) }
+    list(`1` = out1, `2` = out2)
+  }
+
+  if (is.null(posterior$z) || is.null(posterior$beta1) || is.null(posterior$beta2) || is.null(posterior$theta)) {
+    stop("Missing expected parameters in posterior", call. = FALSE)
+  }
+
+  beta1.p <- posterior$beta1
+  beta2.p <- posterior$beta2
+  tmp <- perm_pair(beta1.p, beta2.p, perm)
+  beta1.p <- tmp[[1]]
+  beta2.p <- tmp[[2]]
+
+  # theta: if draw perm swaps, theta -> 1-theta
+  theta.p <- posterior$theta
+  if (!is.numeric(theta.p)) stop("Expected theta draws.", call. = FALSE)
+  if (length(theta.p) != nrow(z_samples)) stop("Theta draws length mismatch.", call. = FALSE)
+  swap_draw <- perm[,1L] == 2L
+  theta.p[swap_draw] <- 1 - theta.p[swap_draw]
+
+  est <- list(
+    coefficients   = beta1.p,
+    m.coefficients = beta2.p,
+    theta          = theta.p
+  )
+
+  if (dist == "gamma") {
+    tmp <- perm_pair(posterior$phi1, posterior$phi2, perm)
+    est$shape   <- tmp[[1]]
+    est$m.shape <- tmp[[2]]
+  }
+
+  if (dist == "weibull") {
+    tmp <- perm_pair(posterior$shape1, posterior$shape2, perm)
+    est$shape   <- tmp[[1]]
+    est$m.shape <- tmp[[2]]
+    tmp <- perm_pair(posterior$scale1, posterior$scale2, perm)
+    est$scale   <- tmp[[1]]
+    est$m.scale <- tmp[[2]]
+  }
+
+  # Set coefficient names from X if available
+  cn <- colnames(X)
+  if (!is.null(cn) && is.matrix(beta1.p) && ncol(beta1.p) == length(cn)) {
+    colnames(beta1.p) <- cn
+    colnames(beta2.p) <- cn
+  }
+
+  out <- list(
+    m_samples = z_samples,
+    estimates = est,
+    family = dist,
+    dist = dist,
+    call = match.call()
+  )
+
+  class(out) <- "survMixBayes"
+  out
+}
+
+# ------------------------------------------------------------------------------
+# S3 dispatch method for the postlink internal generic fitsurvreg()
+# ------------------------------------------------------------------------------
+#' @keywords internal
+#' @noRd
+fitsurvreg.adjMixBayes <- function(x, y, dist, adjustment, control, ...) {
+
+  full_data <- adjustment$data_ref$data
+  if (is.null(full_data)) {
+    stop("The 'adjustment' object does not contain linked data. ",
+         "Please recreate the object with 'linked.data' provided.", call. = FALSE)
+  }
+
+  subset_names <- rownames(x)
+
+  if (is.null(subset_names)) {
+    if (nrow(x) != nrow(full_data)) {
+      stop("Row mismatch: Model matrix 'x' has no row names and its length (", nrow(x),
+           ") differs from the adjustment data (", nrow(full_data), "). ",
+           "Ensure 'linked.data' matches the data passed to the upstream wrapper.", call. = FALSE)
+    }
+  } else {
+    idx_map <- match(subset_names, rownames(full_data))
+    if (anyNA(idx_map)) {
+      stop("Row mismatch: Some observations in the model matrix could not be matched ",
+           "to the adjustment data. This usually happens if the upstream 'data' ",
+           "differs from the data used to create the adjustment object.", call. = FALSE)
+    }
+  }
+
+  if (anyNA(x) || anyNA(y)) {
+    stop("NA values found in x or y. Upstream wrapper should remove missingness.", call. = FALSE)
+  }
+
+  dots <- list(...)
+  priors <- NULL
+  if ("priors" %in% names(dots)) {
+    priors <- dots$priors
+    dots$priors <- NULL
+  } else if (!is.null(control) && is.list(control) && "priors" %in% names(control)) {
+    priors <- control$priors
+  }
+
+  fit <- do.call(
+    survregMixBayes,
+    c(
+      list(X = x, y = y, dist = dist, priors = priors, control = control),
+      dots
+    )
+  )
+
+  fit$adjustment <- adjustment
+  fit$call <- match.call()
+  if (!is.null(subset_names)) fit$obs_names <- subset_names
+
+  fit
+}

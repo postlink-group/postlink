@@ -35,61 +35,61 @@ vcov.glmMixture <- function(object, ...) {
 #' @export
 confint.glmMixture <- function(object, parm, level = 0.95, ...) {
  cf <- c(object$coefficients, object$m.coefficients)
- 
+
  # If dispersion is in the covariance matrix (Gaussian/Gamma), include it in the vector for alignment
  vc <- object$var
  all_names <- rownames(vc)
- 
+
  # Construct a full parameter vector matching the vcov matrix structure
  # We extract estimates directly from the vcov names to ensure alignment
  # (Since object$coefficients and m.coefficients are separated)
- 
+
  # Identify indices
  p <- length(object$coefficients)
  beta_idx <- 1:p
- 
+
  # Check for dispersion/shape in vcov
  has_dispersion <- object$family$family %in% c("gaussian", "Gamma")
  disp_idx <- if (has_dispersion) p + 1 else integer(0)
- 
+
  # Gamma indices
  m_coef_len <- length(object$m.coefficients)
  gamma_start <- if (has_dispersion) p + 2 else p + 1
  gamma_idx <- if (m_coef_len > 0) seq(gamma_start, length.out = m_coef_len) else integer(0)
- 
+
  # Flatten coefficients to match vcov order
  est_vec <- numeric(nrow(vc))
  names(est_vec) <- rownames(vc)
- 
+
  est_vec[beta_idx] <- object$coefficients
  if (has_dispersion) est_vec[disp_idx] <- object$dispersion
  if (m_coef_len > 0) est_vec[gamma_idx] <- object$m.coefficients
- 
+
  pnames <- names(est_vec)
- 
+
  if (missing(parm)) {
   parm <- pnames
  } else if (is.numeric(parm)) {
   parm <- pnames[parm]
  }
- 
+
  # Select critical value
  a <- (1 - level) / 2
  a <- c(a, 1 - a)
- 
+
  if (object$family$family %in% c("gaussian", "Gamma")) {
   crit <- stats::qt(1 - (1 - level) / 2, df = object$df.residual)
  } else {
   crit <- stats::qnorm(1 - (1 - level) / 2)
  }
- 
+
  pct <- paste(format(100 * a, trim = TRUE, scientific = FALSE, digits = 3), "%")
  ci <- array(NA, dim = c(length(parm), 2), dimnames = list(parm, pct))
- 
+
  ses <- sqrt(diag(vc))
- 
+
  ci[] <- est_vec[parm] + ses[parm] %o% c(-crit, crit)
- 
+
  return(ci)
 }
 
@@ -130,15 +130,15 @@ predict.glmMixture <- function(object, newdata = NULL,
                                na.action = stats::na.pass,
                                ...) {
  type <- match.arg(type)
- 
+
  # Prediction on Original Data
  if (is.null(newdata)) {
   pred <- switch(type,
                  link = object$linear.predictors,
                  response = object$fitted.values)
-  
+
   if (!se.fit) return(pred)
-  
+
   # Calculate SE for original data
   # We need the original X matrix. If plglm(x=TRUE) was not used, we might not have it.
   # We check object$x.
@@ -156,42 +156,42 @@ predict.glmMixture <- function(object, newdata = NULL,
   # Ensure terms are available
   tt <- terms(object)
   if (is.null(tt)) stop("Model terms not found in object.")
-  
+
   # Remove response variable from terms
   tt <- stats::delete.response(tt)
-  
+
   # Create model frame and design matrix
   m <- stats::model.frame(tt, data = newdata, na.action = na.action)
   X <- stats::model.matrix(tt, m)
-  
+
   # Compute Linear Predictor (X * Beta)
   # Note: object$coefficients contains only Beta (Outcome Model)
   beta <- object$coefficients
-  
+
   # Safety check for dimension match
   if (ncol(X) != length(beta)) {
    stop("Dimension mismatch: 'newdata' design matrix does not match coefficients.")
   }
-  
+
   predictor <- as.vector(X %*% beta)
-  
+
   pred <- switch(type,
                  link = predictor,
                  response = object$family$linkinv(predictor))
  }
- 
+
  # Standard Errors
  if (se.fit) {
   # Extract variance submatrix for Beta only
   # The first 'rank' rows/cols correspond to Beta in object$var
   p <- length(object$coefficients)
   cov_beta <- object$var[1:p, 1:p, drop = FALSE]
-  
+
   # SE = sqrt(diag(X %*% Sigma %*% t(X)))
   # Efficient computation: sqrt(rowSums((X %*% Sigma) * X))
   var_pred <- rowSums((X %*% cov_beta) * X)
   se <- sqrt(var_pred)
-  
+
   # Transform SE for response scale using delta method: SE_resp = SE_link * |d(linkinv)/d(eta)|
   if (type == "response") {
    # For GLMs, d(mu)/d(eta) is stored in family$mu.eta
@@ -199,12 +199,12 @@ predict.glmMixture <- function(object, newdata = NULL,
    eta <- if (is.null(newdata)) object$linear.predictors else predictor
    se <- se * abs(mu.eta(eta))
   }
-  
+
   return(list(fit = pred,
               se.fit = se,
               residual.scale = sqrt(object$dispersion)))
  }
- 
+
  return(pred)
 }
 
@@ -216,23 +216,23 @@ predict.glmMixture <- function(object, newdata = NULL,
 #' @export
 print.glmMixture <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
  cat("\nCall:  ", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n\n", sep = "")
- 
+
  cat("Coefficients (Outcome Model):\n")
  print.default(format(x$coefficients, digits = digits), print.gap = 2L, quote = FALSE)
- 
+
  if (length(x$m.coefficients) > 0) {
   cat("\nCoefficients (Mismatch Model):\n")
   print.default(format(x$m.coefficients, digits = digits), print.gap = 2L, quote = FALSE)
  }
- 
+
  cat("\nDegrees of Freedom:", x$df.null, "Total (i.e. Null); ", x$df.residual, "Residual\n")
  cat("Null Deviance:	    ", format(signif(x$null.deviance, digits)), "\n")
  cat("Residual Deviance: ", format(signif(x$deviance, digits)), "\n")
- 
+
  if (!is.null(x$dispersion) && x$family$family %in% c("gaussian", "Gamma")) {
   cat("Dispersion parameter estimate: ", format(signif(x$dispersion, digits)), "\n")
  }
- 
+
  cat("\n")
  invisible(x)
 }
@@ -258,26 +258,26 @@ print.glmMixture <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 #'
 #' @export
 summary.glmMixture <- function(object, dispersion = NULL, ...) {
- 
+
  # Setup
  p <- length(object$coefficients)
  m_p <- length(object$m.coefficients)
- 
+
  # Calculate Standard Errors
  vc <- object$var
  std_errs <- sqrt(diag(vc))
- 
+
  # Calculate Residual Summary Statistics
  # We compute this here because the summary object shouldn't carry the full residual vector
- resid_summary <- stats::quantile(object$residuals, 
-                                  probs = c(0, 0.25, 0.5, 0.75, 1), 
+ resid_summary <- stats::quantile(object$residuals,
+                                  probs = c(0, 0.25, 0.5, 0.75, 1),
                                   na.rm = TRUE)
  names(resid_summary) <- c("Min", "1Q", "Median", "3Q", "Max")
- 
+
  # Outcome Model Table
  beta_se <- std_errs[1:p]
  beta_est <- object$coefficients
- 
+
  if (object$family$family %in% c("gaussian", "Gamma")) {
   t_val <- beta_est / beta_se
   p_val <- 2 * stats::pt(-abs(t_val), df = object$df.residual)
@@ -294,7 +294,7 @@ summary.glmMixture <- function(object, dispersion = NULL, ...) {
                     `Pr(>|z|)` = p_val)
  }
  rownames(coef_mat) <- names(object$coefficients)
- 
+
  # Mismatch Model Table
  m_coef_mat <- NULL
  if (m_p > 0) {
@@ -303,25 +303,25 @@ summary.glmMixture <- function(object, dispersion = NULL, ...) {
   # Offset = p (beta) + (1 if dispersion estimated)
   has_disp <- object$family$family %in% c("gaussian", "Gamma")
   offset <- p + (if (has_disp) 1 else 0)
-  
+
   m_est <- object$m.coefficients
   m_se <- std_errs[(offset + 1):(offset + m_p)]
-  
+
   z_val_m <- m_est / m_se
   p_val_m <- 2 * stats::pnorm(-abs(z_val_m)) # Mismatch model usually asymptotic/Wald
-  
+
   m_coef_mat <- cbind(Estimate = m_est,
                       `Std. Error` = m_se,
                       `z value` = z_val_m,
                       `Pr(>|z|)` = p_val_m)
   rownames(m_coef_mat) <- names(object$m.coefficients)
  }
- 
+
  # Dispersion
  if (is.null(dispersion)) {
   dispersion <- object$dispersion
  }
- 
+
  res <- list(call = object$call,
              family = object$family,
              deviance = object$deviance,
@@ -335,7 +335,7 @@ summary.glmMixture <- function(object, dispersion = NULL, ...) {
              cov.unscaled = object$var,
              match.prob = object$match.prob,
              resid.summary = resid_summary)
- 
+
  class(res) <- "summary.glmMixture"
  return(res)
 }
@@ -343,9 +343,9 @@ summary.glmMixture <- function(object, dispersion = NULL, ...) {
 #' @export
 print.summary.glmMixture <- function(x, digits = max(3L, getOption("digits") - 3L),
                                      signif.stars = getOption("show.signif.stars"), ...) {
- 
+
  cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
- 
+
  cat("\nDeviance Residuals: \n")
  if (x$df.residual > 5) {
   print.default(format(x$resid.summary, digits = digits), print.gap = 2L, quote = FALSE)
@@ -353,35 +353,35 @@ print.summary.glmMixture <- function(x, digits = max(3L, getOption("digits") - 3
   cat("ALL", x$df.residual, "residuals:\n")
   print.default(x$residuals, digits = digits)
  }
- 
+
  cat("\nOutcome Model Coefficients:\n")
  stats::printCoefmat(x$coefficients, digits = digits, signif.stars = signif.stars,
                      na.print = "NA", ...)
- 
+
  if (!is.null(x$m.coefficients)) {
   cat("\nMismatch Model Coefficients:\n")
   stats::printCoefmat(x$m.coefficients, digits = digits, signif.stars = signif.stars,
                       na.print = "NA", ...)
  }
- 
+
  if (x$family$family %in% c("gaussian", "Gamma")) {
   cat("\n(Dispersion parameter for ", x$family$family, " family taken to be ",
       format(x$dispersion, digits = digits), ")\n\n", sep = "")
  } else {
   cat("\n(Dispersion parameter for ", x$family$family, " family taken to be 1)\n\n", sep = "")
  }
- 
- # Null/Residual deviance 
+
+ # Null/Residual deviance
  cat("    Null deviance:", format(x$null.deviance, digits = digits),
      " on", x$df.null, " degrees of freedom\n")
  cat("Residual deviance:", format(x$deviance, digits = digits),
      " on", x$df.residual, " degrees of freedom\n")
- 
+
  # Average Posterior Match Probability
  if (!is.null(x$match.prob)) {
   cat("Average Correct Match Probability:", format(mean(x$match.prob), digits = digits), "\n")
  }
- 
+
  cat("\n")
  invisible(x)
 }

@@ -1,69 +1,253 @@
-#' Generate Stan code for two-component GLM mixtures
+#' Bayesian Mixture Helpers (Stan generation + priors)
 #'
-#' Build a complete Stan program (as a single character string) for a
-#' two-component mixture model with one of the supported GLM families:
-#' \code{"gaussian"}, \code{"poisson"}, \code{"gamma"}, or \code{"binomial"}.
-#' The function stitches together family-specific Stan blocks and injects
-#' user-specified prior strings and hyperparameter definitions.
+#' Internal helper functions for Bayesian mixture workers.
+#' These are used by glmMixBayes / survregMixBayes engines and corresponding
+#' fit*.adjMixBayes dispatch methods.
 #'
-#' @param components A character vector of length 2 giving the component
-#'   likelihoods; each element must be one of
-#'   \code{c("gaussian","poisson","gamma","binomial")}.
-#'   Current implementation supports only the symmetric pairs
-#'   \code{c("gaussian","gaussian")}, \code{c("poisson","poisson")},
-#'   \code{c("gamma","gamma")}, and \code{c("binomial","binomial")}.
-#' @param priors A named \code{list} of prior strings and (optionally)
-#'   hyperparameter definitions that appear in the Stan code. Prior strings
-#'   should be valid Stan sampling statements' right-hand sides (e.g.,
-#'   \code{"normal(0,1)"} or \code{"multi_normal(mu, Sigma)"}). Expected names
-#'   depend on the family:
-#'   \itemize{
-#'     \item Gaussian: \code{beta1}, \code{beta2}, \code{sigma1}, \code{sigma2}, \code{theta}
-#'     \item Poisson:  \code{beta1}, \code{beta2}, \code{theta}
-#'     \item Gamma:    \code{beta1}, \code{beta2}, \code{phi1}, \code{phi2}, \code{theta}
-#'     \item Binomial: \code{beta1}, \code{beta2}, \code{theta}
-#'   }
-#'   Any symbols referenced inside these strings (e.g., hyperparameters like
-#'   \code{mu}, \code{Sigma}, \code{phi_loc}, \code{phi_scale}) must be defined
-#'   via \code{get_stan_definitions(priors)} in the \code{transformed data}
-#'   block (see Details).
-#'
-#' @details
-#' Internally, the function calls \code{get_stan_definitions(priors)} (see
-#' \code{priors_helpers.R}) to obtain two text fragments:
-#' \itemize{
-#'   \item \strong{\code{function_defs}}: any user-defined Stan functions placed in the \code{functions} block;
-#'   \item \strong{\code{variable_defs}}: declarations/assignments for hyperparameters placed in the \code{transformed data} block.
-#' }
-#' The returned Stan program contains:
-#' \enumerate{
-#'   \item a \code{functions} block (if provided by the helper);
-#'   \item \code{data} and \code{parameters} blocks specific to each family;
-#'   \item a \code{model} block that encodes the mixture via \code{log_sum_exp} or
-#'         \code{log_mix} and applies the injected prior strings;
-#'   \item a \code{generated quantities} block that samples per-observation
-#'         mixture memberships \code{z[n]} using \code{categorical_rng(softmax(lw))}.
-#' }
-#' For Poisson and Binomial families, the linear predictor is \code{eta = X * beta}
-#' with canonical links (log for Poisson, logit for Binomial). For Gamma, the
-#' parameterization uses shape \code{phi} and rate \code{phi/exp(eta)} so that
-#' \code{E[y] = exp(eta)}.
-#'
-#' @return A single character string containing a complete Stan program tailored
-#'   to the requested \code{components} and \code{priors}.
-#'
-#' @section Expected data shapes in Stan:
-#' The generated programs expect:
-#' \itemize{
-#'   \item \code{N}: number of observations (\code{int});
-#'   \item \code{K}: number of predictors (\code{int});
-#'   \item \code{X}: predictor matrix (\code{matrix[N, K]});
-#'   \item \code{y}: response (\code{vector[N]} for Gaussian/Gamma,
-#'         \code{int[N]} nonnegative counts for Poisson, \code{int[N]} in \{0,1\} for Binomial).
-#' }
-#'
-#' @keywords internal
 #' @noRd
+
+fill_defaults <- function(priors = list(), p_family, model_type = 'glm') {
+  # Null prior means all defaults need to be filled. Create empty list
+  if (is.null(priors)) {
+    priors <- list()
+  }
+
+  # very simple validation of prior format
+  if (!is.list(priors)) {
+    stop("Invalid argument: 'priors' must be a named list.")
+  }
+
+  # Create list of defaults based on family and model
+  if (model_type == 'glm') {
+    defaults <- switch(
+      p_family,
+      "gaussian" = list(
+        beta1 = "normal(0,5)",
+        sigma1 = "cauchy(0,2.5)",
+        beta2  = "normal(0,5)",
+        sigma2 = "cauchy(0,2.5)",
+        theta = "beta(1,1)"
+      ),
+      "poisson" = list(
+        beta1 = "normal(0,5)",
+        beta2 = "normal(0,5)",
+        theta = "beta(1,1)"
+      ),
+      "binomial" = list(
+        beta1 = "normal(0,2.5)",
+        beta2 = "normal(0,5)",
+        theta = "beta(1,1)"
+      ),
+      "gamma" = list(
+        beta1 = "normal(0,5)",
+        beta2 = "normal(0,5)",
+        phi1 = "gamma(2,0.1)",
+        phi2 = "gamma(2,0.1)",
+        theta = "beta(1,1)"
+      ),
+      stop("`p_family` must be one of 'gaussian','poisson','binomial','gamma'",
+           " for model_type == 'glm'")
+    )
+  } else if (model_type == 'survival') {
+    defaults <- switch(
+      p_family,
+      "gamma" = list(
+        # priors for regression coefficients and mix proportion
+        beta1 = "normal(0,5)",
+        beta2 = "normal(0,5)",
+        theta = "beta(1,1)",
+        # priors for shape parameters
+        phi1 = "exponential(1)",
+        phi2 = "exponential(1)"
+      ),
+      "weibull" = list(
+        beta1 = "normal(0,2)",
+        beta2 = "normal(0,2)",
+        shape1 = "gamma(2,1)",
+        shape2 = "gamma(2,1)",
+        scale1 = "gamma(2,1)",
+        scale2 = "gamma(2,1)",
+        theta = "beta(1,1)"
+      ),
+      stop("`p_family` must be 'gamma' or 'weibull' for model_type 'survival'.")
+    )
+  } else {
+    stop("Unknown model_type in fill_defaults")
+  }
+
+  # merge user priors and appropriate defaults
+  utils::modifyList(defaults, priors)
+}
+
+
+stan_func <- function(stan_function_str) {
+  if (!is.character(stan_function_str)) {
+    stop("`stan_function_str` passed to stan_func() must be a single string.", call. = FALSE)
+  } else if (!is_valid_stan_func(stan_function_str)) {
+    stop("stan_func() called on invalid stan function")
+  }
+  structure(stan_function_str, class = c("stan_function_string", "character"))
+}
+
+
+is_valid_stan_func <- function(str) {
+  txt <- gsub("[\r\n]+", " ", str)
+  grepl("\\([^)]*\\).*\\{.*return.*\\}", txt, perl = TRUE) &&
+    !grepl("<-", txt, fixed = TRUE)
+}
+
+
+validate_args <- function(priors, p_family) {
+  # p_family must be one of the supported families
+  supported_families <- c("gaussian","poisson","binomial","gamma", "weibull")
+  if (!(p_family %in% supported_families)) {
+    stop("`p_family` must be one of: ", paste(supported_families, collapse = ", "))
+  }
+
+  # If priors == NULL, no need to check its validity beyond that
+  if (is.null(priors)) {
+    return(invisible(TRUE))
+  }
+
+  # priors list must be a named list or null (in which case all defaults are used)
+  if (!is.list(priors) || is.null(names(priors))) {
+    stop("`priors` must be a named list of prior strings. Yours is:\n",
+         priors)
+  }
+
+  for (elt in priors) {
+    if (is.character(elt) && !is_func(elt)) { # only looking at prior strings
+      trimmed_elt <- trimws(elt) # remove whitespace
+
+      # verify basic structure <dist>(<args>)
+      pattern <- "^([^(\\s]+)\\s*\\(([^)]*)\\)\\s*$"
+      match <- regexec(pattern, trimmed_elt, perl = TRUE)
+      parts <- regmatches(trimmed_elt, match)[[1]]
+      dist = parts[2]
+      hyperparam = parts[3]
+
+      if (length(parts) == 0
+          || (hyperparam == "" && all(!vapply(priors, is_func, logical(1))))
+          || dist == "") {
+        stop("Prior defining string '",
+             elt,
+             "' must be of form '<dist>(<comma-separated args>)'")
+      }
+
+      # send warning about untested distributions
+      if (!(dist %in% c("normal", "cauchy", "beta", "gamma", "exponential", "multi_normal"))) {
+        warning("An untested distribution was defined as prior. Tested ones",
+                " include but are not limited to normal, cauchy, beta, gamma,",
+                " exponential, and multi_normal. Correct output can be expected",
+                " regardless if the distribution is a valid stan distribution,",
+                " or defined by a stan function injection with stan_func()---",
+                " see documentation for details.")
+      }
+
+      # validate args
+      if (nzchar(trimws(hyperparam))) { # if args has non-whitespace
+        # get individual args
+        raw_hyperparam_list <- strsplit(hyperparam, ",", fixed = TRUE)[[1]]
+        hyperparam_list <- trimws(raw_hyperparam_list) # trim white space
+
+        if (any(hyperparam_list == "") || grepl(",\\s*$", hyperparam)) {
+          stop("Missing values in list of hyperparameters of prior string")
+        }
+
+        for (hyperparam in hyperparam_list) {
+          # if hyperparameter is not a number and not a key defined in the priors
+          if (is.na(suppressWarnings(as.numeric(hyperparam)))
+              && !(hyperparam %in% names(priors))) {
+            stop("A variable used in a prior string is not defined.",
+                 " If a string defining a prior in priors list is normal(x,y),",
+                 " x and y must be their own keys in list 'priors' to be used.")
+          }
+        }
+      }
+    }
+  }
+  invisible(TRUE)
+  }
+
+
+is_func <- function(stan_function) {
+  inherits(stan_function, "stan_function_string")
+}
+
+
+get_stan_definitions <- function(priors) {
+  # generate from list of priors the necessary variable definition Stan strings
+  # to concatenate before the prior definition
+  # ex. 'vector[2] mu;' and 'mu = [1, 2];' from list item mu = c(1,2)
+  variable_declarations <- "" # ex. cov_matrix[3] beta1_sigma;
+  variable_definitions <- "" # ex. beta1_sigma = ...; or vector[3] vec = [1,2,3]'
+  function_definitions <- "" # for injecting stan into function blocks
+  for (item_key in names(priors)) {
+    # concatenate stan code for variables in dynamic stan generation
+    # generated from processing key-value pair in priors list
+
+    processed_vars <- process_variable(priors[[item_key]], item_key)
+    variable_declarations <- paste0(
+      variable_declarations, processed_vars[["declaration"]])
+    variable_definitions <- paste0(
+      variable_definitions, processed_vars[["definition"]])
+    function_definitions <- paste0(
+      function_definitions, processed_vars[["stan_func"]]
+    )
+    }
+  # combine separate declarations with definitions to create a single variable
+  # holding a string of complete definitions of prior hyperparameters
+  # These were generated separately because declarations must come before definitions
+  variable_definitions <- paste0(variable_declarations, variable_definitions)
+
+  list(
+    variable_defs = variable_definitions,
+    function_defs = function_definitions
+  )
+}
+
+
+process_variable <- function(value, key) {
+  if (is.character(value)) { # is string
+    if (is_func(value)) { # the string is a function i.e. stan_func("...stan function...")
+      warning("Detected stan function definition. Note that stan function
+                injection does not fully validate stan syntax.")
+      return(list(declaration="", definition="", stan_func=as.character(value)))
+    } else { # the string is the prior definition itself ex. normal(x,y)
+      return(list(declaration="", definition="", stan_func=""))
+  }
+  } else if (is.matrix(value)) {
+    if (nrow(value) == ncol(value) && isSymmetric(value)) {
+      dim = nrow(value)
+    } else {
+      stop("Non-square or unsymmetric matrix found in list 'priors'")
+    }
+    dec = paste0("cov_matrix[", dim, "] ", key, ";") # declaration
+    component_defs = ""
+    for (i in 1:dim) {
+      for (j in 1:dim) {
+        component <- paste0(key, "[", i, ", ", j, "] = ", value[i, j], ";" )
+        component_defs <- paste0(component_defs, component)
+      }
+    }
+    return(list(declaration=dec, definition=component_defs, stan_func=""))
+  } else if (is.numeric(value)) { # non-matrix numeric
+    if (length(value) == 1L) { # not a vector; scalar
+      def = paste0("real ", key, " = ", value, ";")
+      return(list(declaration="", definition=def, stan_func=""))
+    } else { # value is a vector
+      len = length(value)
+      # convert vector to stan list as a string:
+      stan_vector = paste0("[", paste(value, collapse=", "), "]'")
+      def = paste0("vector[", len, "] ", key, " = ", stan_vector, ";")
+      return(list(declaration="", definition=def, stan_func=""))
+    }
+  } else {
+    stop("Element of invalid type or form found in list 'priors'")
+  }
+}
+
+
 generate_stan <- function(components, priors = list()) {
   
   # helper defs from priors_helpers.R
