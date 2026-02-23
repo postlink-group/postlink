@@ -1,14 +1,14 @@
 # Tests for Bayesian survreg mixture (real Stan MCMC)
 # Mirrors the intent of test-survregMixture.R (if present) but runs survregMixBayes / fitsurvreg.adjMixBayes.
 
-testthat::test_that("survregMixBayes runs real MCMC and returns a valid object", {
-  testthat::skip_on_cran()
-  testthat::skip_if_not_installed("rstan")
-  testthat::skip_if_not_installed("label.switching")
-  testthat::skip_if_not_installed("survival")
+test_that("survregMixBayes runs real MCMC and returns a valid object", {
+  skip_on_cran()
+  skip_if_not_installed("rstan")
+  skip_if_not_installed("label.switching")
+  skip_if_not_installed("survival")
 
   if (!identical(Sys.getenv("RUN_STAN_TESTS"), "true")) {
-    testthat::skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
+    skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
   }
 
   rstan::rstan_options(auto_write = TRUE)
@@ -35,29 +35,29 @@ testthat::test_that("survregMixBayes runs real MCMC and returns a valid object",
   fit <- survregMixBayes(
     X = X,
     y = y,
-    dist = "lognormal",
+    dist = "gamma",
     control = list(iterations = 400, burnin.iterations = 200, seed = 321, cores = 1)
   )
 
-  testthat::expect_s3_class(fit, "survMixBayes")
-  testthat::expect_true(is.matrix(fit$m_samples))
-  testthat::expect_equal(ncol(fit$m_samples), nrow(X))
+  expect_s3_class(fit, "survMixBayes")
+  expect_true(is.matrix(fit$m_samples))
+  expect_equal(ncol(fit$m_samples), nrow(X))
 
-  testthat::expect_true(is.list(fit$estimates))
-  testthat::expect_true(is.matrix(fit$estimates$coefficients))
-  testthat::expect_true(is.matrix(fit$estimates$m.coefficients))
-  testthat::expect_equal(ncol(fit$estimates$coefficients), ncol(X))
-  testthat::expect_equal(ncol(fit$estimates$m.coefficients), ncol(X))
+  expect_true(is.list(fit$estimates))
+  expect_true(is.matrix(fit$estimates$coefficients))
+  expect_true(is.matrix(fit$estimates$m.coefficients))
+  expect_equal(ncol(fit$estimates$coefficients), ncol(X))
+  expect_equal(ncol(fit$estimates$m.coefficients), ncol(X))
 })
 
-testthat::test_that("fitsurvreg dispatches to fitsurvreg.adjMixBayes and runs real MCMC", {
-  testthat::skip_on_cran()
-  testthat::skip_if_not_installed("rstan")
-  testthat::skip_if_not_installed("label.switching")
-  testthat::skip_if_not_installed("survival")
+test_that("fitsurvreg dispatches to fitsurvreg.adjMixBayes and runs real MCMC", {
+  skip_on_cran()
+  skip_if_not_installed("rstan")
+  skip_if_not_installed("label.switching")
+  skip_if_not_installed("survival")
 
   if (!identical(Sys.getenv("RUN_STAN_TESTS"), "true")) {
-    testthat::skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
+    skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
   }
 
   rstan::rstan_options(auto_write = TRUE)
@@ -88,12 +88,12 @@ testthat::test_that("fitsurvreg dispatches to fitsurvreg.adjMixBayes and runs re
   fit <- fitsurvreg(
     x = X,
     y = y,
-    dist = "lognormal",
+    dist = "gamma",
     adjustment = adj,
     control = list(iterations = 300, burnin.iterations = 150, seed = 11, cores = 1)
   )
 
-  testthat::expect_s3_class(fit, "survMixBayes")
-  testthat::expect_true(is.matrix(fit$m_samples))
-  testthat::expect_equal(ncol(fit$m_samples), nrow(X))
+  expect_s3_class(fit, "survMixBayes")
+  expect_true(is.matrix(fit$m_samples))
+  expect_equal(ncol(fit$m_samples), nrow(X))
 })

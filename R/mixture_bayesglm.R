@@ -191,58 +191,35 @@ glmMixBayes <- function(X, y, family = "gaussian", priors = NULL,
   # Helper to permute paired component-specific parameters
   perm_pair <- function(a1, a2, perm) {
    if (!is.numeric(a1) || !is.numeric(a2)) stop("Inputs must be numeric.", call. = FALSE)
-   if (!is.matrix(perm) || ncol(perm) != 2L) stop("`perm` must be an S x 2 matrix.", call. = FALSE)
 
-   # Coerce component params to matrices S x p
-   to_Sp <- function(a) {
-    d <- dim(a)
-    if (is.null(d)) {
-     # vector length S
-     S <- length(a)
-     A <- matrix(as.numeric(a), ncol = 1L)
-     return(list(S = S, A = A))
-    }
-    if (length(d) == 1L) {
-     # 1D array, treat as vector
-     S <- d[1]
-     A <- matrix(as.numeric(a), ncol = 1L)
-     return(list(S = S, A = A))
-    }
-    if (length(d) == 2L) {
-     # matrix S x p
-     S <- d[1]
-     A <- matrix(as.numeric(a), nrow = d[1], ncol = d[2])
-     return(list(S = S, A = A))
-    }
-    stop("Unsupported parameter shape; expected vector or matrix.", call. = FALSE)
+   if (is.null(dim(a1))) {
+    S <- length(a1); p <- 1L
+    A1 <- matrix(a1, ncol = 1L)
+    A2 <- matrix(a2, ncol = 1L)
+   } else {
+    S <- nrow(a1); p <- ncol(a1)
+    A1 <- a1; A2 <- a2
    }
-
-   x1 <- to_Sp(a1)
-   x2 <- to_Sp(a2)
-
-   if (x1$S != x2$S) stop("Different number of draws between components.", call. = FALSE)
-   if (!identical(dim(x1$A), dim(x2$A))) stop("Shapes differ between component parameters.", call. = FALSE)
-
-   S <- x1$S
-   p <- ncol(x1$A)
-
-   if (nrow(perm) != S) stop("`perm` must have one permutation per draw (nrow(perm) == S).", call. = FALSE)
+   if (!identical(dim(A1), dim(A2))) stop("Shapes differ between component parameters.", call. = FALSE)
+   if (!is.matrix(perm) || nrow(perm) != S || ncol(perm) != 2L) {
+    stop("`perm` must be an S x 2 matrix (one permutation per draw).", call. = FALSE)
+   }
 
    arr <- array(NA_real_, dim = c(S, 2L, p))
-   arr[, 1L, ] <- x1$A
-   arr[, 2L, ] <- x2$A
-
+   arr[, 1L, ] <- A1
+   arr[, 2L, ] <- A2
    arrp <- label.switching::permute.mcmc(arr, permutations = perm)[[1]]
 
-   out1 <- arrp[, 1L, , drop = FALSE]
-   out2 <- arrp[, 2L, , drop = FALSE]
-
-   if (p == 1L) {
-    return(list(`1` = as.numeric(out1[, 1L, 1L]), `2` = as.numeric(out2[, 1L, 1L])))
+   if (is.null(dim(arrp)) || length(dim(arrp)) == 2L) {
+    out1 <- as.numeric(arrp[, 1L])
+    out2 <- as.numeric(arrp[, 2L])
+    return(list(`1` = out1, `2` = out2))
    }
 
-   list(`1` = matrix(out1[, 1L, ], nrow = S, ncol = p),
-        `2` = matrix(out2[, 1L, ], nrow = S, ncol = p))
+   out1 <- array(arrp[, 1L, , drop = FALSE], dim = c(S, p))
+   out2 <- array(arrp[, 2L, , drop = FALSE], dim = c(S, p))
+   if (p == 1L) { out1 <- as.numeric(out1); out2 <- as.numeric(out2) }
+   list(`1` = out1, `2` = out2)
   }
 
   if (is.null(posterior$z) || is.null(posterior$beta1) || is.null(posterior$beta2)) {
@@ -301,7 +278,7 @@ glmMixBayes <- function(X, y, family = "gaussian", priors = NULL,
 # S3 dispatch method for the postlink internal generic fitglm()
 # ------------------------------------------------------------------------------
 #' @keywords internal
-#' @noRd
+#' @export
 fitglm.adjMixBayes <- function(x, y, family, adjustment, control, ...) {
 
   # -------------------------------------------------------------------------

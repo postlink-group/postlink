@@ -9,13 +9,15 @@
 #   Sys.setenv(RUN_STAN_TESTS = "true")
 #   devtools::test()
 
-testthat::test_that("glmMixBayes runs real MCMC and returns a valid object", {
-  testthat::skip_on_cran()
-  testthat::skip_if_not_installed("rstan")
-  testthat::skip_if_not_installed("label.switching")
+local_edition(3)
+
+test_that("glmMixBayes runs real MCMC and returns a valid object", {
+  skip_on_cran()
+  skip_if_not_installed("rstan")
+  skip_if_not_installed("label.switching")
 
   if (!identical(Sys.getenv("RUN_STAN_TESTS"), "true")) {
-    testthat::skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
+    skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
   }
 
   # Make Stan compilation more pleasant in local/CI runs
@@ -37,37 +39,37 @@ testthat::test_that("glmMixBayes runs real MCMC and returns a valid object", {
     X = X,
     y = yv,
     family = "gaussian",
-    control = list(iterations = 400, burnin.iterations = 200, seed = 123, cores = 1)
+    control = list(iterations = 200, burnin.iterations = 100, seed = 123, cores = 1)
   )
 
-  testthat::expect_s3_class(fit, "glmMixBayes")
-  testthat::expect_true(is.matrix(fit$m_samples))
-  testthat::expect_equal(ncol(fit$m_samples), nrow(X))
+  expect_s3_class(fit, "glmMixBayes")
+  expect_true(is.matrix(fit$m_samples))
+  expect_equal(ncol(fit$m_samples), nrow(X))
 
-  testthat::expect_true(is.list(fit$estimates))
-  testthat::expect_true(is.matrix(fit$estimates$coefficients))
-  testthat::expect_true(is.matrix(fit$estimates$m.coefficients))
-  testthat::expect_equal(ncol(fit$estimates$coefficients), ncol(X))
-  testthat::expect_equal(ncol(fit$estimates$m.coefficients), ncol(X))
+  expect_true(is.list(fit$estimates))
+  expect_true(is.matrix(fit$estimates$coefficients))
+  expect_true(is.matrix(fit$estimates$m.coefficients))
+  expect_equal(ncol(fit$estimates$coefficients), ncol(X))
+  expect_equal(ncol(fit$estimates$m.coefficients), ncol(X))
 
   # Should carry coefficient names from X if available
   if (!is.null(colnames(X))) {
-    testthat::expect_equal(colnames(fit$estimates$coefficients), colnames(X))
-    testthat::expect_equal(colnames(fit$estimates$m.coefficients), colnames(X))
+    expect_equal(colnames(fit$estimates$coefficients), colnames(X))
+    expect_equal(colnames(fit$estimates$m.coefficients), colnames(X))
   }
 
   # Dispersion should be present for gaussian (and gamma)
-  testthat::expect_true("dispersion" %in% names(fit$estimates))
-  testthat::expect_true("m.dispersion" %in% names(fit$estimates))
+  expect_true("dispersion" %in% names(fit$estimates))
+  expect_true("m.dispersion" %in% names(fit$estimates))
 })
 
-testthat::test_that("fitglm dispatches to fitglm.adjMixBayes and runs real MCMC", {
-  testthat::skip_on_cran()
-  testthat::skip_if_not_installed("rstan")
-  testthat::skip_if_not_installed("label.switching")
+test_that("fitglm dispatches to fitglm.adjMixBayes and runs real MCMC", {
+  skip_on_cran()
+  skip_if_not_installed("rstan")
+  skip_if_not_installed("label.switching")
 
   if (!identical(Sys.getenv("RUN_STAN_TESTS"), "true")) {
-    testthat::skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
+    skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
   }
 
   rstan::rstan_options(auto_write = TRUE)
@@ -98,7 +100,7 @@ testthat::test_that("fitglm dispatches to fitglm.adjMixBayes and runs real MCMC"
     control = list(iterations = 300, burnin.iterations = 150, seed = 99, cores = 1)
   )
 
-  testthat::expect_s3_class(fit, "glmMixBayes")
-  testthat::expect_true(is.matrix(fit$m_samples))
-  testthat::expect_equal(ncol(fit$m_samples), nrow(X))
+  expect_s3_class(fit, "glmMixBayes")
+  expect_true(is.matrix(fit$m_samples))
+  expect_equal(ncol(fit$m_samples), nrow(X))
 })

@@ -1,13 +1,13 @@
 # Methods tests for Bayesian survreg mixture (real Stan MCMC)
 
-testthat::test_that("survMixBayes methods work on a real fitted object", {
-  testthat::skip_on_cran()
-  testthat::skip_if_not_installed("rstan")
-  testthat::skip_if_not_installed("label.switching")
-  testthat::skip_if_not_installed("survival")
+test_that("survMixBayes methods work on a real fitted object", {
+  skip_on_cran()
+  skip_if_not_installed("rstan")
+  skip_if_not_installed("label.switching")
+  skip_if_not_installed("survival")
 
   if (!identical(Sys.getenv("RUN_STAN_TESTS"), "true")) {
-    testthat::skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
+    skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
   }
 
   rstan::rstan_options(auto_write = TRUE)
@@ -31,38 +31,84 @@ testthat::test_that("survMixBayes methods work on a real fitted object", {
   fit <- survregMixBayes(
     X = X,
     y = y,
-    dist = "lognormal",
+    dist = "gamma",
     control = list(iterations = 300, burnin.iterations = 150, seed = 101, cores = 1)
   )
 
   # print()
   out <- utils::capture.output(print(fit))
-  testthat::expect_true(length(out) > 0)
+  expect_true(length(out) > 0)
 
   # summary()
   s <- summary(fit)
-  testthat::expect_s3_class(s, "summary.survMixBayes")
+  expect_s3_class(s, "summary.survMixBayes")
   out2 <- utils::capture.output(print(s))
-  testthat::expect_true(length(out2) > 0)
+  expect_true(length(out2) > 0)
 
   # vcov()
   V <- stats::vcov(fit)
-  testthat::expect_true(is.matrix(V))
-  testthat::expect_equal(nrow(V), ncol(X))
-  testthat::expect_equal(ncol(V), ncol(X))
+  expect_true(is.matrix(V))
+  expect_equal(nrow(V), ncol(X))
+  expect_equal(ncol(V), ncol(X))
 
-  # confint()
+  # confint(): returns a list of credible intervals
   CI <- stats::confint(fit)
-  testthat::expect_true(is.matrix(CI))
-  testthat::expect_equal(nrow(CI), ncol(X))
-  testthat::expect_equal(ncol(CI), 2L)
-  testthat::expect_true(all(CI[, 1] <= CI[, 2]))
+  expect_true(is.list(CI))
+
+  # coef blocks (matrices)
+  # (at least one of coef1/coef2 should exist in typical fits)
+  expect_true(any(c("coef1", "coef2") %in% names(CI)))
+
+  if ("coef1" %in% names(CI)) {
+   expect_true(is.matrix(CI$coef1))
+   expect_equal(nrow(CI$coef1), ncol(X))
+   expect_equal(ncol(CI$coef1), 2L)
+   expect_true(all(CI$coef1[, 1] <= CI$coef1[, 2], na.rm = TRUE))
+  }
+
+  if ("coef2" %in% names(CI)) {
+   expect_true(is.matrix(CI$coef2))
+   expect_equal(nrow(CI$coef2), ncol(X))
+   expect_equal(ncol(CI$coef2), 2L)
+   expect_true(all(CI$coef2[, 1] <= CI$coef2[, 2], na.rm = TRUE))
+  }
+
+  # scalar blocks (numeric length-2)
+  expect_true("theta" %in% names(CI))
+  expect_true(is.numeric(CI$theta))
+  expect_equal(length(CI$theta), 2L)
+  expect_true(CI$theta[1] <= CI$theta[2])
+
+  for (nm in c("shape1", "shape2", "scale1", "scale2")) {
+   if (nm %in% names(CI)) {
+    expect_true(is.numeric(CI[[nm]]))
+    expect_equal(length(CI[[nm]]), 2L)
+    expect_true(CI[[nm]][1] <= CI[[nm]][2])
+   }
+  }
 
   # predict(): accept newx matrix (implementation-dependent output)
   newx <- X[1:5, , drop = FALSE]
-  pr <- stats::predict(fit, newx = newx, type = "lp")
-  testthat::expect_true(is.numeric(pr) || is.list(pr))
-  if (is.list(pr) && "fit" %in% names(pr)) {
-    testthat::expect_equal(length(pr$fit), nrow(newx))
-  }
+  pr <- stats::predict(fit, newdata = newx)
+  expect_true(is.list(pr))
+  expect_true(all(c("component1", "component2") %in% names(pr)))
+  expect_equal(length(pr$component1), nrow(newx))
+  expect_equal(length(pr$component2), nrow(newx))
+
+  # mi_with(): posterior allocation based pooling for survMixBayes
+  mm <- getS3method("mi_with", "survMixBayes", optional = TRUE)
+  expect_true(is.function(mm))
+
+  pool <- mi_with(fit)
+
+  expect_s3_class(pool, "mi_link_pool_survreg")
+  expect_true(is.numeric(pool$p_component1))
+  expect_equal(length(pool$p_component1), n)
+
+  # posterior allocation probabilities should be in [0, 1]
+  expect_true(all(pool$p_component1 >= 0 & pool$p_component1 <= 1, na.rm = TRUE))
+
+  # pooled object should be printable
+  out3 <- utils::capture.output(print(pool))
+  expect_true(length(out3) > 0)
 })

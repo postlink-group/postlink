@@ -1,66 +1,91 @@
 # Methods tests for Bayesian GLM mixture (real Stan MCMC)
 # Mirrors the intent of test-glmMixture_methods.R but runs on glmMixBayes.
 
-testthat::test_that("glmMixBayes methods work on a real fitted object", {
-  testthat::skip_on_cran()
-  testthat::skip_if_not_installed("rstan")
-  testthat::skip_if_not_installed("label.switching")
+local_edition(3)
 
-  if (!identical(Sys.getenv("RUN_STAN_TESTS"), "true")) {
-    testthat::skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
-  }
+test_that("glmMixBayes methods work on a real fitted object", {
+ skip_on_cran()
+ skip_if_not_installed("rstan")
+ skip_if_not_installed("label.switching")
 
-  rstan::rstan_options(auto_write = TRUE)
-  options(mc.cores = 1L)
+ if (!identical(Sys.getenv("RUN_STAN_TESTS"), "true")) {
+  skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
+ }
 
-  set.seed(42)
-  n <- 80
-  dat <- data.frame(
-    y  = rnorm(n),
-    x1 = rnorm(n),
-    x2 = rbinom(n, 1, 0.5)
-  )
+ rstan::rstan_options(auto_write = TRUE)
+ options(mc.cores = 1L)
 
-  X <- stats::model.matrix(y ~ x1 + x2, dat)
-  yv <- dat$y
+ set.seed(42)
+ n <- 80
+ dat <- data.frame(
+  y  = rnorm(n),
+  x1 = rnorm(n),
+  x2 = rbinom(n, 1, 0.5)
+ )
 
-  fit <- glmMixBayes(
-    X = X,
-    y = yv,
-    family = "gaussian",
-    control = list(iterations = 300, burnin.iterations = 150, seed = 42, cores = 1)
-  )
+ X <- stats::model.matrix(y ~ x1 + x2, dat)
+ yv <- dat$y
 
-  # print()
-  out <- utils::capture.output(print(fit))
-  testthat::expect_true(length(out) > 0)
+ fit <- glmMixBayes(
+  X = X,
+  y = yv,
+  family = "gaussian",
+  control = list(iterations = 300, burnin.iterations = 150, seed = 42, cores = 1)
+ )
 
-  # summary()
-  s <- summary(fit)
-  testthat::expect_s3_class(s, "summary.glmMixBayes")
-  out2 <- utils::capture.output(print(s))
-  testthat::expect_true(length(out2) > 0)
+ # print()
+ out <- utils::capture.output(print(fit))
+ expect_true(length(out) > 0)
 
-  # vcov()
-  V <- stats::vcov(fit)
-  testthat::expect_true(is.matrix(V))
-  testthat::expect_equal(nrow(V), ncol(X))
-  testthat::expect_equal(ncol(V), ncol(X))
+ # summary()
+ s <- summary(fit)
+ expect_s3_class(s, "summary.glmMixBayes")
+ out2 <- utils::capture.output(print(s))
+ expect_true(length(out2) > 0)
 
-  # confint()
-  CI <- stats::confint(fit)
-  testthat::expect_true(is.matrix(CI))
-  testthat::expect_equal(nrow(CI), ncol(X))
-  testthat::expect_equal(ncol(CI), 2L)
-  testthat::expect_true(all(CI[, 1] <= CI[, 2]))
+ # vcov()
+ V <- stats::vcov(fit)
+ expect_true(is.matrix(V))
+ expect_equal(nrow(V), ncol(X))
+ expect_equal(ncol(V), ncol(X))
 
-  # predict(): should accept newx as a matrix
-  newx <- X[1:5, , drop = FALSE]
-  pr <- stats::predict(fit, newx = newx, type = "link")
+ # confint()
+ CI <- stats::confint(fit)
+ expect_true(is.matrix(CI))
+ expect_equal(nrow(CI), ncol(X))
+ expect_equal(ncol(CI), 2L)
+ expect_true(all(CI[, 1] <= CI[, 2]))
 
-  # Allow either numeric vector OR list with $fit (depending on your predict impl)
-  testthat::expect_true(is.numeric(pr) || is.list(pr))
-  if (is.list(pr) && "fit" %in% names(pr)) {
-    testthat::expect_equal(length(pr$fit), nrow(newx))
-  }
+ # predict(): should accept newx as a matrix
+ newx <- X[1:5, , drop = FALSE]
+ pr <- stats::predict(fit, newx = newx, type = "link")
+
+ # Allow either numeric vector OR list with $fit (depending on your predict impl)
+ expect_true(is.numeric(pr) || is.list(pr))
+ if (is.list(pr) && "fit" %in% names(pr)) {
+  expect_equal(length(pr$fit), nrow(newx))
+ }
+
+ # ---------------------------
+ # mi_with(): posterior allocation based pooling
+ # ---------------------------
+
+ # S3 method should exist
+ mm <- getS3method("mi_with", "glmMixBayes", optional = TRUE)
+ expect_true(is.function(mm))
+
+ # run pooling (use the same dat used to build X/y)
+ pool <- mi_with(
+  fit,
+  data = dat,
+  formula = y ~ x1 + x2,
+  quietly = TRUE
+ )
+
+ expect_s3_class(pool, "mi_link_pool")
+ expect_s3_class(pool, "mi_link_pool_glm")
+ expect_true(is.numeric(pool$coef))
+ expect_true(is.matrix(pool$vcov))
+ expect_equal(nrow(pool$vcov), length(pool$coef))
+ expect_equal(ncol(pool$vcov), length(pool$coef))
 })
