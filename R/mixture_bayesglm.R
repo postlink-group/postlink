@@ -192,33 +192,46 @@ glmMixBayes <- function(X, y, family = "gaussian", priors = NULL,
   perm_pair <- function(a1, a2, perm) {
    if (!is.numeric(a1) || !is.numeric(a2)) stop("Inputs must be numeric.", call. = FALSE)
 
-   if (is.null(dim(a1))) {
+   d1 <- dim(a1); d2 <- dim(a2)
+
+   # Convert a1/a2 into S x p matrices (p = product of remaining dims)
+   if (is.null(d1)) {
     S <- length(a1); p <- 1L
     A1 <- matrix(a1, ncol = 1L)
+   } else {
+    S <- d1[1]
+    p <- as.integer(length(a1) / S)
+    if (!is.finite(S) || S < 1 || !is.finite(p) || p < 1) {
+     stop("Invalid draws/shape for component parameter.", call. = FALSE)
+    }
+    A1 <- matrix(a1, nrow = S)
+   }
+
+   if (is.null(d2)) {
+    if (length(a2) != S) stop("Shapes differ between component parameters.", call. = FALSE)
     A2 <- matrix(a2, ncol = 1L)
    } else {
-    S <- nrow(a1); p <- ncol(a1)
-    A1 <- a1; A2 <- a2
+    if (d2[1] != S) stop("Shapes differ between component parameters.", call. = FALSE)
+    A2 <- matrix(a2, nrow = S)
    }
+
    if (!identical(dim(A1), dim(A2))) stop("Shapes differ between component parameters.", call. = FALSE)
    if (!is.matrix(perm) || nrow(perm) != S || ncol(perm) != 2L) {
     stop("`perm` must be an S x 2 matrix (one permutation per draw).", call. = FALSE)
    }
 
-   arr <- array(NA_real_, dim = c(S, 2L, p))
+   arr <- array(NA_real_, dim = c(S, 2L, ncol(A1)))
    arr[, 1L, ] <- A1
    arr[, 2L, ] <- A2
    arrp <- label.switching::permute.mcmc(arr, permutations = perm)[[1]]
 
-   if (is.null(dim(arrp)) || length(dim(arrp)) == 2L) {
-    out1 <- as.numeric(arrp[, 1L])
-    out2 <- as.numeric(arrp[, 2L])
-    return(list(`1` = out1, `2` = out2))
+   out1 <- arrp[, 1L, , drop = TRUE]
+   out2 <- arrp[, 2L, , drop = TRUE]
+   if (ncol(A1) == 1L) {
+    out1 <- as.numeric(out1); out2 <- as.numeric(out2)
+   } else {
+    out1 <- matrix(out1, nrow = S); out2 <- matrix(out2, nrow = S)
    }
-
-   out1 <- array(arrp[, 1L, , drop = FALSE], dim = c(S, p))
-   out2 <- array(arrp[, 2L, , drop = FALSE], dim = c(S, p))
-   if (p == 1L) { out1 <- as.numeric(out1); out2 <- as.numeric(out2) }
    list(`1` = out1, `2` = out2)
   }
 

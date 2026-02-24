@@ -160,14 +160,20 @@ vcov.glmMixBayes <- function(object, ...) {
 #' Credible intervals for glmMixBayes coefficients
 #'
 #' @param object A \code{glmMixBayes} model object.
+#' @param parm Optional. Parameter names or indices for selecting a subset of
+#'   coefficients. If \code{NULL}, all coefficients are returned.
 #' @param level Probability level for the intervals (default 0.95).
 #' @param ... Not used.
-#' @return A matrix with two columns (lower and upper bounds) and one row per coefficient (component 1).
+#' @return A matrix with two columns (lower and upper bounds) and one row per coefficient.
 #' @export
-confint.glmMixBayes <- function(object, level = 0.95, ...) {
+#' @method confint glmMixBayes
+confint.glmMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
  alpha <- 1 - level
  vals <- t(apply(object$estimates$coefficients, 2,
-                 function(x) stats::quantile(x, probs = c(alpha/2, 1 - alpha/2))))
+                 function(x) stats::quantile(x, probs = c(alpha/2, 1 - alpha/2), na.rm = TRUE)))
+ if (!is.null(parm)) {
+  vals <- vals[parm, , drop = FALSE]
+ }
  vals
 }
 
@@ -275,15 +281,27 @@ predict.glmMixBayes <- function(object, newx,
 #' @param min_n Minimum sample size required to fit the model for a given draw.
 #'   Defaults to \code{p + 1}, where \code{p} is the number of columns in the model matrix.
 #' @param quietly If \code{TRUE}, suppress errors from individual failed fits and skip them.
-#'
+#' @param ... Additional arguments passed through (currently unused).
 #' @return An object of class \code{c("mi_link_pool_glm", "mi_link_pool")}.
 #' @export
 #' @importFrom stats coef vcov cov lm glm qt model.frame model.matrix gaussian poisson binomial Gamma
 mi_with.glmMixBayes <- function(object, data, formula,
-                            family = NULL, min_n = NULL, quietly = TRUE) {
+                            family = NULL, min_n = NULL, quietly = TRUE, ...) {
 
+  # Resolve formula: allow inference from object$call$formula if not provided
   if (missing(formula) || is.null(formula)) {
-    stop("`formula` is required for pooling; it is no longer inferred from the fitted object.")
+   if (!is.null(object$call$formula)) {
+    # Use parent.frame() so symbols referenced in the original call can be found
+    formula <- eval(object$call$formula, envir = parent.frame())
+   } else {
+    stop("Formula not found: please provide it explicitly or ensure object$call$formula exists.",
+         call. = FALSE)
+   }
+  }
+
+  # Ensure we ended up with a valid formula
+  if (!inherits(formula, "formula")) {
+   stop("`formula` must be a valid formula object.", call. = FALSE)
   }
 
   if (is.null(family)) {

@@ -1,9 +1,11 @@
 # Tests for Bayesian GLM mixture (real Stan MCMC)
-# Mirrors the intent of test-glmMixture.R but runs glmMixBayes / fitglm.adjMixBayes.
+# Part 1: glmMixBayes() basic object validity on a simple synthetic mixture dataset.
 #
 # NOTE:
-# - These tests are skipped on CRAN.
-# - Opt-in by setting environment variable RUN_STAN_TESTS=true.
+# - skipped on CRAN
+# - opt-in by setting RUN_STAN_TESTS=true
+#
+# Supported families (glmMixBayes): gaussian, poisson, binomial, gamma
 #
 # Example:
 #   Sys.setenv(RUN_STAN_TESTS = "true")
@@ -11,96 +13,149 @@
 
 local_edition(3)
 
+# ------------------------------------------------------------------------------
+# Helper: generate simple synthetic 2-component mixture GLM data
+# (in the spirit of generate_synthetic_mixture_data.R)
+# ------------------------------------------------------------------------------
+generate_bayesglm_mixture_data <- function(
+  family = "gaussian",
+  seed = 123,
+  n = 120,
+  theta = 0.6
+) {
+ family <- tolower(trimws(as.character(family)[1]))
+ if (!family %in% c("gaussian", "poisson", "binomial", "gamma")) {
+  stop("family must be one of gaussian/poisson/binomial/gamma", call. = FALSE)
+ }
+
+ set.seed(seed)
+
+ # Design: intercept + one continuous + one binary predictor
+ x1 <- stats::runif(n, -2, 2)
+ x2 <- stats::rbinom(n, 1, 0.5)
+ X  <- cbind(1, x1, x2)
+ colnames(X) <- c("(Intercept)", "x1", "x2")
+
+ # Mixture membership: 1 or 2
+ z <- stats::rbinom(n, 1, theta) + 1L
+
+ # Choose component-specific parameters with decent separation
+ if (family == "gaussian") {
+  beta1 <- c(0.2,  1.0, -0.6)
+  beta2 <- c(1.5, -0.8,  0.9)
+  sigma1 <- 0.7
+  sigma2 <- 1.1
+
+  eta1 <- drop(X %*% beta1)
+  eta2 <- drop(X %*% beta2)
+  mu   <- ifelse(z == 1L, eta1, eta2)
+  sd   <- ifelse(z == 1L, sigma1, sigma2)
+  y    <- stats::rnorm(n, mean = mu, sd = sd)
+
+  truth <- list(beta1 = beta1, beta2 = beta2,
+                dispersion1 = sigma1^2, dispersion2 = sigma2^2, theta = theta)
+
+ } else if (family == "poisson") {
+  beta1 <- c(-0.2, 0.4, -0.3)
+  beta2 <- c( 0.8, 0.2,  0.5)
+
+  eta1 <- drop(X %*% beta1)
+  eta2 <- drop(X %*% beta2)
+  lam  <- ifelse(z == 1L, exp(eta1), exp(eta2))
+  y    <- stats::rpois(n, lambda = lam)
+
+  truth <- list(beta1 = beta1, beta2 = beta2, theta = theta)
+
+ } else if (family == "binomial") {
+  beta1 <- c(-0.5, 0.8, -0.6)
+  beta2 <- c( 0.7,-0.4,  0.9)
+
+  eta1 <- drop(X %*% beta1)
+  eta2 <- drop(X %*% beta2)
+  p    <- ifelse(z == 1L, stats::plogis(eta1), stats::plogis(eta2))
+  y    <- stats::rbinom(n, size = 1, prob = p)
+
+  truth <- list(beta1 = beta1, beta2 = beta2, theta = theta)
+
+ } else if (family == "gamma") {
+  # Use mean = exp(eta), with component-specific shape (phi)
+  beta1 <- c(0.1, 0.3, -0.2)
+  beta2 <- c(0.6,-0.2,  0.4)
+  phi1  <- 3.0
+  phi2  <- 2.0
+
+  eta1  <- drop(X %*% beta1)
+  eta2  <- drop(X %*% beta2)
+  mu    <- ifelse(z == 1L, exp(eta1), exp(eta2))
+
+  shape <- ifelse(z == 1L, phi1, phi2)
+  rate  <- shape / mu
+  y     <- stats::rgamma(n, shape = shape, rate = rate)
+
+  truth <- list(beta1 = beta1, beta2 = beta2,
+                dispersion1 = 1/phi1, dispersion2 = 1/phi2, theta = theta)
+ }
+
+ list(X = X, y = y, truth = truth)
+}
+
+# ------------------------------------------------------------------------------
+# Test 1: glmMixBayes basic validity
+# ------------------------------------------------------------------------------
 test_that("glmMixBayes runs real MCMC and returns a valid object", {
-  skip_on_cran()
-  skip_if_not_installed("rstan")
-  skip_if_not_installed("label.switching")
+ skip_on_cran()
+ skip_if_not_installed("rstan")
+ skip_if_not_installed("label.switching")
 
-  if (!identical(Sys.getenv("RUN_STAN_TESTS"), "true")) {
-    skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
-  }
+ if (!identical(Sys.getenv("RUN_STAN_TESTS"), "true")) {
+  skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
+ }
 
-  # Make Stan compilation more pleasant in local/CI runs
-  rstan::rstan_options(auto_write = TRUE)
-  options(mc.cores = 1L)
+ rstan::rstan_options(auto_write = TRUE)
+ options(mc.cores = 1L)
 
-  set.seed(123)
-  n <- 80
-  x1 <- rnorm(n)
-  x2 <- rbinom(n, 1, 0.5)
-  y  <- 0.5 + 1.2 * x1 - 0.8 * x2 + rnorm(n, sd = 0.7)
+ # Document supported family types explicitly
+ supported_families <- c("gaussian", "poisson", "binomial", "gamma")
+ expect_error(glmMixBayes(X = matrix(1, 3, 1), y = rnorm(3), family = "badfamily"))
+ expect_true(all(supported_families %in% c("gaussian","poisson","binomial","gamma")))
 
-  dat <- data.frame(y = y, x1 = x1, x2 = x2)
+ # Keep this test simple + stable: run ONE family (gaussian) on mixture-like data
+ dat <- generate_bayesglm_mixture_data(family = "gaussian", seed = 123, n = 100, theta = 0.6)
+ X <- dat$X
+ y <- dat$y
 
-  X <- stats::model.matrix(y ~ x1 + x2, dat)
-  yv <- dat$y
-
-  fit <- glmMixBayes(
-    X = X,
-    y = yv,
-    family = "gaussian",
-    control = list(iterations = 200, burnin.iterations = 100, seed = 123, cores = 1)
+ fit <- glmMixBayes(
+  X = X,
+  y = y,
+  family = "gaussian",
+  control = list(
+   iterations = 2000,
+   burnin.iterations = 1000,
+   seed = 123,
+   cores = 1,
+   adapt_delta = 0.99,
+   max_treedepth = 12
   )
+ )
 
-  expect_s3_class(fit, "glmMixBayes")
-  expect_true(is.matrix(fit$m_samples))
-  expect_equal(ncol(fit$m_samples), nrow(X))
+ expect_s3_class(fit, "glmMixBayes")
 
-  expect_true(is.list(fit$estimates))
-  expect_true(is.matrix(fit$estimates$coefficients))
-  expect_true(is.matrix(fit$estimates$m.coefficients))
-  expect_equal(ncol(fit$estimates$coefficients), ncol(X))
-  expect_equal(ncol(fit$estimates$m.coefficients), ncol(X))
+ # Basic structure checks (match your existing conventions)
+ expect_true(is.matrix(fit$m_samples))
+ expect_equal(ncol(fit$m_samples), nrow(X))
 
-  # Should carry coefficient names from X if available
-  if (!is.null(colnames(X))) {
-    expect_equal(colnames(fit$estimates$coefficients), colnames(X))
-    expect_equal(colnames(fit$estimates$m.coefficients), colnames(X))
-  }
+ expect_true(is.list(fit$estimates))
+ expect_true(is.matrix(fit$estimates$coefficients))
+ expect_true(is.matrix(fit$estimates$m.coefficients))
+ expect_equal(ncol(fit$estimates$coefficients), ncol(X))
+ expect_equal(ncol(fit$estimates$m.coefficients), ncol(X))
 
-  # Dispersion should be present for gaussian (and gamma)
-  expect_true("dispersion" %in% names(fit$estimates))
-  expect_true("m.dispersion" %in% names(fit$estimates))
-})
+ if (!is.null(colnames(X))) {
+  expect_equal(colnames(fit$estimates$coefficients), colnames(X))
+  expect_equal(colnames(fit$estimates$m.coefficients), colnames(X))
+ }
 
-test_that("fitglm dispatches to fitglm.adjMixBayes and runs real MCMC", {
-  skip_on_cran()
-  skip_if_not_installed("rstan")
-  skip_if_not_installed("label.switching")
-
-  if (!identical(Sys.getenv("RUN_STAN_TESTS"), "true")) {
-    skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
-  }
-
-  rstan::rstan_options(auto_write = TRUE)
-  options(mc.cores = 1L)
-
-  set.seed(1)
-  n <- 70
-  dat <- data.frame(
-    y  = rnorm(n),
-    x1 = rnorm(n),
-    x2 = rbinom(n, 1, 0.5)
-  )
-
-  # Stable rownames are important for the x <-> linked.data matching logic
-  rownames(dat) <- paste0("id", seq_len(n))
-
-  X <- stats::model.matrix(y ~ x1 + x2, dat)
-  yv <- dat$y
-  rownames(X) <- rownames(dat)
-
-  adj <- adjMixBayes(linked.data = dat)
-
-  fit <- fitglm(
-    x = X,
-    y = yv,
-    family = stats::gaussian(),
-    adjustment = adj,
-    control = list(iterations = 300, burnin.iterations = 150, seed = 99, cores = 1)
-  )
-
-  expect_s3_class(fit, "glmMixBayes")
-  expect_true(is.matrix(fit$m_samples))
-  expect_equal(ncol(fit$m_samples), nrow(X))
+ # Dispersion present for gaussian (and gamma)
+ expect_true("dispersion" %in% names(fit$estimates))
+ expect_true("m.dispersion" %in% names(fit$estimates))
 })

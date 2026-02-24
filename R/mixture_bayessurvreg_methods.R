@@ -107,9 +107,10 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
 #' Returns posterior credible intervals for regression coefficients and key parameters.
 #'
 #' @param object An object of class \code{survMixBayes}.
+#' @param parm Optional. Character vector selecting which elements of the returned
+#'   list to keep. If \code{NULL}, all intervals are returned.
 #' @param level Confidence level.
 #' @param ... Additional arguments (unused).
-#'
 #' @return A named list of credible intervals. Elements `coef1` and `coef2`
 #'   are `p x 2` matrices (lower/upper) for component-specific regression
 #'   coefficients when available. Elements `theta`, `shape1`, `shape2`,
@@ -117,25 +118,30 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
 #'   credible intervals for scalar parameters.
 #' @export
 #' @method confint survMixBayes
-confint.survMixBayes <- function(object, level = 0.95, ...) {
-  alpha <- (1 - level) / 2
-  probs <- c(alpha, 1 - alpha)
+confint.survMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
+ alpha <- (1 - level) / 2
+ probs <- c(alpha, 1 - alpha)
 
-  out <- list()
+ out <- list()
 
-  b1 <- object$estimates$coefficients
-  b2 <- object$estimates$m.coefficients
-  if (is.matrix(b1)) out$coef1 <- t(apply(b1, 2, stats::quantile, probs = probs, na.rm = TRUE))
-  if (is.matrix(b2)) out$coef2 <- t(apply(b2, 2, stats::quantile, probs = probs, na.rm = TRUE))
+ b1 <- object$estimates$coefficients
+ b2 <- object$estimates$m.coefficients
+ if (is.matrix(b1)) out$coef1 <- t(apply(b1, 2, stats::quantile, probs = probs, na.rm = TRUE))
+ if (is.matrix(b2)) out$coef2 <- t(apply(b2, 2, stats::quantile, probs = probs, na.rm = TRUE))
 
-  out$theta <- stats::quantile(object$estimates$theta, probs = probs, na.rm = TRUE)
+ out$theta <- stats::quantile(object$estimates$theta, probs = probs, na.rm = TRUE)
 
-  if (!is.null(object$estimates$shape)) out$shape1 <- as.numeric(stats::quantile(object$estimates$shape, probs = probs, na.rm = TRUE))
-  if (!is.null(object$estimates$m.shape)) out$shape2 <- as.numeric(stats::quantile(object$estimates$m.shape, probs = probs, na.rm = TRUE))
-  if (!is.null(object$estimates$scale)) out$scale1 <- as.numeric(stats::quantile(object$estimates$scale, probs = probs, na.rm = TRUE))
-  if (!is.null(object$estimates$m.scale)) out$scale2 <- as.numeric(stats::quantile(object$estimates$m.scale, probs = probs, na.rm = TRUE))
+ if (!is.null(object$estimates$shape))   out$shape1 <- stats::quantile(object$estimates$shape,   probs = probs, na.rm = TRUE)
+ if (!is.null(object$estimates$m.shape)) out$shape2 <- stats::quantile(object$estimates$m.shape, probs = probs, na.rm = TRUE)
+ if (!is.null(object$estimates$scale))   out$scale1 <- stats::quantile(object$estimates$scale,   probs = probs, na.rm = TRUE)
+ if (!is.null(object$estimates$m.scale)) out$scale2 <- stats::quantile(object$estimates$m.scale, probs = probs, na.rm = TRUE)
 
-  out
+ # Optional filtering (simple and safe): allow selecting list elements by name
+ if (!is.null(parm)) {
+  if (is.character(parm)) out <- out[names(out) %in% parm]
+ }
+
+ out
 }
 
 #' Variance-covariance for survMixBayes coefficients
