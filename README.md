@@ -1,3 +1,89 @@
-  <!-- badges: start -->
-  [![R-CMD-check](https://github.com/postlink-group/postlink/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/postlink-group/postlink/actions/workflows/R-CMD-check.yaml)
-  <!-- badges: end -->
+---
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+<!-- badges: start --> [![R-CMD-check](https://github.com/postlink-group/postlink/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/postlink-group/postlink/actions/workflows/R-CMD-check.yaml) <!-- badges: end -->
+
+# Post-Linkage Data Analysis
+
+The `postlink` R package is dedicated to accounting for linkage errors during analysis of data after imperfect record linkage.
+
+## Overview
+
+Record linkage is often prone to errors, particularly when identifiers used for matching records are noisy or non-unique.
+Mismatches (false matches) act as a contaminant in regression analysis, typically leading to attenuated estimates.
+
+`postlink` currently supports three statistical frameworks to account for potential mismatch errors: - Weighting (ELE): Corrects bias by solving adjusted estimating equations using block-specific proportions of correct links.
+It assumes an Exchangeable Linkage Error (ELE) model.
+- Mixture Modeling: Uses an Expectation-Maximization (EM) algorithm and infers the latent correct match status using a two-component mixture model.
+- Bayesian Mixture Modeling: Performs posterior inference via data augmentation, alternating between imputing the latent match status and updating model parameters to propagate linkage uncertainty.
+
+## Package Architecture
+
+`postlink` implements a modular, object-oriented architecture designed to harmonize usability with computational flexibility.
+The workflow leverages R's S3 method dispatch to decouple the specification of linkage error adjustment from the substantive statistical modeling.
+
+**Phase 1**: Adjustment Specification
+
+Users first define the linked data and the chosen adjustment methodology using a constructor function.
+These constructors validate the data and return a lightweight S3 adjustment object.
+- `adjELE()` - `adjMixture()` - `adjMixBayes()`
+
+**Phase 2**: Estimation & Inference
+
+The adjustment object, if supported, is then passed to a modeling wrapper function designed to mimic standard R modeling interfaces.
+- `plglm()` for generalized linear models.
+- `plcoxph()` for survival outcomes.
+- `plctable()` for contingency table analysis.
+
+Fitted model objects integrate with standard R post-model extractors, including `summary()`, `predict()`, and `confint()`
+
+## Installation
+
+You can install the development version of `postlink` from GitHub or locally:
+
+``` r
+# devtools::install_github("postlink-group/postlink")
+```
+
+## Quick Start
+
+Here is a basic example illustrating the typical workflow using `postlink`.
+
+We analyze the relationship between age at death and year of birth using historical records from the LIFE-M project.
+The dataset contains a mix of hand-linked records (assumed correct) and purely machine-linked records subject to an approximate 5% mismatch rate.
+
+Instead of fitting the standard glm model ignoring the mismatch errors, we use the `postlink` to adjust for potential mismatches.
+
+``` r
+library(postlink)
+
+# Load the LIFE-M demo dataset
+data(lifem)
+
+# Phase 1: Adjustment Specification
+# We model the correct match indicator via logistic regression using 
+# name commonness scores (commf, comml) and a 5% expected mismatch rate.
+adj_object <- adjMixture(
+  linked.data = lifem,
+  m.formula = ~ commf + comml,
+  m.rate = 0.05,
+  safe.matches = hndlnk
+)
+
+# Phase 2: Estimation & Inference
+# Fit a Gaussian regression model utilizing a cubic polynomial for year of birth.
+fit <- plglm(
+  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+  family = "gaussian",
+  adjustment = adj_object
+)
+
+# View model results
+summary(fit)
+confint(fit)
+```
+
+By explicitly adjusting for linkage errors, postlink utilizes the entire linked dataset while providing results that align more closely with true matches.
