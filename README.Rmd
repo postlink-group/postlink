@@ -13,9 +13,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-<img src="man/figures/light_v2.png" align="right" height="139" alt="postlink hex sticker" />
+# Post-Linkage Data Analysis <img src="man/figures/light_v2.png" align="right" height="139" alt="postlink hex sticker" />
 
-# Post-Linkage Data Analysis
 
 <!-- badges: start --> 
 [![R-CMD-check](https://github.com/postlink-group/postlink/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/postlink-group/postlink/actions/workflows/R-CMD-check.yaml) 
