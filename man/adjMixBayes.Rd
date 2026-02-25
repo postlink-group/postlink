@@ -29,14 +29,16 @@ reproducibility and to ensure the adjustment object fully encapsulates
 the necessary data for downstream model fitting.
 
 #' @examples
-# Example: Using the included brfss demonstration dataset
-data(brfss, package = "postlink")
-
-adj_object <- adjMixBayes(linked.data = brfss)
 }
 \note{
 The reference below discusses the implemented framework in more detail.
 }
+\section{Example: Using the included brfss demonstration dataset}{
+data(brfss, package = "postlink")
+
+adj_object <- adjMixBayes(linked.data = brfss)
+}
+
 \references{
 Gutman, R., Sammartino, C., Green, T., & Montague, B. (2016). Error adjustments for file
 linking methods using encrypted unique client identifier (eUCI) with application to recently

@@ -16,7 +16,7 @@
 \value{
 An object of class \code{summary.coxphELE} containing:
 \item{call}{The matched call.}
-\item{coefficients}{A matrix with columns for coefficients, hazard ratios (exp(coef)), 
+\item{coefficients}{A matrix with columns for coefficients, hazard ratios (exp(coef)),
 standard errors, z-values, and p-values.}
 \item{conf.int}{A matrix of confidence intervals for the hazard ratios.}
 \item{n}{The number of observations.}
@@ -24,6 +24,6 @@ standard errors, z-values, and p-values.}
 }
 \description{
 Produces a summary of the fitted CoxPH model with linkage error adjustment,
-including coefficient estimates, hazard ratios, standard errors, z-statistics, 
+including coefficient estimates, hazard ratios, standard errors, z-statistics,
 and p-values.
 }

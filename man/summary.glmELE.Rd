@@ -2,7 +2,7 @@
 % Please edit documentation in R/ele_glm_methods.R
 \name{summary.glmELE}
 \alias{summary.glmELE}
-\title{Summarize a `glmELE` Object}
+\title{Summarize a \code{glmELE} Object}
 \usage{
 \method{summary}{glmELE}(object, ...)
 }
@@ -13,12 +13,12 @@
 }
 \value{
 An object of class \code{"summary.glmELE"}, which is a list containing:
-  \item{call}{The matched call.}
-  \item{family}{The family object used.}
-  \item{coefficients}{A list of matrices, one per weighting method, containing estimates, SEs, t/z values, and p-values.}
-  \item{dispersion}{The estimated dispersion parameter(s).}
-  \item{deviance}{The deviance of the fitted model.}
-  \item{df.residual}{The residual degrees of freedom.}
+\item{call}{The matched call.}
+\item{family}{The family object used.}
+\item{coefficients}{A list of matrices, one per weighting method, containing estimates, SEs, t/z values, and p-values.}
+\item{dispersion}{The estimated dispersion parameter(s).}
+\item{deviance}{The deviance of the fitted model.}
+\item{df.residual}{The residual degrees of freedom.}
 }
 \description{
 Summarizes the results from a \code{glmELE} fit, providing coefficient estimates,

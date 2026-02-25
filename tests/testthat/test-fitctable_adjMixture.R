@@ -126,12 +126,12 @@ test_that("fitctable.adjMixture warns if m.formula is present", {
  adj_with_formula <- mock_adj_object(m.rate = 0.1, m.formula = ~ x1 + x2)
 
  expect_warning(
-  fitctable.adjMixture(tab, adj_with_formula),
+  fit <- fitctable.adjMixture(tab, adj_with_formula),
   "Covariates .* are ignored"
  )
 
  # Ensure it still ran despite warning
- expect_s3_class(fitctable.adjMixture(tab, adj_with_formula), "ctableMixture")
+ expect_s3_class(fit, "ctableMixture")
 })
 
 test_that("fitctable.adjMixture warns if safe.matches are present", {

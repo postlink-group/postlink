@@ -27,8 +27,6 @@ plctable <- function(formula,
 
  cl <- match.call()
 
- if (missing(data)) data <- NULL
-
  # Data Retrieval
  if (missing(adjustment) || (!inherits(adjustment, "adjustment") && !is.list(adjustment))) {
   stop("'adjustment' must be a valid adjustment object or a list.", call. = FALSE)
@@ -43,12 +41,8 @@ plctable <- function(formula,
 
  # Create Contingency Table
  xt_call <- call("xtabs", formula = formula, exclude = exclude)
-
- # Priority: Adjustment Data > Argument Data
  if (!is.null(data_linked)) {
   xt_call$data <- data_linked
- } else if (!missing(data)) {
-  xt_call$data <- substitute(data)
  }
 
  if (!missing(subset)) xt_call$subset <- substitute(subset)

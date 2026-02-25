@@ -48,7 +48,7 @@ plcoxph <- function(formula,
 
  # Model Frame Construction
  mf <- match.call(expand.dots = FALSE)
- m <- match(c("formula", "data", "subset", "na.action"), names(mf), 0L)
+ m <- match(c("formula", "subset", "na.action"), names(mf), 0L)
  mf <- mf[c(1L, m)]
  mf$drop.unused.levels <- TRUE
  mf[[1L]] <- quote(stats::model.frame)

@@ -21,7 +21,7 @@ coxphMixture(
 \item{y}{A numeric vector of observed time-to-event outcomes.}
 
 \item{cens}{A numeric vector indicating censoring status (1 = censored, 0 = event).
-Note: This is the reverse of the standard `Surv` object convention where 1 usually
+Note: This is the reverse of the standard \code{Surv} object convention where 1 usually
 indicates an event.}
 
 \item{z}{A matrix or data.frame of mismatch covariates (e.g., match scores,
@@ -37,21 +37,21 @@ this bound.}
 Defaults to all FALSE.}
 
 \item{control}{An optional list of control parameters. Parameters can also be
-passed directly via `...`.
+passed directly via \code{...}.
 \itemize{
-  \item \code{louis.k}: Number of Monte Carlo iterations for variance
-  estimation (default: 1000).
-  \item \code{max.iter}: Maximum EM iterations (default: 1000).
-  \item \code{cmax.iter}: Maximum iterations for the constrained optimization
-  subroutine (default: 1000).
-  \item \code{tol}: Convergence tolerance (default: 1e-4).
-  \item \code{init.beta}: Initial estimates for outcome model coefficients.
-  \item \code{init.gamma}: Initial estimates for mismatch model coefficients.
-  \item \code{fy}: Pre-calculated marginal density of the response. If NULL,
-  estimated non-parametrically.
+\item \code{louis.k}: Number of Monte Carlo iterations for variance
+estimation (default: 1000).
+\item \code{max.iter}: Maximum EM iterations (default: 1000).
+\item \code{cmax.iter}: Maximum iterations for the constrained optimization
+subroutine (default: 1000).
+\item \code{tol}: Convergence tolerance (default: 1e-4).
+\item \code{init.beta}: Initial estimates for outcome model coefficients.
+\item \code{init.gamma}: Initial estimates for mismatch model coefficients.
+\item \code{fy}: Pre-calculated marginal density of the response. If NULL,
+estimated non-parametrically.
 }}
 
-\item{...}{Additional arguments passed to `control`.}
+\item{...}{Additional arguments passed to \code{control}.}
 }
 \value{
 An list of results:
@@ -59,7 +59,7 @@ An list of results:
 \item{m.coefficients}{Estimated coefficients for the mismatch model (gamma).}
 \item{var}{Variance-covariance matrix of the estimates.}
 \item{linear.predictors}{Linear predictors for the outcome model.}
-\item{means}{Column means of the covariate matrix `x`.}
+\item{means}{Column means of the covariate matrix \code{x}.}
 \item{n}{Number of observations.}
 \item{nevent}{Number of events.}
 \item{match.prob}{Posterior probabilities that each observation is a correct match.}

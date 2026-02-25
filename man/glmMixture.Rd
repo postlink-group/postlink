@@ -35,12 +35,12 @@ as definitely correct), \code{FALSE} indicates a potential mismatch.}
 \item{control}{An optional list of control parameters. Arguments passed via \code{...}
 will override values in this list.
 \itemize{
-  \item \code{max.iter}: Maximum EM iterations (default: 1000).
-  \item \code{cmax.iter}: Maximum iterations for the subroutine in the constrained logistic regression function (default: 1000).
-  \item \code{tol}: Convergence tolerance (default: 1e-4).
-  \item \code{init.beta}: Initial parameter estimates for the outcome model.
-  \item \code{init.gamma}: Initial parameter estimates for the mismatch indicator model.
-  \item \code{fy}: Estimated marginal density of the response. If NULL, estimated using Kernel Density Estimation or parametric assumption.
+\item \code{max.iter}: Maximum EM iterations (default: 1000).
+\item \code{cmax.iter}: Maximum iterations for the subroutine in the constrained logistic regression function (default: 1000).
+\item \code{tol}: Convergence tolerance (default: 1e-4).
+\item \code{init.beta}: Initial parameter estimates for the outcome model.
+\item \code{init.gamma}: Initial parameter estimates for the mismatch indicator model.
+\item \code{fy}: Estimated marginal density of the response. If NULL, estimated using Kernel Density Estimation or parametric assumption.
 }}
 
 \item{...}{Additional arguments passed to \code{control}.}
@@ -96,7 +96,7 @@ fit <- glmMixture(x = cbind(1, x), y = y,
 
 }
 \references{
-Slawski, M.*, West, B. T., Bukke, P., Wang, Z., Diao, G., & 
+Slawski, M.*, West, B. T., Bukke, P., Wang, Z., Diao, G., &
 Ben-David, E. (2025). A general framework for regression with mismatched
 data based on mixture modelling. \emph{Journal of the Royal Statistical Society
 Series A: Statistics in Society}, 188(3), 896-919. \doi{10.1093/jrsssa/qnae083}

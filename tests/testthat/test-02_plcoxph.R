@@ -80,22 +80,6 @@ test_that("plcoxph prioritizes data in adjustment object (Reference Semantics)",
  expect_equal(fit$len_y, 3)
 })
 
-test_that("plcoxph retrieves data from environment if adjustment data is missing", {
- # Setup: Adjustment object with NO data
- adj_empty <- list(m.rate = 0.05)
- class(adj_empty) <- dummy_class_cox
-
- # Setup: Data in local environment
- local_df <- data.frame(time = c(5, 10, 15), status = c(0, 1, 0), z = c(1, 1, 0))
-
- # Run (passing data explicitly via 'data' arg)
- fit <- plcoxph(Surv(time, status) ~ z, adjustment = adj_empty, data = local_df)
-
- expect_equal(fit$status, "dispatched")
- expect_equal(fit$len_y, 3)
- expect_equal(fit$dim_x, c(3, 1)) # 1 covariate (z), no intercept (Cox)
-})
-
 # -------------------------------------------------------------------------
 # Test Suite: Model Frame & Matrix Construction
 # -------------------------------------------------------------------------

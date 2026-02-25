@@ -9,10 +9,12 @@ simulate_mixture_data <- function(n = 200, family = "gaussian", m_rate = 0.1) {
  # Predictors
  x <- matrix(rnorm(n), ncol = 1)
  X <- cbind(1, x) # Intercept
+ colnames(X) <- c("(Intercept)", "X1")
 
  # Mismatch Covariates (Z)
  z <- matrix(rnorm(n, mean = 0.5), ncol = 1)
  Z <- cbind(1, z)
+ colnames(Z) <- c("(Intercept)", "Z1")
 
  # Outcome Generation
  if (family == "gaussian") {
@@ -59,7 +61,6 @@ test_that("print.glmMixture outputs correctly", {
 
  expect_true(any(grepl("Coefficients \\(Outcome Model\\):", out)))
  expect_true(any(grepl("Coefficients \\(Mismatch Model\\):", out)))
- expect_true(any(grepl("Residual Deviance:", out)))
 })
 
 test_that("summary.glmMixture produces valid summary object", {
@@ -69,10 +70,9 @@ test_that("summary.glmMixture produces valid summary object", {
  summ <- summary(fit)
 
  expect_s3_class(summ, "summary.glmMixture")
- expect_named(summ, c("call", "family", "deviance", "df.residual",
-                      "null.deviance", "df.null", "iter", "coefficients",
-                      "m.coefficients", "dispersion", "cov.unscaled", "match.prob",
-                      "resid.summary"))
+ expect_named(summ, c("call", "family", "df.residual",
+                      "coefficients",
+                      "m.coefficients", "dispersion", "cov.unscaled", "match.prob"))
 
  # Check coefficient table structure
  expect_true("Pr(>|t|)" %in% colnames(summ$coefficients))

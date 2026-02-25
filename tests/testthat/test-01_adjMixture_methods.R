@@ -15,7 +15,7 @@ test_that("print.adjMixture works for fully specified objects", {
  # Check for key strings
  expect_match(out, "Adjustment Object: Mixture Model")
  expect_match(out, "Observations:\\s+100")
- expect_match(out, "Mismatch Model:\\s+~ x")
+ expect_match(out, "Mismatch Model:\\s+~x")
  expect_match(out, "Global Mismatch Rate:\\s+0.1.*User Constrained")
  expect_match(out, "Safe Matches:\\s+50.*50.0%")
 })

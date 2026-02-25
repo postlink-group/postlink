@@ -21,10 +21,10 @@
 
 \item{type}{The type of prediction.
 \itemize{
-  \item \code{"lp"}: Linear predictor (eta = X * beta).
-  \item \code{"risk"}: Risk score (exp(eta)).
-  \item \code{"expected"}: Expected number of events (approximate).
-  \item \code{"survival"}: Survival probability at the observed times.
+\item \code{"lp"}: Linear predictor (eta = X * beta).
+\item \code{"risk"}: Risk score (exp(eta)).
+\item \code{"expected"}: Expected number of events (approximate).
+\item \code{"survival"}: Survival probability at the observed times.
 }}
 
 \item{se.fit}{Logical; whether to compute standard errors (based on the sandwich/Louis variance).}
@@ -36,7 +36,7 @@
 \item{...}{Additional arguments passed to methods.}
 }
 \value{
-A vector or matrix of predictions, or a list containing \code{fit} and 
+A vector or matrix of predictions, or a list containing \code{fit} and
 \code{se.fit} if standard errors are requested.
 }
 \description{
@@ -48,8 +48,8 @@ When \code{newdata} is supplied, the function constructs the model matrix using
 the terms from the original fit. Standard errors are computed using the
 estimated variance-covariance matrix of the mixture model coefficients.
 
-For \code{type = "expected"} and \code{"survival"}, the function reconstructs the 
-cumulative baseline hazard step function \eqn{\Lambda_0(t)} using the Breslow 
-estimator stored in the object and evaluates it at the time points found in 
+For \code{type = "expected"} and \code{"survival"}, the function reconstructs the
+cumulative baseline hazard step function \eqn{\Lambda_0(t)} using the Breslow
+estimator stored in the object and evaluates it at the time points found in
 \code{newdata}.
 }

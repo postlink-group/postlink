@@ -232,6 +232,8 @@ coxphMixture <- function(x, y, cens,
       p_cur[is.na(p_cur)] <- 0
     }
 
+    p_cur[!safe.matches] <- pmax(pmin(p_cur[!safe.matches], 1 - 1e-6), 1e-6)
+
     # Compute Objective (Negative Log Pseudo-Likelihood)
     # L = p_match * f_cox + (1-p_match) * fy
     log_lik_terms <- log(hs * f_cox + (1 - hs) * fy)
@@ -546,9 +548,9 @@ fitcoxph.adjMixture <- function(x, y, adjustment, control, ...) {
   if (ncol(y) < 2) {
     stop("Response y must be a Surv object with time and status.", call. = FALSE)
   }
-  status_vec <- y[, "status"]
+  status_vec <- as.numeric(y[, "status"])
   cens_vec <- 1 - status_vec
-  time_vec <- y[, "time"]
+  time_vec <- as.numeric(y[, "time"])
 
   # Function Inputs
   n_obs <- nrow(x)

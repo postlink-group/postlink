@@ -95,6 +95,18 @@
 ctableMixture <- function(tab, m.rate, control = list(), ...) {
 
   # Argument Parsing & Validation
+  if (!(is.matrix(tab) || is.table(tab)) || !is.numeric(tab)) {
+   stop("Input 'tab' must be a numeric matrix or table.")
+  }
+  if (any(tab < 0, na.rm = TRUE)) {
+   stop("Input 'tab' must contain non-negative counts.")
+  }
+  if (!is.numeric(m.rate) || length(m.rate) != 1L) {
+   stop("'m.rate' must be a single numeric value.")
+  }
+  if (m.rate < 0 || m.rate >= 1) {
+   stop("'m.rate' must be strictly between 0 and 1.")
+  }
 
   # Default control parameters
   defaults <- list(max.iter = 1000, tol = 1e-6)

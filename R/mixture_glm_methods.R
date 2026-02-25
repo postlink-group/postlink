@@ -225,10 +225,11 @@ print.glmMixture <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
   print.default(format(x$m.coefficients, digits = digits), print.gap = 2L, quote = FALSE)
  }
 
- cat("\nDegrees of Freedom:", x$df.null, "Total (i.e. Null); ", x$df.residual, "Residual\n")
- cat("Null Deviance:	    ", format(signif(x$null.deviance, digits)), "\n")
- cat("Residual Deviance: ", format(signif(x$deviance, digits)), "\n")
+ #cat("\nDegrees of Freedom:", x$df.null, "Total (i.e. Null); ", x$df.residual, "Residual\n")
+ #cat("Null Deviance:	    ", format(signif(x$null.deviance, digits)), "\n")
+ #cat("Residual Deviance: ", format(signif(x$deviance, digits)), "\n")
 
+ cat("\n")
  if (!is.null(x$dispersion) && x$family$family %in% c("gaussian", "Gamma")) {
   cat("Dispersion parameter estimate: ", format(signif(x$dispersion, digits)), "\n")
  }
@@ -248,13 +249,12 @@ print.glmMixture <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 #' @return An object of class \code{summary.glmMixture} containing:
 #' \item{call}{The component from object.}
 #' \item{family}{The component from object.}
-#' \item{deviance}{The component from object.}
+#' \item{df.residual}{The residual degrees of freedom.}
 #' \item{coefficients}{Matrix of coefficients for the outcome model.}
 #' \item{m.coefficients}{Matrix of coefficients for the mismatch model.}
 #' \item{dispersion}{Estimated dispersion parameter.}
-#' \item{df.residual}{The residual degrees of freedom.}
-#' \item{cov.scaled}{The estimated covariance matrix.}
-#' \item{resid.summary}{The residual summary statistics.}
+#' \item{cov.unscaled}{The estimated covariance matrix.}
+#' \item{match.prob}{The posterior match probabilities.}
 #'
 #' @export
 summary.glmMixture <- function(object, dispersion = NULL, ...) {
@@ -269,10 +269,10 @@ summary.glmMixture <- function(object, dispersion = NULL, ...) {
 
  # Calculate Residual Summary Statistics
  # We compute this here because the summary object shouldn't carry the full residual vector
- resid_summary <- stats::quantile(object$residuals,
-                                  probs = c(0, 0.25, 0.5, 0.75, 1),
-                                  na.rm = TRUE)
- names(resid_summary) <- c("Min", "1Q", "Median", "3Q", "Max")
+ # resid_summary <- stats::quantile(object$residuals,
+ #                                  probs = c(0, 0.25, 0.5, 0.75, 1),
+ #                                  na.rm = TRUE)
+ # names(resid_summary) <- c("Min", "1Q", "Median", "3Q", "Max")
 
  # Outcome Model Table
  beta_se <- std_errs[1:p]
@@ -324,17 +324,16 @@ summary.glmMixture <- function(object, dispersion = NULL, ...) {
 
  res <- list(call = object$call,
              family = object$family,
-             deviance = object$deviance,
+             #deviance = object$deviance,
              df.residual = object$df.residual,
-             null.deviance = object$null.deviance,
-             df.null = object$df.null,
-             iter = length(object$objective),
+             #null.deviance = object$null.deviance,
+             #df.null = object$df.null,
              coefficients = coef_mat,
              m.coefficients = m_coef_mat,
              dispersion = dispersion,
              cov.unscaled = object$var,
-             match.prob = object$match.prob,
-             resid.summary = resid_summary)
+             match.prob = object$match.prob)
+             #resid.summary = resid_summary)
 
  class(res) <- "summary.glmMixture"
  return(res)
@@ -346,13 +345,13 @@ print.summary.glmMixture <- function(x, digits = max(3L, getOption("digits") - 3
 
  cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n", sep = "")
 
- cat("\nDeviance Residuals: \n")
- if (x$df.residual > 5) {
-  print.default(format(x$resid.summary, digits = digits), print.gap = 2L, quote = FALSE)
- } else {
-  cat("ALL", x$df.residual, "residuals:\n")
-  print.default(x$residuals, digits = digits)
- }
+ # cat("\nDeviance Residuals: \n")
+ # if (x$df.residual > 5) {
+ #  print.default(format(x$resid.summary, digits = digits), print.gap = 2L, quote = FALSE)
+ # } else {
+ #  cat("ALL", x$df.residual, "residuals:\n")
+ #  print.default(x$residuals, digits = digits)
+ # }
 
  cat("\nOutcome Model Coefficients:\n")
  stats::printCoefmat(x$coefficients, digits = digits, signif.stars = signif.stars,
@@ -370,12 +369,6 @@ print.summary.glmMixture <- function(x, digits = max(3L, getOption("digits") - 3
  } else {
   cat("\n(Dispersion parameter for ", x$family$family, " family taken to be 1)\n\n", sep = "")
  }
-
- # Null/Residual deviance
- cat("    Null deviance:", format(x$null.deviance, digits = digits),
-     " on", x$df.null, " degrees of freedom\n")
- cat("Residual deviance:", format(x$deviance, digits = digits),
-     " on", x$df.residual, " degrees of freedom\n")
 
  # Average Posterior Match Probability
  if (!is.null(x$match.prob)) {

@@ -22,7 +22,7 @@ An object of class \code{summary.ctableMixture} containing:
 \item{iterations}{Number of iterations performed.}
 }
 \description{
-Provides a detailed summary of the \code{ctableMixture} model fit, including 
-the estimated cell probabilities with standard errors, convergence status, 
+Provides a detailed summary of the \code{ctableMixture} model fit, including
+the estimated cell probabilities with standard errors, convergence status,
 and a Chi-squared test of independence performed on the adjusted counts.
 }

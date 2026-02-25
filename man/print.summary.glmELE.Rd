@@ -2,7 +2,7 @@
 % Please edit documentation in R/ele_glm_methods.R
 \name{print.summary.glmELE}
 \alias{print.summary.glmELE}
-\title{Print Summary of a `glmELE` Object}
+\title{Print Summary of a \code{glmELE} Object}
 \usage{
 \method{print}{summary.glmELE}(
   x,

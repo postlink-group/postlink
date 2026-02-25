@@ -45,11 +45,11 @@
 #' \item{family}{The \code{family} object used.}
 #'
 #' @references
-#' Slawski, M.*, West, B. T., Bukke, P., Wang, Z., Diao, G., & 
+#' Slawski, M.*, West, B. T., Bukke, P., Wang, Z., Diao, G., &
 #' Ben-David, E. (2025). A general framework for regression with mismatched
 #' data based on mixture modelling. \emph{Journal of the Royal Statistical Society
 #' Series A: Statistics in Society}, 188(3), 896-919. \doi{10.1093/jrsssa/qnae083}
-#' 
+#'
 #' Slawski, M.*, Diao, G., Ben-David, E. (2021). A pseudo-likelihood approach to
 #' linear regression with partially shuffled data. \emph{Journal of Computational
 #' and Graphical Statistics}. 30(4), 991-1003. \doi{10.1080/10618600.2020.1870482}
@@ -86,557 +86,485 @@
 glmMixture <- function(x, y, family,
                        z, m.rate = NULL, safe.matches = NULL,
                        control = list(), ...) {
-  
-  # Argument Handling and Setup
-  dots <- list(...)
-  # Merge (...) into control, giving (...) precedence
-  con <- list(init.beta = NULL, init.gamma = NULL, fy = NULL,
-              max.iter = 1000, tol = 1E-4, cmax.iter = 1000)
-  
-  # Update control with provided list, then override with dots
-  con[names(control)] <- control
-  con[names(dots)] <- dots
-  
-  x <- as.matrix(x)
-  z <- as.matrix(z)
-  y <- as.numeric(y)
-  n <- nrow(x)
-  p <- ncol(x)
-  
-  # Calculate logit bound for m.rate constraint
-  if(!is.null(m.rate)){
-    logitbound <- -log((1 - m.rate) / m.rate)
+
+ # 1. Set-up and Arguments
+ dots <- list(...)
+ con <- list(init.beta = NULL, init.gamma = NULL, fy = NULL,
+             max.iter = 1000, tol = 1E-4, cmax.iter = 1000)
+ con[names(control)] <- control
+ con[names(dots)] <- dots
+
+ x <- as.matrix(x)
+ z <- as.matrix(z)
+ y <- as.numeric(y)
+ n <- nrow(x)
+ p <- ncol(x)
+ d <- p
+
+ if (is.null(safe.matches)) safe.matches <- rep(FALSE, n)
+
+ if (!is.null(m.rate)) {
+  logitbound <- -log((1 - m.rate) / m.rate)
+ } else {
+  logitbound <- NULL
+ }
+
+ family_arg <- if (!is.null(family)) family else stats::gaussian()
+ if (is.character(family_arg)) {
+  if (tolower(family_arg) == "gamma") family <- stats::Gamma(link = "log")
+  else {
+   family_fun <- try(get(family_arg, mode = "function", envir = parent.frame()), silent = TRUE)
+   if (inherits(family_fun, "try-error")) stop(paste("Invalid family argument:", family_arg))
+   family <- family_fun()
+  }
+ } else if (is.function(family_arg)) {
+  family <- family_arg()
+ } else {
+  family <- family_arg
+ }
+ family_name <- tolower(family$family)
+
+ # Marginal Density (fy) Estimation
+ fy <- con$fy
+ if (is.null(fy)) {
+  if (family_name == "gaussian") {
+   fy <- stats::dnorm(y, mean = mean(y), sd = stats::sd(y))
+  } else if (family_name == "binomial") {
+   fy <- (mean(y)^y) * (1 - mean(y))^(1 - y)
   } else {
-    logitbound <- NULL
+   kde_obj <- stats::density(y)
+   g <- stats::approxfun(x = kde_obj$x, y = kde_obj$y, method = "linear")
+   fy <- g(y)
   }
-  
-  # Family Setup
-  family_arg <- if (!is.null(family)) family else stats::gaussian()
-  
-  if (is.character(family_arg)) {
-    if (tolower(family_arg) == "gamma") family <- stats::Gamma(link = "log")
-    else {
-      family_fun <- try(get(family_arg, mode = "function", envir = parent.frame()), silent = TRUE)
-      if (inherits(family_fun, "try-error")) stop(paste("Invalid family argument:", family_arg))
-      family <- family_fun()
-    }
-  } else if (is.function(family_arg)) {
-    family <- family_arg()
+ }
+ # prevent 0s in custom marginals or KDE boundaries
+ if (!is.null(fy)) {
+  fy[is.na(fy) | fy <= 0] <- 1e-10
+ }
+
+ # Initialization: Beta & Shape
+ beta_cur <- con$init.beta
+ shape_cur <- NA
+ stdcur <- NA
+
+ if (is.null(beta_cur)) {
+  if (family_name != "gamma") {
+   init_fit <- stats::glm.fit(x, y, family = family)
+   beta_cur <- stats::coef(init_fit)
   } else {
-    family <- family_arg
-  }
-  if (is.null(family$family)) stop("Invalid family object.")
-  
-  if (is.null(safe.matches)) safe.matches <- rep(FALSE, n)
-  
-  # Marginal Density (fy) Estimation
-  fy <- con$fy
-  if (is.null(fy)) {
-    if (family$family == "binomial") {
-      fy <- stats::dbinom(y, size = 1, prob = mean(y))
-    } else if (family$family == "gaussian") {
-      fy <- stats::dnorm(y, mean = mean(y), sd = stats::sd(y))
-    } else {
-      # Use Kernel Density Estimation for generic cases
-      kde_obj <- stats::density(y)
-      approx_fun <- stats::approxfun(x = kde_obj$x, y = kde_obj$y, method = "linear", rule = 2)
-      fy <- approx_fun(y)
-      fy[fy < 1e-300] <- 1e-300
+   shape_update <- function(mu_val, mme, pcur) {
+    f <- function(shape) {
+     -sum(pcur * stats::dgamma(y, shape = shape, rate = shape / mu_val, log = TRUE))
     }
+    lower_bound <- max(1e-4, 0.1 * mme)
+    upper_bound <- max(10, 10 * mme)
+    stats::optimize(f = f, lower = lower_bound, upper = upper_bound)$minimum
+   }
+
+   init_fit <- stats::glm.fit(x, y, family = stats::Gamma(link = "log"))
+   beta_cur <- stats::coef(init_fit)
+
+   mu_init <- pmax(init_fit$fitted.values, 1e-10)
+   disp_init <- sum(((y - mu_init)/mu_init)^2) / max(1, init_fit$df.residual)
+   if (is.na(disp_init) || disp_init <= 0) disp_init <- 1
+   shape_cur <- shape_update(mu_init, mme = 1/disp_init, rep(1, n))
   }
-  
-  # Initialization
-  beta_cur <- con$init.beta
-  dispersion_cur <- NULL
-  shape_cur <- NULL
-  
-  if (is.null(beta_cur)) {
-    # Standard GLM fit as starting point
-    init_fit <- stats::glm.fit(x, y, family = family)
-    beta_cur <- stats::coef(init_fit)
-    mu_init <- init_fit$fitted.values
+ }
+
+ if (family_name == "gaussian") {
+  stdcur <- sqrt(sum((y - x %*% beta_cur)^2) / (n - p))
+ }
+
+ # Initialization: Gamma
+ gamma_cur <- con$init.gamma
+ if (is.null(gamma_cur)) {
+  if (!is.null(logitbound)) {
+   if (ncol(z) == 1 && all(z == 1)) {
+    gamma_cur <- rep(-logitbound, ncol(z))
+   } else {
+    gamma_cur <- c(min(logitbound, 0), rep(0, ncol(z) - 1))
+   }
   } else {
-    beta_cur <- as.vector(beta_cur)
-    mu_init <- family$linkinv(x %*% beta_cur)
+   gamma_cur <- rep(0, ncol(z))
   }
-  
-  # Initialize dispersion/shape
-  if (family$family == "gaussian") {
-    dispersion_cur <- sum((y - mu_init)^2) / (n - p)
-  } else if (family$family == "Gamma") {
-    dispersion_est <- sum((y - mu_init)^2 / mu_init^2) / (n - p)
-    shape_cur <- 1 / dispersion_est
+ }
+
+ # Helpers
+ hgamma <- function(eta) {
+  pi <- stats::plogis(eta)
+  list(fun = pi, dfun = pi * (1 - pi), d2fun = pi * (1 - pi) * (1 - 2 * pi))
+ }
+
+ fymu_eval <- function(mu, sigma, sub, shape) {
+  mu_safe <- mu[sub]
+  if (family_name %in% c("poisson", "gamma")) {
+   mu_safe <- pmax(mu_safe, 1e-10)
+  } else if (family_name == "binomial") {
+   mu_safe <- pmax(pmin(mu_safe, 1 - 1e-10), 1e-10)
+  }
+
+  if (family_name == "gaussian") return(stats::dnorm((y[sub] - mu_safe), sd = sigma))
+  if (family_name == "poisson") return(stats::dpois(y[sub], mu_safe))
+  if (family_name == "binomial") return(stats::dbinom(y[sub], 1, mu_safe))
+  if (family_name == "gamma") return(stats::dgamma(y[sub], shape, shape / mu_safe))
+ }
+
+ nloglik <- function(mu, sigma, hs, shape) {
+  term1 <- hs[!safe.matches] * fymu_eval(mu, sigma, !safe.matches, shape) + (1 - hs[!safe.matches]) * fy[!safe.matches]
+  term2 <- fymu_eval(mu, sigma, safe.matches, shape)
+
+  sum(-log(pmax(term1, 1e-300))) - sum(log(pmax(term2, 1e-300)))
+ }
+
+ # 2. EM-Algorithm
+ eta_cur <- x %*% beta_cur
+ mu_cur <- family$linkinv(eta_cur)
+ hs <- hgamma(z %*% gamma_cur)$fun
+ hs[safe.matches] <- 1
+ p_cur <- rep(0, n)
+
+ iter <- 1
+ objs <- numeric(con$max.iter)
+ objs[iter] <- nloglik(mu_cur, stdcur, hs, shape_cur)
+
+ while (iter < con$max.iter) {
+  # E-Step
+  num <- hs[!safe.matches] * fymu_eval(mu_cur, stdcur, !safe.matches, shape_cur)
+  denom <- num + (1 - hs[!safe.matches]) * fy[!safe.matches]
+  denom[denom <= 0] <- 1e-10
+
+  p_cur[!safe.matches] <- pmin(pmax(num / denom, 1e-10), 1 - 1e-10)
+  p_cur[safe.matches] <- 1
+
+  # M-Step: Gamma
+  if (!is.null(logitbound)) {
+   if (ncol(z) == 1 && all(z == 1)) {
+    glm_h <- stats::glm.fit(z[!safe.matches, , drop = FALSE], p_cur[!safe.matches], family = stats::quasibinomial())
+    gamma_cur <- max(stats::coef(glm_h), -logitbound)
+   } else {
+    glm_h <- constrained_logistic_regression(z[!safe.matches, , drop = FALSE], 1 - p_cur[!safe.matches], logitbound, con$cmax.iter)
+    gamma_cur <- -glm_h$beta
+   }
   } else {
-    dispersion_cur <- 1
+   glm_h <- stats::glm.fit(z[!safe.matches, , drop = FALSE], p_cur[!safe.matches], family = stats::quasibinomial())
+   gamma_cur <- stats::coef(glm_h)
   }
-  
-  # Initialize Gamma (Mismatch parameters)
-  gamma_cur <- con$init.gamma
-  if (is.null(gamma_cur)) {
-    if (!is.null(logitbound)) {
-      # If constraint exists, initialize close to bound
-      if (ncol(z) == 1 && all(z == 1)) gamma_cur <- rep(-logitbound, ncol(z))
-      else gamma_cur <- c(min(logitbound, 0), rep(0, ncol(z) - 1))
-    } else {
-      gamma_cur <- rep(0, ncol(z))
-    }
+  hs[!safe.matches] <- hgamma(z[!safe.matches, , drop = FALSE] %*% gamma_cur)$fun
+
+  # M-Step: Beta & Dispersion
+  if (family_name != "gamma") {
+   w_glm_fit <- tryCatch(
+    stats::glm.fit(x, y, weights = p_cur, family = family, start = beta_cur),
+    error = function(e) stats::glm.fit(x, y, weights = p_cur, family = family)
+   )
+   beta_cur <- stats::coef(w_glm_fit)
+  } else {
+   w_glm_fit <- tryCatch(
+    stats::glm.fit(x, y, weights = p_cur, family = family, start = beta_cur),
+    error = function(e) stats::glm.fit(x, y, weights = p_cur, family = family)
+   )
+   beta_cur <- stats::coef(w_glm_fit)
+   mu_w <- pmax(w_glm_fit$fitted.values, 1e-10)
+   disp_w <- sum(p_cur * ((y - mu_w)/mu_w)^2) / max(sum(p_cur), 1)
+   if (is.na(disp_w) || disp_w <= 0) disp_w <- 1
+   shape_cur <- shape_update(mu_w, mme = 1/disp_w, p_cur)
   }
-  
-  # Helper functions
-  h_func <- function(eta) {
-    pi <- stats::plogis(eta)
-    list(fun = pi, dfun = pi * (1 - pi), d2fun = pi * (1 - pi) * (1 - 2 * pi))
-  }
-  
-  eval_phi <- function(eta, sub_idx, family_obj, sigma_sq = NULL, shape = NULL) {
-    y_sub <- y[sub_idx]
-    eta_sub <- eta[sub_idx]
-    mu_sub <- family_obj$linkinv(eta_sub)
-    
-    if (family_obj$family == "gaussian") {
-      fun <- stats::dnorm(y_sub, mean = mu_sub, sd = sqrt(sigma_sq))
-    } else if (family_obj$family == "Gamma") {
-      fun <- stats::dgamma(y_sub, shape = shape, rate = shape / mu_sub)
-    } else if (family_obj$family == "poisson") {
-      fun <- stats::dpois(y_sub, lambda = mu_sub)
-    } else {
-      fun <- stats::dbinom(y_sub, size = 1, prob = mu_sub)
-    }
-    
-    mu_prime <- family_obj$mu.eta(eta_sub)
-    var_mu <- family_obj$variance(mu_sub)
-    
-    if (family_obj$family == "Gamma") score_eta <- (y_sub - mu_sub) / var_mu * mu_prime * shape
-    else score_eta <- (y_sub - mu_sub) / var_mu * mu_prime
-    
-    dfun <- fun * score_eta
-    
-    if (family_obj$family == "Gamma") expected_hess <- - (mu_prime^2) / var_mu * shape
-    else expected_hess <- - (mu_prime^2) / var_mu
-    
-    d2fun <- fun * (score_eta^2 + expected_hess)
-    res <- list(fun = fun, dfun = dfun, d2fun = d2fun)
-    
-    if (family_obj$family == "gaussian") {
-      res$dfun_beta <- dfun / sigma_sq
-      res$d2fun_beta <- d2fun / sigma_sq
-      d_fun_sigma <- fun * ((y_sub - mu_sub)^2 / sigma_sq^1.5 - 1 / sqrt(sigma_sq))
-      res$dfun_sigma <- d_fun_sigma
-      res$d2fun_sigma <- d_fun_sigma * ((y_sub - mu_sub)^2 / sigma_sq^1.5 - 1 / sqrt(sigma_sq)) +
-        fun * (1 / sigma_sq - 3 * (y_sub - mu_sub)^2 / sigma_sq^2)
-      res$d2fun_beta_sigma <- fun * (-2 * (y_sub - mu_sub) / sigma_sq^1.5) +
-        d_fun_sigma * (y_sub - mu_sub) / sigma_sq
-    } else if (family_obj$family == "Gamma") {
-      score_shape <- log(shape / mu_sub) + 1 - digamma(shape) + log(y_sub) - y_sub / mu_sub
-      res$dfun_shape <- fun * score_shape
-      res$d2fun_shape <- res$dfun_shape * score_shape + fun * (1/shape - trigamma(shape))
-    }
-    return(res)
-  }
-  
-  calc_loglik <- function(mu, hs, sigma_sq = NULL, shape = NULL) {
-    if (family$family == "gaussian") phi <- stats::dnorm(y, mean = mu, sd = sqrt(sigma_sq))
-    else if (family$family == "poisson") phi <- stats::dpois(y, lambda = mu)
-    else if (family$family == "binomial") phi <- stats::dbinom(y, size = 1, prob = mu)
-    else if (family$family == "Gamma") phi <- stats::dgamma(y, shape = shape, rate = shape / mu)
-    
-    term_match <- hs[!safe.matches] * phi[!safe.matches]
-    term_mismatch <- (1 - hs[!safe.matches]) * fy[!safe.matches]
-    
-    # Avoid log(0)
-    lik_terms <- term_match + term_mismatch
-    lik_terms[lik_terms <= 0] <- 1e-300
-    
-    sum(-log(lik_terms)) - sum(log(phi[safe.matches]))
-  }
-  
-  # EM Algorithm
+
   eta_cur <- x %*% beta_cur
   mu_cur <- family$linkinv(eta_cur)
-  
-  # hs is P(m=0|z)
-  hs <- h_func(z %*% gamma_cur)$fun
-  hs[safe.matches] <- 1
-  
-  iter <- 1
-  objs <- numeric(con$max.iter)
-  p_cur <- rep(0, n) # Posterior probability of match
-  w_glm_fit <- NULL
-  
-  if (family$family == "gaussian") objs[1] <- calc_loglik(mu_cur, hs, sigma_sq = dispersion_cur)
-  else if (family$family == "Gamma") objs[1] <- calc_loglik(mu_cur, hs, shape = shape_cur)
-  else objs[1] <- calc_loglik(mu_cur, hs)
-  
-  while (iter < con$max.iter) {
-    # E-Step: Calculate posterior match probabilities (p_cur)
-    if (family$family == "gaussian") phi <- stats::dnorm(y, mean = mu_cur, sd = sqrt(dispersion_cur))
-    else if (family$family == "Gamma") phi <- stats::dgamma(y, shape = shape_cur, rate = shape_cur / mu_cur)
-    else if (family$family == "poisson") phi <- stats::dpois(y, lambda = mu_cur)
-    else phi <- stats::dbinom(y, size = 1, prob = mu_cur)
-    
-    num <- hs[!safe.matches] * phi[!safe.matches]
-    denom <- num + (1 - hs[!safe.matches]) * fy[!safe.matches]
-    ratio <- num / denom
-    ratio[denom == 0] <- 0 # Handle division by zero
-    
-    p_cur[!safe.matches] <- ratio
-    p_cur[safe.matches] <- 1
-    
-    if (anyNA(p_cur)) { warning("EM: NA weights."); break }
-    
-    # M-Step: Update Gamma (Mismatch Model)
-    z_sub <- z[!safe.matches, , drop = FALSE]
-    p_sub <- p_cur[!safe.matches]
-    
-    if (!is.null(logitbound)) {
-      glm_h <- constrained_logistic_regression(z_sub, 1 - p_sub, logitbound, con$cmax.iter)
-      # constrained_logistic_regression models mismatch (1-p), so coefs are for mismatch.
-      # h_func models match. relation: gamma_match = -gamma_mismatch
-      gamma_cur <- -glm_h$beta
-    } else {
-      # Use quasibinomial to handle fractional weights [0,1]
-      glm_h <- stats::glm.fit(z_sub, p_sub, family = stats::quasibinomial())
-      gamma_cur <- stats::coef(glm_h)
-    }
-    
-    hs[!safe.matches] <- h_func(z[!safe.matches, , drop = FALSE] %*% gamma_cur)$fun
-    
-    # M-Step: Update Beta (Outcome Model)
-    fit_fam <- if (family$family == "binomial") stats::quasibinomial(link = family$link) else family
-    
-    if (family$family == "Gamma") {
-      w_glm_fit <- stats::glm.fit(x, y, weights = p_cur, family = fit_fam)
-      beta_cur <- stats::coef(w_glm_fit)
-      eta_cur <- x %*% beta_cur
-      mu_cur <- family$linkinv(eta_cur)
-      
-      # Update Shape for Gamma
-      sum_w <- sum(p_cur)
-      term_k <- sum(p_cur * (log(y / mu_cur) - y / mu_cur))
-      
-      if (is.null(shape_cur) || is.na(shape_cur) || shape_cur <= 0) {
-        shape_cur <- 1 / (sum((y - mu_cur)^2 / mu_cur^2) / (n - p))
-      }
-      
-      # Newton-Raphson for Shape
-      for (i in 1:20) {
-        sc <- sum_w * (log(shape_cur) + 1 - digamma(shape_cur)) + term_k
-        hess <- sum_w * (1 / shape_cur - trigamma(shape_cur))
-        new_s <- shape_cur - sc / hess
-        sf <- 1
-        while (new_s <= 1e-4 && sf > 1e-4) { sf <- sf * 0.5; new_s <- shape_cur - sc / hess * sf }
-        if (new_s <= 1e-4) new_s <- 1e-4
-        if (abs(new_s - shape_cur) < 1e-6) { shape_cur <- new_s; break }
-        shape_cur <- new_s
-      }
-    } else {
-      w_glm_fit <- stats::glm.fit(x, y, weights = p_cur, family = fit_fam)
-      beta_cur <- stats::coef(w_glm_fit)
-      eta_cur <- x %*% beta_cur
-      mu_cur <- family$linkinv(eta_cur)
-    }
-    
-    if (family$family == "gaussian") {
-      # Update Dispersion (Variance)
-      dispersion_cur <- sum(p_cur * (y - mu_cur)^2) / sum(p_cur)
-    }
-    
-    iter <- iter + 1
-    
-    # Calculate Objective
-    if (family$family == "gaussian") objs[iter] <- calc_loglik(mu_cur, hs, sigma_sq = dispersion_cur)
-    else if (family$family == "Gamma") objs[iter] <- calc_loglik(mu_cur, hs, shape = shape_cur)
-    else objs[iter] <- calc_loglik(mu_cur, hs)
-    
-    if (!is.na(objs[iter]) && abs(objs[iter] - objs[iter - 1]) < con$tol) break
+
+  if (family_name == "gaussian") {
+   stdcur <- sqrt(stats::weighted.mean((y - mu_cur)^2, w = p_cur))
   }
-  
-  # Variance-Covariance Estimation (Sandwich)
-  evals <- eval_phi(eta_cur, !safe.matches, family,
-                    sigma_sq = if (family$family == "gaussian") dispersion_cur else NULL,
-                    shape = shape_cur)
-  
-  # Note: drop=FALSE is required in all subsetting below to handle single-mismatch cases
-  z_sub <- z[!safe.matches, , drop = FALSE] 
-  x_sub <- x[!safe.matches, , drop = FALSE]
-  
-  h_eval <- h_func(z_sub %*% gamma_cur)
-  mix_prob <- fy[!safe.matches] * (1 - h_eval$fun) + h_eval$fun * evals$fun
-  
-  if (family$family == "gaussian") {
-    w_beta <- (-1) * evals$dfun_beta * h_eval$fun / mix_prob
-    w_extra <- (-1) * evals$dfun_sigma * h_eval$fun / mix_prob
-  } else if (family$family == "Gamma") {
-    w_beta <- (-1) * evals$dfun * h_eval$fun / mix_prob
-    w_extra <- (-1) * evals$dfun_shape * h_eval$fun / mix_prob
-  } else {
-    w_beta <- (-1) * evals$dfun * h_eval$fun / mix_prob
+
+  iter <- iter + 1
+  objs[iter] <- nloglik(mu_cur, stdcur, hs, shape_cur)
+
+  if (is.na(objs[iter])) {
+   warning("EM algorithm did not converge. NA objective value occurred.")
+   break
   }
-  
-  # Gradient w.r.t gamma
-  w_gamma <- ((-1) * (evals$fun - fy[!safe.matches]) * h_eval$dfun) / mix_prob
-  
-  x_w1 <- sweep(x_sub, 1, w_beta, "*")
-  Delta_w3 <- sweep(z_sub, 1, w_gamma, "*")
-  
-  if (family$family %in% c("gaussian", "Gamma")) {
-    x_w2 <- matrix(w_extra, ncol = 1)
-    meat <- crossprod(cbind(x_w1, x_w2, Delta_w3))
-  } else {
-    meat <- crossprod(cbind(x_w1, Delta_w3))
+  if (abs(objs[iter] - objs[iter - 1]) < con$tol) {
+   break
   }
-  
-  # Second derivatives for Hessian
-  if (family$family == "gaussian") {
-    w_beta2 <- (-(h_eval$fun * evals$d2fun_beta) / mix_prob) + w_beta^2
-    w_extra2 <- (-(h_eval$fun * evals$d2fun_sigma) / mix_prob) + w_extra^2
-    w_beta_extra <- (-(evals$d2fun_beta_sigma * h_eval$fun) / mix_prob) + w_beta * w_extra
-  } else if (family$family == "Gamma") {
-    w_beta2 <- (-(h_eval$fun * evals$d2fun) / mix_prob) + w_beta^2
-    w_extra2 <- (-(h_eval$fun * evals$d2fun_shape) / mix_prob) + w_extra^2
-    w_beta_extra <- w_beta * w_extra
-  } else {
-    w_beta2 <- (-(h_eval$fun * evals$d2fun) / mix_prob) + w_beta^2
+ }
+
+ # 3. Standard Errors
+ hgamma_eval <- hgamma(z[!safe.matches, , drop = FALSE] %*% as.matrix(gamma_cur))
+
+ if (family_name == "gaussian") {
+  fymu_all_eval <- (function(mu, std, sub) {
+   fun <- stats::dnorm((y - mu)[sub], sd = std)
+   d_fun_beta <- fun * (y - mu)[sub] / (std^2)
+   d_fun_sigma <- fun * ((y - mu)[sub]^2 / std^3 - 1 / std)
+   d2_fun_beta <- d_fun_beta * (y - mu)[sub] / (std^2) - fun / (std^2)
+   d2_fun_sigma <- d_fun_sigma * ((y - mu)[sub]^2 / std^3 - 1 / std) + fun * (1 / std^2 - 3 * (y - mu)[sub]^2 / std^4)
+   d2_fun_beta_sigma <- d_fun_sigma * (y - mu)[sub] / (std^2) - 2 * fun * (y - mu)[sub] / (std^3)
+   list(fun = fun, dfun_beta = d_fun_beta, dfun_sigma = d_fun_sigma,
+        d2fun_beta = d2_fun_beta, d2fun_sigma = d2_fun_sigma, d2fun_beta_sigma = d2_fun_beta_sigma)
+  })(mu_cur, stdcur, !safe.matches)
+
+  mixprob <- fy[!safe.matches] * (1 - hgamma_eval$fun) + hgamma_eval$fun * fymu_all_eval$fun
+  w_beta_score <- (-1) * fymu_all_eval$dfun_beta * hgamma_eval$fun / mixprob
+  w_sigma_score <- (-1) * fymu_all_eval$dfun_sigma * hgamma_eval$fun / mixprob
+  w_gamma_score <- (-1) * (fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$dfun / mixprob
+
+  Xw1 <- sweep(x[!safe.matches, , drop = FALSE], 1, w_beta_score, "*")
+  Xw2 <- sweep(matrix(1, sum(!safe.matches), 1), 1, w_sigma_score, "*")
+  Deltaw3 <- sweep(z[!safe.matches, , drop = FALSE], 1, w_gamma_score, "*")
+  meat <- crossprod(cbind(Xw1, Xw2, Deltaw3))
+
+  w_beta2_hess <- (-(hgamma_eval$fun * fymu_all_eval$d2fun_beta) / mixprob) + w_beta_score^2
+  w_sigma2_hess <- (-(hgamma_eval$fun * fymu_all_eval$d2fun_sigma) / mixprob) + w_sigma_score^2
+  w_gamma2_hess <- ((-(fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$d2fun) / mixprob) + w_gamma_score^2
+  w_beta_gamma_hess <- (-(fymu_all_eval$dfun_beta * hgamma_eval$dfun) / mixprob) +
+   ((fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$fun * hgamma_eval$dfun * fymu_all_eval$dfun_beta) / (mixprob^2)
+  w_sigma_gamma_hess <- (-(fymu_all_eval$dfun_sigma * hgamma_eval$dfun) / mixprob) +
+   ((fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$fun * hgamma_eval$dfun * fymu_all_eval$dfun_sigma) / (mixprob^2)
+
+  w_beta_sigma_hess <- (-(fymu_all_eval$d2fun_beta_sigma * hgamma_eval$dfun) / mixprob) + w_beta_score * w_sigma_score
+
+  Xw4 <- sweep(x[!safe.matches, , drop = FALSE], 1, w_beta2_hess, "*")
+  Deltaw6 <- sweep(z[!safe.matches, , drop = FALSE], 1, w_gamma2_hess, "*")
+  Xw5 <- sweep(x[!safe.matches, , drop = FALSE], 1, w_beta_gamma_hess, "*")
+
+  Hess <- matrix(0, d + 1 + ncol(z), d + 1 + ncol(z))
+  one_v <- matrix(1, sum(!safe.matches), 1)
+
+  Hess[1:d, 1:d] <- crossprod(x[!safe.matches, , drop = FALSE], Xw4)
+  Hess[d+1, d+1] <- crossprod(one_v, sweep(one_v, 1, w_sigma2_hess, "*"))
+  Hess[(d+2):ncol(Hess), (d+2):ncol(Hess)] <- crossprod(z[!safe.matches, , drop = FALSE], Deltaw6)
+
+  Hess[1:(d+1), (d+2):ncol(Hess)] <- rbind(crossprod(Xw5, z[!safe.matches, , drop = FALSE]),
+                                           crossprod(sweep(one_v, 1, w_sigma_gamma_hess, "*"), z[!safe.matches, , drop = FALSE]))
+  Hess[(d+2):ncol(Hess), 1:(d+1)] <- t(Hess[1:(d+1), (d+2):ncol(Hess)])
+
+  Hess[1:d, d+1] <- crossprod(x[!safe.matches, , drop = FALSE], sweep(one_v, 1, w_beta_sigma_hess, "*"))
+  Hess[d+1, 1:d] <- t(Hess[1:d, d+1])
+
+ } else {
+  fymu_all_eval <- (function(eta, sub, family_obj, shape) {
+   y_sub <- y[sub]
+   eta_sub <- eta[sub]
+   mu_sub <- family_obj$linkinv(eta_sub)
+
+   if (family_obj$family %in% c("poisson", "Gamma")) mu_sub <- pmax(mu_sub, 1e-10)
+   if (family_obj$family == "binomial") mu_sub <- pmax(pmin(mu_sub, 1 - 1e-10), 1e-10)
+
+   if (family_obj$family == "poisson") {
+    fun <- stats::dpois(y_sub, mu_sub)
+   } else if (family_obj$family == "binomial") {
+    fun <- stats::dbinom(y_sub, 1, mu_sub)
+   } else if (family_obj$family == "Gamma") {
+    fun <- stats::dgamma(y_sub, shape, shape / mu_sub)
+   } else {
+    fun <- rep(1, length(y_sub))
+   }
+
+   mu_prime <- family_obj$mu.eta(eta_sub)
+   var_mu <- family_obj$variance(mu_sub)
+
+   if (family_obj$family == "Gamma") {
+    score_eta <- (y_sub - mu_sub) / var_mu * mu_prime * shape
+    expected_hess <- - (mu_prime^2) / var_mu * shape
+   } else {
+    score_eta <- (y_sub - mu_sub) / var_mu * mu_prime
+    expected_hess <- - (mu_prime^2) / var_mu
+   }
+
+   dfun <- fun * score_eta
+   d2fun <- fun * (score_eta^2 + expected_hess)
+
+   list(fun = fun, dfun = dfun, d2fun = d2fun)
+  })(eta_cur, !safe.matches, family, shape_cur)
+
+  mixprob <- fy[!safe.matches] * (1 - hgamma_eval$fun) + hgamma_eval$fun * fymu_all_eval$fun
+  w_beta_score <- (-1) * fymu_all_eval$dfun * hgamma_eval$fun / mixprob
+  w_gamma_score <- (-1) * (fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$dfun / mixprob
+
+  Xw1 <- sweep(x[!safe.matches, , drop = FALSE], 1, w_beta_score, "*")
+  Deltaw3 <- sweep(z[!safe.matches, , drop = FALSE], 1, w_gamma_score, "*")
+  meat <- crossprod(cbind(Xw1, Deltaw3))
+
+  w_beta2_hess <- (-(hgamma_eval$fun * fymu_all_eval$d2fun) / mixprob) + w_beta_score^2
+  w_gamma2_hess <- ((-(fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$d2fun) / mixprob) + w_gamma_score^2
+  w_beta_gamma_hess <- (-(fymu_all_eval$dfun * hgamma_eval$dfun) / mixprob) +
+   ((fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$fun * hgamma_eval$dfun * fymu_all_eval$dfun) / (mixprob^2)
+
+  Xw4 <- sweep(x[!safe.matches, , drop = FALSE], 1, w_beta2_hess, "*")
+  Deltaw6 <- sweep(z[!safe.matches, , drop = FALSE], 1, w_gamma2_hess, "*")
+  Xw5 <- sweep(x[!safe.matches, , drop = FALSE], 1, w_beta_gamma_hess, "*")
+
+  Hess <- matrix(0, d + ncol(z), d + ncol(z))
+  Hess[1:d, 1:d] <- crossprod(x[!safe.matches, , drop = FALSE], Xw4)
+  Hess[(d+1):ncol(Hess), (d+1):ncol(Hess)] <- crossprod(z[!safe.matches, , drop = FALSE], Deltaw6)
+  Hess[1:d, (d+1):ncol(Hess)] <- crossprod(Xw5, z[!safe.matches, , drop = FALSE])
+  Hess[(d+1):ncol(Hess), 1:d] <- t(Hess[1:d, (d+1):ncol(Hess)])
+ }
+
+ cov_1_hat <- tryCatch(solve(Hess, meat), error = function(e) matrix(NA, nrow(Hess), ncol(Hess)))
+ covhat <- if (anyNA(cov_1_hat)) matrix(NA, nrow(Hess), ncol(Hess)) else t(solve(Hess, t(cov_1_hat)))
+
+ beta_n <- colnames(x)
+ gamma_n <- colnames(z)
+ names(gamma_cur) <- gamma_n
+
+ if (family_name == "gaussian") {
+  if (!anyNA(covhat)) {
+   covhat[d+1, ] <- covhat[d+1, ] * (2 * stdcur)
+   covhat[, d+1] <- covhat[, d+1] * (2 * stdcur)
   }
-  w_gamma2 <- (-(evals$fun - fy[!safe.matches]) * h_eval$d2fun / mix_prob) + w_gamma^2
-  
-  if (family$family == "gaussian") term_bg <- evals$dfun_beta
-  else term_bg <- evals$dfun
-  
-  w_beta_gamma <- (-(term_bg * h_eval$dfun) / mix_prob) +
-    ((evals$fun - fy[!safe.matches]) * h_eval$fun * h_eval$dfun * term_bg) / (mix_prob^2)
-  
-  x_w4 <- sweep(x_sub, 1, w_beta2, "*")
-  Delta_w6 <- sweep(z_sub, 1, w_gamma2, "*")
-  x_w5 <- sweep(x_sub, 1, w_beta_gamma, "*")
-  
-  d_x <- ncol(x); d_z <- ncol(z)
-  
-  # Construct Hessian (Use x_sub and z_sub instead of subsetting inline)
-  if (family$family %in% c("gaussian", "Gamma")) {
-    size <- d_x + 1 + d_z
-    Hess <- matrix(0, size, size)
-    one <- matrix(1, sum(!safe.matches), 1)
-    
-    Hess[1:d_x, 1:d_x] <- crossprod(x_sub, x_w4)
-    Hess[d_x + 1, d_x + 1] <- crossprod(one, one * w_extra2)
-    Hess[(d_x + 2):size, (d_x + 2):size] <- crossprod(z_sub, Delta_w6)
-    
-    bg <- crossprod(x_w5, z_sub)
-    Hess[1:d_x, (d_x + 2):size] <- bg
-    Hess[(d_x + 2):size, 1:d_x] <- t(bg)
-    
-    bs <- crossprod(x_sub, one * w_beta_extra)
-    Hess[1:d_x, d_x + 1] <- bs
-    Hess[d_x + 1, 1:d_x] <- t(bs)
-    
-    sg <- crossprod(one * (w_extra * w_gamma), z_sub)
-    Hess[d_x + 1, (d_x + 2):size] <- sg
-    Hess[(d_x + 2):size, d_x + 1] <- t(sg)
-    
-  } else {
-    size <- d_x + d_z
-    Hess <- matrix(0, size, size)
-    Hess[1:d_x, 1:d_x] <- crossprod(x_sub, x_w4)
-    Hess[(d_x + 1):size, (d_x + 1):size] <- crossprod(z_sub, Delta_w6)
-    
-    bg <- crossprod(x_w5, z_sub)
-    Hess[1:d_x, (d_x + 1):size] <- bg
-    Hess[(d_x + 1):size, 1:d_x] <- t(bg)
-  }
-  
-  cov_1_hat <- try(solve(Hess, meat), silent = TRUE)
-  covhat <- if (inherits(cov_1_hat, "try-error")) matrix(NA, nrow(Hess), ncol(Hess)) else t(solve(Hess, t(cov_1_hat)))
-  
-  beta_n <- colnames(x); if (is.null(beta_n)) beta_n <- paste0("beta", 1:p)
-  gamma_n <- colnames(z); if (is.null(gamma_n)) gamma_n <- paste0("gamma", 1:ncol(z))
-  
-  if (family$family == "gaussian") {
-    idx <- p + 1; sc <- 2 * sqrt(dispersion_cur)
-    if (!anyNA(covhat)) { covhat[idx, ] <- covhat[idx, ] * sc; covhat[, idx] <- covhat[, idx] * sc }
-    rn <- c(paste("coef", beta_n), "dispersion", paste("m.coef", gamma_n))
-  } else if (family$family == "Gamma") {
-    rn <- c(paste("coef", beta_n), "shape", paste("m.coef", gamma_n))
-  } else {
-    rn <- c(paste("coef", beta_n), paste("m.coef", gamma_n))
-  }
-  rownames(covhat) <- colnames(covhat) <- rn
-  
-  # Deviance of the outcome model: Use the weighted deviance from the M-step.
-  #    This reflects the fit of the outcome model conditional on the posterior match probabilities.
-  deviance_model <- w_glm_fit$deviance
-  df_residual <- w_glm_fit$df.residual
-  
-  # Null Deviance: Fit weighted null model
-  #    Standard glm null deviance is based on intercept-only model with same weights
-  null_deviance <- w_glm_fit$null.deviance
-  df_null <- w_glm_fit$df.null
-  
-  out <- list(coefficients = beta_cur, 
-              m.coefficients = gamma_cur, 
-              residuals = y - mu_cur,
-              linear.predictors = eta_cur,
-              fitted.values = mu_cur, 
-              deviance = deviance_model,
-              null.deviance = null_deviance,            
-              df.residual = n - p, 
-              df.null = n - 1,
-              rank = p, 
-              family = family, 
-              converged = iter < con$max.iter, 
-              match.prob = hs, 
-              var = covhat,
-              objective = objs[1:iter],
-              call = match.call())
-  
-  if (family$family == "gaussian") out$dispersion <- dispersion_cur
-  else if (family$family == "Gamma") out$dispersion <- 1 / shape_cur
-  else out$dispersion <- 1
-  
-  # Assign class inheritance
-  class(out) <- c("glmMixture")
-  
-  return(out)
+  rn <- c(paste("coef", beta_n), "dispersion", paste("m.coef", gamma_n))
+ } else {
+  rn <- c(paste("coef", beta_n), paste("m.coef", gamma_n))
+ }
+ rownames(covhat) <- colnames(covhat) <- rn
+
+ out <- list(coefficients = beta_cur,
+             m.coefficients = gamma_cur,
+             residuals = y - mu_cur,
+             linear.predictors = eta_cur,
+             fitted.values = mu_cur,
+             deviance = w_glm_fit$deviance,
+             null.deviance = w_glm_fit$null.deviance,
+             df.residual = n - p,
+             df.null = n - 1,
+             rank = p,
+             family = family,
+             converged = iter < con$max.iter,
+             match.prob = hs,
+             var = covhat,
+             objective = objs[1:iter],
+             call = match.call())
+
+ if (family_name == "gaussian") out$dispersion <- stdcur^2
+ else if (family_name == "gamma") out$dispersion <- 1 / shape_cur
+ else out$dispersion <- 1
+
+ class(out) <- c("glmMixture")
+ return(out)
 }
 
 #' @keywords internal
 #' @export
 fitglm.adjMixture <- function(x, y, family, adjustment, control, ...) {
-  
-  # -------------------------------------------------------------------------
-  # 1. Validation and Data Retrieval
-  # -------------------------------------------------------------------------
-  full_data <- adjustment$data_ref$data
-  if (is.null(full_data)) {
-    stop("The 'adjustment' object does not contain linked data. ",
-         "Please recreate the object with 'linked.data' provided.", call. = FALSE)
+ # 1. Validation and Data Retrieval
+ full_data <- adjustment$data_ref$data
+ if (is.null(full_data)) {
+  stop("The 'adjustment' object does not contain linked data. ",
+       "Please recreate the object with 'linked.data' provided.", call. = FALSE)
+ }
+
+ # 2. Stage 1: Align Adjustment Data to Outcome Model (X, Y)
+ # plglm() has already applied 'subset' and 'na.action' to x and y.
+ # We use row names to synchronize the adjustment data.
+ subset_names <- rownames(x)
+
+ # If x has no row names (rare), assume 1:1 mapping if sizes match.
+ # This handles cases where users strip names or use matrices without names.
+ if (is.null(subset_names)) {
+  if (nrow(x) != nrow(full_data)) {
+   stop("Row mismatch: Model matrix 'x' has no row names and its length (", nrow(x),
+        ") differs from the adjustment data (", nrow(full_data), "). ",
+        "Ensure 'linked.data' matches the data passed to 'plglm'.", call. = FALSE)
   }
-  
-  # -------------------------------------------------------------------------
-  # 2. Stage 1: Align Adjustment Data to Outcome Model (X, Y)
-  # -------------------------------------------------------------------------
-  # plglm() has already applied 'subset' and 'na.action' to x and y.
-  # We use row names to synchronize the adjustment data.
-  
-  subset_names <- rownames(x)
-  
-  # If x has no row names (rare), assume 1:1 mapping if sizes match.
-  # This handles cases where users strip names or use matrices without names.
-  if (is.null(subset_names)) {
-    if (nrow(x) != nrow(full_data)) {
-      stop("Row mismatch: Model matrix 'x' has no row names and its length (", nrow(x), 
-           ") differs from the adjustment data (", nrow(full_data), "). ",
-           "Ensure 'linked.data' matches the data passed to 'plglm'.", call. = FALSE)
-    }
-    # Assume the user provided the exact same dataset in the same order
-    data_subset <- full_data
-  } else {
-    # Match by name. Using strict matching ensures order is preserved.
-    # Note: data.frames are guaranteed to have unique row names in R.
-    idx_map <- match(subset_names, rownames(full_data))
-    
-    if (anyNA(idx_map)) {
-      stop("Row mismatch: Some observations in the model matrix could not be matched ",
-           "to the adjustment data. This usually happens if 'data' in plglm() ",
-           "is different from the data used to create the adjustment object.", call. = FALSE)
-    }
-    data_subset <- full_data[idx_map, , drop = FALSE]
+  # Assume the user provided the exact same dataset in the same order
+  data_subset <- full_data
+ } else {
+  # Match by name. Using strict matching ensures order is preserved.
+  # Note: data.frames are guaranteed to have unique row names in R.
+  idx_map <- match(subset_names, rownames(full_data))
+
+  if (anyNA(idx_map)) {
+   stop("Row mismatch: Some observations in the model matrix could not be matched ",
+        "to the adjustment data. This usually happens if 'data' in plglm() ",
+        "is different from the data used to create the adjustment object.", call. = FALSE)
   }
-  
-  # -------------------------------------------------------------------------
-  # 3. Construct Mismatch Covariates (Z)
-  # -------------------------------------------------------------------------
-  # We use model.frame/model.matrix to handle factors and transformations in m.formula
-  m_formula <- adjustment$m.formula
-  
-  # We use 'na.pass' here because we want to detect NAs manually in the next step
-  # to ensure we drop the corresponding rows in X and Y simultaneously.
-  Z_frame <- tryCatch({
-    stats::model.frame(m_formula, data = data_subset, na.action = stats::na.pass)
-  }, error = function(e) {
-    stop("Failed to resolve variables in 'm.formula': ", e$message, call. = FALSE)
-  })
-  
-  Z <- stats::model.matrix(m_formula, Z_frame)
-  
-  # -------------------------------------------------------------------------
-  # 4. Stage 2: Secondary Intersection (Handle Missingness in Z)
-  # -------------------------------------------------------------------------
-  # X and Y are already clean (no NAs). But Z might have NAs.
-  # If Z has NAs, we must drop those rows from X, Y, and Z to stay aligned.
-  
-  # Identify complete cases in Z
-  keep_idx <- stats::complete.cases(Z)
-  
-  if (!all(keep_idx)) {
-    n_dropped <- sum(!keep_idx)
-    warning(sprintf("Dropped %d observation(s) due to missing values in the 
-                    mismatch covariates (Z) that were not missing in the 
+  data_subset <- full_data[idx_map, , drop = FALSE]
+ }
+
+ # 3. Construct Mismatch Covariates (Z)
+ # We use model.frame/model.matrix to handle factors and transformations in m.formula
+ m_formula <- adjustment$m.formula
+
+ # We use 'na.pass' here because we want to detect NAs manually in the next step
+ # to ensure we drop the corresponding rows in X and Y simultaneously.
+ Z_frame <- tryCatch({
+  stats::model.frame(m_formula, data = data_subset, na.action = stats::na.pass)
+ }, error = function(e) {
+  stop("Failed to resolve variables in 'm.formula': ", e$message, call. = FALSE)
+ })
+
+ Z <- stats::model.matrix(m_formula, Z_frame)
+
+ # 4. Stage 2: Secondary Intersection (Handle Missingness in Z)
+ # X and Y are already clean (no NAs). But Z might have NAs.
+ # If Z has NAs, we must drop those rows from X, Y, and Z to stay aligned.
+
+ # Identify complete cases in Z
+ keep_idx <- stats::complete.cases(Z)
+
+ if (!all(keep_idx)) {
+  n_dropped <- sum(!keep_idx)
+  warning(sprintf("Dropped %d observation(s) due to missing values in the
+                    mismatch covariates (Z) that were not missing in the
                     outcome variables.", n_dropped), call. = FALSE)
-    
-    # Apply the subset
-    x <- x[keep_idx, , drop = FALSE]
-    y <- y[keep_idx]
-    Z <- Z[keep_idx, , drop = FALSE]
-    
-    # Also update the row map for the safe matches step below
-    if (!is.null(subset_names)) {
-      subset_names <- subset_names[keep_idx]
-      idx_map <- idx_map[keep_idx]
-    } else {
-      # If we were using implicit ordering, we must subset the implicit map
-      # This logic handles the "no row names" edge case
-      full_indices <- seq_len(nrow(full_data))
-      idx_map <- full_indices[keep_idx] 
-    }
-  }
-  
-  # -------------------------------------------------------------------------
-  # 5. Process Safe Matches
-  # -------------------------------------------------------------------------
-  safe_matches_all <- adjustment$safe.matches
-  safe_matches_sub <- NULL
-  
-  if (!is.null(safe_matches_all)) {
-    # Ensure the safe.matches vector aligns with the final subset of data
-    if (!is.null(subset_names)) {
-      # We use the updated idx_map which accounts for both plglm subsetting AND Z-missingness
-      safe_matches_sub <- safe_matches_all[idx_map]
-    } else {
-      # Fallback for no row names
-      safe_matches_sub <- safe_matches_all[1:nrow(x)]
-    }
-  }
-  
-  # -------------------------------------------------------------------------
-  # 6. Dispatch to Computational Engine
-  # -------------------------------------------------------------------------
-  fit <- glmMixture(
-    x = x,
-    y = y,
-    family = family,
-    z = Z,
-    m.rate = adjustment$m.rate,
-    safe.matches = safe_matches_sub,
-    control = control,
-    ...
-  )
-  
-  # -------------------------------------------------------------------------
-  # 7. Post-Processing
-  # -------------------------------------------------------------------------
-  fit$adjustment <- adjustment
-  fit$m.formula  <- m_formula
-  fit$call <- match.call() 
-  
-  # Restore row names to observation-level outputs
+
+  # Apply the subset
+  x <- x[keep_idx, , drop = FALSE]
+  y <- y[keep_idx]
+  Z <- Z[keep_idx, , drop = FALSE]
+
+  # Also update the row map for the safe matches step below
   if (!is.null(subset_names)) {
-    names(fit$residuals)         <- subset_names
-    names(fit$fitted.values)     <- subset_names
-    names(fit$linear.predictors) <- subset_names
-    # match.prob is a vector in glmMixture, verify before naming
-    if (!is.null(fit$match.prob)) names(fit$match.prob) <- subset_names
+   subset_names <- subset_names[keep_idx]
+   idx_map <- idx_map[keep_idx]
+  } else {
+   # If we were using implicit ordering, we must subset the implicit map
+   # This logic handles the "no row names" edge case
+   full_indices <- seq_len(nrow(full_data))
+   idx_map <- full_indices[keep_idx]
   }
-  
-  return(fit)
+ }
+
+ # 5. Process Safe Matches
+ safe_matches_all <- adjustment$safe.matches
+ safe_matches_sub <- NULL
+
+ if (!is.null(safe_matches_all)) {
+  # Ensure the safe.matches vector aligns with the final subset of data
+  if (!is.null(subset_names)) {
+   safe_matches_sub <- safe_matches_all[idx_map]
+  } else {
+   safe_matches_sub <- safe_matches_all[1:nrow(x)]
+  }
+ }
+
+ # 6. Dispatch to Computational Engine
+ fit <- glmMixture(
+  x = x,
+  y = y,
+  family = family,
+  z = Z,
+  m.rate = adjustment$m.rate,
+  safe.matches = safe_matches_sub,
+  control = control,
+  ...
+ )
+
+ # 7. Post-Processing
+ fit$adjustment <- adjustment
+ fit$m.formula  <- m_formula
+ fit$call <- match.call()
+
+ # Restore row names to observation-level outputs
+ if (!is.null(subset_names)) {
+  names(fit$residuals)         <- subset_names
+  names(fit$fitted.values)     <- subset_names
+  names(fit$linear.predictors) <- subset_names
+  # match.prob is a vector in glmMixture, verify before naming
+  if (!is.null(fit$match.prob)) names(fit$match.prob) <- subset_names
+ }
+
+ return(fit)
 }

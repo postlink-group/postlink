@@ -19,30 +19,42 @@ mock_adjMixture <- function(data, m.formula = ~1, m.rate = NULL, safe.matches = 
 }
 
 # -------------------------------------------------------------------------
-# Helper: Mock Engine
+# Helper: Mock Function
 # -------------------------------------------------------------------------
 # We mock glmMixture so we don't need to run the actual implementation.
 # We just want to verify fitglm passed the correct data to it.
-mock_glmMixture_args <- NULL
+mock_glmMixture_args <- new.env()
 
-glmMixture <- function(x, y, family, z, m.rate, safe.matches, control, ...) {
- # Capture arguments in a global variable for inspection
- mock_glmMixture_args <<- list(
-  x = x,
-  y = y,
-  z = z,
-  safe.matches = safe.matches,
-  m.rate = m.rate
- )
+my_mock_glmMixture <- function(x, y, family, z, m.rate, safe.matches, control, ...) {
+ # Capture arguments for inspection
+ mock_glmMixture_args$x <- x
+ mock_glmMixture_args$y <- y
+ mock_glmMixture_args$z <- z
+ mock_glmMixture_args$safe.matches <- safe.matches
+ mock_glmMixture_args$m.rate <- m.rate
+
+ n_obs <- nrow(as.matrix(x))
+
  # Return a dummy object with expected structure
- list(coefficients = c(1, 1))
+ structure(
+  list(
+   coefficients = c(1, 1),
+   residuals = rep(0, n_obs),
+   fitted.values = rep(0, n_obs),
+   linear.predictors = rep(0, n_obs),
+   match.prob = rep(0.5, n_obs)
+  ),
+  class = c("glmMixture", "plglm", "glm", "lm")
+ )
 }
 
 # -------------------------------------------------------------------------
 # Tests
 # -------------------------------------------------------------------------
 
-test_that("Basic Dispatch: Passes correct data to engine", {
+test_that("Basic Dispatch: Passes correct data to internal function", {
+ local_mocked_bindings(glmMixture = my_mock_glmMixture)
+
  # Setup Data
  df <- data.frame(
   id = 1:5,
@@ -70,6 +82,8 @@ test_that("Basic Dispatch: Passes correct data to engine", {
 })
 
 test_that("Row Alignment: Correctly subsets adjustment data (Stage 1)", {
+ local_mocked_bindings(glmMixture = my_mock_glmMixture)
+
  # Scenario: plglm() removed rows 2 and 4 (e.g., due to missingness in Y)
  df <- data.frame(y = 1:5, x = 1:5, z = 1:5)
  rownames(df) <- c("A", "B", "C", "D", "E")
@@ -82,7 +96,7 @@ test_that("Row Alignment: Correctly subsets adjustment data (Stage 1)", {
 
  fit <- fitglm.adjMixture(X, Y, gaussian(), adj, list())
 
- # Engine should receive Z only for rows A, C, E
+ # should receive Z only for rows A, C, E
  expected_z <- df$z[c(1, 3, 5)]
  received_z <- mock_glmMixture_args$z[, "z"]
 
@@ -91,6 +105,8 @@ test_that("Row Alignment: Correctly subsets adjustment data (Stage 1)", {
 })
 
 test_that("Row Alignment: Handles implicit row ordering (No Row Names)", {
+ local_mocked_bindings(glmMixture = my_mock_glmMixture)
+
  # Setup Data with slight noise (avoids 'Perfect Fit' warning)
  df <- data.frame(y = c(1.1, 1.9, 3.1, 3.9, 5.1), z = 1:5)
 
@@ -115,6 +131,8 @@ test_that("Row Alignment: Handles implicit row ordering (No Row Names)", {
 })
 
 test_that("Missingness in Z: Drops rows and warns (Stage 2)", {
+ local_mocked_bindings(glmMixture = my_mock_glmMixture)
+
  # Setup Data: row names (A, B, C, D, E) verify exactly which row is dropped
  df <- data.frame(y = 1:5, x = 1:5, z = c(1, 2, NA, 4, 5))
  rownames(df) <- LETTERS[1:5]
@@ -123,7 +141,7 @@ test_that("Missingness in Z: Drops rows and warns (Stage 2)", {
  Y <- df$y
  adj <- mock_adjMixture(df, m.formula = ~ z)
 
- # Execute: We expect a warning about the dropped observation
+ # We expect a warning about the dropped observation
  expect_warning(
   fit <- fitglm.adjMixture(X, Y, gaussian(), adj, list()),
   "Dropped 1 observation.*missing values.*mismatch covariates"
@@ -147,6 +165,8 @@ test_that("Missingness in Z: Drops rows and warns (Stage 2)", {
 })
 
 test_that("Safe Matches: Aligns correctly with subsetting", {
+ local_mocked_bindings(glmMixture = my_mock_glmMixture)
+
  # Setup Data: We use y and x that are correlated but not identical.
  set.seed(123)
  df <- data.frame(
@@ -167,7 +187,6 @@ test_that("Safe Matches: Aligns correctly with subsetting", {
 
  adj <- mock_adjMixture(df, m.formula = ~ z, safe.matches = safe_vec)
 
- # Execute
  # This expects a warning because Row 3 (which corresponds to orig Row 3) has NA in Z
  expect_warning(
   fit <- fitglm.adjMixture(X, Y, gaussian(), adj, list()),
@@ -192,14 +211,15 @@ test_that("Safe Matches: Aligns correctly with subsetting", {
  expect_equal(length(fit$residuals), 3)
 
  # Check 3: Did the Safe Matches align correctly?
- # We can infer this by checking the weights or simply trusting the engine didn't crash.
- # But we can also inspect the "names".
+ # we can inspect the "names".
  if (!is.null(names(fit$residuals))) {
   expect_equal(names(fit$residuals), c("1", "4", "5"))
  }
 })
 
 test_that("Error Handling: Validates Adjustment Object", {
+ local_mocked_bindings(glmMixture = my_mock_glmMixture)
+
  # Test missing data in adjustment object
  adj_empty <- mock_adjMixture(NULL)
  adj_empty$data_ref$data <- NULL # Explicitly remove data

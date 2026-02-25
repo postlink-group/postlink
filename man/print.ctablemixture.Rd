@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{An object of class \code{ctableMixture}.}
 
-\item{digits}{Integer; the number of significant digits to use when printing 
+\item{digits}{Integer; the number of significant digits to use when printing
 numeric values. Defaults to 3.}
 
 \item{...}{Additional arguments passed to \code{\link{print.default}}.}
@@ -18,7 +18,7 @@ numeric values. Defaults to 3.}
 The argument \code{x}, invisibly.
 }
 \description{
-Prints the estimated contingency table (corrected for linkage error) and a summary 
+Prints the estimated contingency table (corrected for linkage error) and a summary
 of the adjustment parameters used by the mixture model.
 }
 \examples{

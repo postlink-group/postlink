@@ -2,7 +2,7 @@
 % Please edit documentation in R/01_adjMixture_methods.R
 \name{print.adjMixture}
 \alias{print.adjMixture}
-\title{Print Method for `adjMixture` Objects}
+\title{Print Method for \code{adjMixture} Objects}
 \usage{
 \method{print}{adjMixture}(x, digits = 3, ...)
 }

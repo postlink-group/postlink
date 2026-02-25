@@ -12,18 +12,18 @@
 \item{...}{Additional arguments (currently ignored).}
 }
 \value{
-A matrix of the estimated covariances between the parameter estimates. 
-The rows and columns correspond to the outcome model coefficients (\code{beta}) 
+A matrix of the estimated covariances between the parameter estimates.
+The rows and columns correspond to the outcome model coefficients (\code{beta})
 and the mismatch model coefficients (\code{gamma}).
 }
 \description{
-Extracts the variance-covariance matrix of the main parameters from a fitted 
-\code{coxphMixture} object. The matrix is estimated using Louis' method (1982) 
-to account for the missing data structure (latent match status) inherent in the 
+Extracts the variance-covariance matrix of the main parameters from a fitted
+\code{coxphMixture} object. The matrix is estimated using Louis' method (1982)
+to account for the missing data structure (latent match status) inherent in the
 mixture model.
 }
 \references{
-Louis, T. A. (1982). Finding the observed information matrix when using the 
-EM algorithm. \emph{Journal of the Royal Statistical Society: Series B 
+Louis, T. A. (1982). Finding the observed information matrix when using the
+EM algorithm. \emph{Journal of the Royal Statistical Society: Series B
 (Methodological)}, 44(2), 226-233.
 }

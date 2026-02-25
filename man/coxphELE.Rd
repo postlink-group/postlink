@@ -21,7 +21,7 @@ coxphELE(
 \item{y}{A numeric vector of observed time-to-event outcomes.}
 
 \item{cens}{A numeric vector indicating censoring status (1 = censored, 0 = event).
-Note: This is the reverse of the standard `Surv` object convention where 1 usually
+Note: This is the reverse of the standard \code{Surv} object convention where 1 usually
 indicates an event.}
 
 \item{m.rate}{block-wise mismatch rates (should be a vector with length equal
@@ -45,7 +45,7 @@ specified.
 \item{coefficients}{the outcome model coefficient estimates}
 \item{var}{the variance-covariance matrix}
 \item{linear.predictors}{the linear predictors}
-\item{means}{Column means of the covariate matrix `x`.}
+\item{means}{Column means of the covariate matrix \code{x}.}
 \item{n}{Number of observations.}
 \item{nevent}{Number of events.}
 }

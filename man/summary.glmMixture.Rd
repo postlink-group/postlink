@@ -17,13 +17,12 @@
 An object of class \code{summary.glmMixture} containing:
 \item{call}{The component from object.}
 \item{family}{The component from object.}
-\item{deviance}{The component from object.}
+\item{df.residual}{The residual degrees of freedom.}
 \item{coefficients}{Matrix of coefficients for the outcome model.}
 \item{m.coefficients}{Matrix of coefficients for the mismatch model.}
 \item{dispersion}{Estimated dispersion parameter.}
-\item{df.residual}{The residual degrees of freedom.}
-\item{cov.scaled}{The estimated covariance matrix.}
-\item{resid.summary}{The residual summary statistics.}
+\item{cov.unscaled}{The estimated covariance matrix.}
+\item{match.prob}{The posterior match probabilities.}
 }
 \description{
 \code{summary} method for class \code{glmMixture}.

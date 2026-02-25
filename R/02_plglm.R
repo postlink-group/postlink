@@ -95,15 +95,13 @@ plglm <- function(formula,
 
  # Standard Model Frame Construction
  mf <- match.call(expand.dots = FALSE)
- # Added "data" to match() so it is captured from arguments if provided
- m <- match(c("formula", "data", "subset", "na.action"), names(mf), 0L)
+ m <- match(c("formula", "subset", "na.action"), names(mf), 0L)
  mf <- mf[c(1L, m)]
  mf$drop.unused.levels <- TRUE
  mf[[1L]] <- quote(stats::model.frame)
 
  # 1. If adjustment has data, force it (overrides 'data' arg).
- # 2. If adjustment has NO data, 'mf$data' remains what was passed in 'data=' arg.
- # 3. If 'data=' arg is also missing, model.frame uses formula environment.
+ # 3. If missing, model.frame uses formula environment.
  if (!is.null(data_linked)) {
   mf$data <- data_linked
  }

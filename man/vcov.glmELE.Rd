@@ -2,7 +2,7 @@
 % Please edit documentation in R/ele_glm_methods.R
 \name{vcov.glmELE}
 \alias{vcov.glmELE}
-\title{Extract Variance-Covariance Matrix from a `glmELE` Object}
+\title{Extract Variance-Covariance Matrix from a \code{glmELE} Object}
 \usage{
 \method{vcov}{glmELE}(object, weight.matrix = NULL, ...)
 }
@@ -18,6 +18,6 @@ Defaults to the first method found in the object.}
 A matrix of the estimated covariances between the parameter estimates.
 }
 \description{
-Extracts the variance-covariance matrix of the main parameters for a specific 
+Extracts the variance-covariance matrix of the main parameters for a specific
 weighting method.
 }

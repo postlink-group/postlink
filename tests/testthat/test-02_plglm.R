@@ -97,25 +97,6 @@ test_that("plglm retrieves data from 'data' list component (Manual/List Style)",
  expect_equal(fit$family_name, "gaussian")
 })
 
-test_that("plglm retrieves data from environment if missing in adjustment", {
- # Setup: Adjustment object has no data
- adj_empty <- list(m.rate = 0.1)
- class(adj_empty) <- dummy_class
-
- # Define data in local environment
- local_df <- data.frame(y = c(1, 2, 3), x = c(4, 5, 6))
-
- # Run plglm (It should find 'y' and 'x' in this test_that environment)
- fit <- plglm(y ~ x, family = poisson, adjustment = adj_empty, data = local_df)
-
- # Note: Standard glm behavior when 'data' is missing is to look in environment.
- # However, our plglm wrapper explicitly passes 'data = data_linked'.
- # If data_linked is NULL, model.frame looks in formula environment.
-
- expect_equal(fit$status, "dispatched")
- expect_equal(fit$dim_x, c(3, 2))
-})
-
 # -------------------------------------------------------------------------
 # Test Suite: Argument Handling (Subset, NA, Control)
 # -------------------------------------------------------------------------

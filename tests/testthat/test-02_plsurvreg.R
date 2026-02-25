@@ -81,23 +81,6 @@ test_that("plsurvreg prioritizes data in adjustment object (Reference Semantics)
  expect_equal(fit$len_y, 3)
 })
 
-test_that("plsurvreg retrieves data from environment if adjustment data is missing", {
- # Setup: Adjustment object with NO data
- adj_empty <- list(m.rate = 0.05)
- class(adj_empty) <- dummy_class_surv
-
- # Setup: Data in local environment
- local_df <- data.frame(time = c(5, 10, 15), status = c(0, 1, 0), z = c(1, 1, 0))
-
- # Run (passing data explicitly via 'data' arg)
- fit <- plsurvreg(Surv(time, status) ~ z, adjustment = adj_empty, data = local_df)
-
- expect_equal(fit$status, "dispatched")
- expect_equal(fit$len_y, 3)
- # Standard model.matrix includes intercept
- expect_equal(fit$dim_x, c(3, 2)) # Intercept + z
-})
-
 test_that("plsurvreg retrieves data from 'data' list component (Manual/List Style)", {
  # Setup: Simple list with data component
  df <- data.frame(time = c(1, 2, 3, 4), status = c(1, 0, 1, 0), x = c(1, 2, 3, 4))

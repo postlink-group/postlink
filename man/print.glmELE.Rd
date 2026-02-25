@@ -2,7 +2,7 @@
 % Please edit documentation in R/ele_glm_methods.R
 \name{print.glmELE}
 \alias{print.glmELE}
-\title{Print a `glmELE` Object}
+\title{Print a \code{glmELE} Object}
 \usage{
 \method{print}{glmELE}(x, digits = max(3L, getOption("digits") - 3L), ...)
 }
@@ -19,5 +19,5 @@ Invisibly returns the input object \code{x}.
 }
 \description{
 Prints the function call and the estimated coefficient matrices from a fitted
-`glmELE` object.
+\code{glmELE} object.
 }

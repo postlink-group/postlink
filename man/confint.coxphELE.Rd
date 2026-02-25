@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{An object of class \code{coxphELE}.}
 
-\item{parm}{A specification of which parameters are to be given confidence intervals, 
+\item{parm}{A specification of which parameters are to be given confidence intervals,
 either a vector of numbers or a vector of names. If missing, all parameters are considered.}
 
 \item{level}{The confidence level required (default 0.95).}

@@ -28,7 +28,7 @@ test_that("adjMixture: Basic valid construction works", {
  expect_true(is.environment(adj$data_ref))
  expect_equal(adj$data_ref$data, df)
  expect_equal(adj$m.formula, ~ commf + comml)
- expect_equal(adj$logitbound, -log((1 - 0.05) / 0.05))
+ expect_equal(-log((1 - adj$m.rate) / adj$m.rate), -log((1 - 0.05) / 0.05))
  expect_equal(adj$safe.matches, df$hndlnk)
 })
 

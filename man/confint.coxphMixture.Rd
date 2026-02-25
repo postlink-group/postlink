@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{An object of class \code{coxphMixture}.}
 
-\item{parm}{A specification of which parameters are to be given confidence intervals, 
+\item{parm}{A specification of which parameters are to be given confidence intervals,
 either a vector of numbers or a vector of names. If missing, all parameters are considered.}
 
 \item{level}{The confidence level required (default is 0.95).}
@@ -20,11 +20,11 @@ either a vector of numbers or a vector of names. If missing, all parameters are 
 A matrix with columns giving lower and upper confidence limits for each parameter.
 }
 \description{
-Computes Wald confidence intervals for the coefficients of the outcome model 
+Computes Wald confidence intervals for the coefficients of the outcome model
 and the mismatch indicator model.
 }
 \details{
-The intervals are calculated based on the variance-covariance matrix returned 
-by \code{\link{vcov.coxphMixture}}, using the standard normal approximation: 
+The intervals are calculated based on the variance-covariance matrix returned
+by \code{\link{vcov.coxphMixture}}, using the standard normal approximation:
 \code{Estimate +/- z_crit * SE}.
 }

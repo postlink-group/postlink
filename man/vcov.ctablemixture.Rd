@@ -13,11 +13,11 @@
 }
 \value{
 A matrix of the estimated covariances between the cell probability estimates.
-The row and column names correspond to the cells of the table in row-major order 
+The row and column names correspond to the cells of the table in row-major order
 (e.g., "(Row1, Col1)", "(Row1, Col2)", ...).
 }
 \description{
-Extracts the estimated variance-covariance matrix of the cell probabilities 
-from a fitted \code{ctableMixture} object. The variance is estimated using 
+Extracts the estimated variance-covariance matrix of the cell probabilities
+from a fitted \code{ctableMixture} object. The variance is estimated using
 the observed information matrix (via the Hessian of the mixture log-likelihood).
 }

@@ -12,39 +12,39 @@ adjMixture(
 )
 }
 \arguments{
-\item{linked.data}{A data.frame containing the linked dataset. If \code{NULL}, 
-the function attempts to resolve variables specified in \code{m.formula} 
+\item{linked.data}{A data.frame containing the linked dataset. If \code{NULL},
+the function attempts to resolve variables specified in \code{m.formula}
 from the environment.}
 
 \item{m.formula}{A one-sided formula object for the mismatch indicator model,
-with the covariates on the right of "~". The default is an intercept-only 
+with the covariates on the right of "~". The default is an intercept-only
 model corresponding to a constant mismatch rate.}
 
 \item{m.rate}{Numeric; an optional estimate (a proportion between 0 and 1)
 to constrain the global mismatch rate estimate. Defaults to \code{NULL}.}
 
-\item{safe.matches}{A logical vector or an unquoted variable name found in 
-\code{linked.data}; an indicator variable for safe matches (TRUE : record can 
-be treated as a correct match and FALSE : record may be mismatched). 
+\item{safe.matches}{A logical vector or an unquoted variable name found in
+\code{linked.data}; an indicator variable for safe matches (TRUE : record can
+be treated as a correct match and FALSE : record may be mismatched).
 The default is FALSE for all matches.}
 }
 \value{
 An object of class \code{c("adjMixture", "adjustment")}. To minimize
-memory overhead, the underlying \code{linked.data} is stored by reference 
+memory overhead, the underlying \code{linked.data} is stored by reference
 within an environment inside this object.
 }
 \description{
-Specifies the linked data and information on the underlying record linkage 
-process for the "General Framework for Regression with Mismatched Data" 
-developed by Slawski et al. (2025). This framework uses a mixture model for 
-pairs of linked records whose two components reflect distributions 
+Specifies the linked data and information on the underlying record linkage
+process for the "General Framework for Regression with Mismatched Data"
+developed by Slawski et al. (2025). This framework uses a mixture model for
+pairs of linked records whose two components reflect distributions
 conditional on match status, i.e., correct match or mismatch.
 Inference is based on composite likelihood and the EM algorithm.
 }
 \details{
-The constructor assumes that any variables defined in \code{m.formula} and 
-\code{safe.matches} are in \code{linked.data} or in the same environment. 
-Explicit provision of \code{linked.data} is strongly recommended for 
+The constructor assumes that any variables defined in \code{m.formula} and
+\code{safe.matches} are in \code{linked.data} or in the same environment.
+Explicit provision of \code{linked.data} is strongly recommended for
 reproducibility and to ensure the adjustment object fully encapsulates
 the necessary data for downstream model fitting.
 }
@@ -70,12 +70,12 @@ adj_object_2 <- adjMixture(linked.data = lifem,
 
 }
 \references{
-Slawski, M.*, West, B. T., Bukke, P., Wang, Z., Diao, G., & 
+Slawski, M.*, West, B. T., Bukke, P., Wang, Z., Diao, G., &
 Ben-David, E. (2025). A general framework for regression with mismatched
 data based on mixture modelling. \emph{Journal of the Royal Statistical Society
 Series A: Statistics in Society}, 188(3), 896-919. \doi{10.1093/jrsssa/qnae083}
 
-Bukke, P., Ben-David, E., Diao, G., Slawski, M.*, & West, B. T. (2025). 
+Bukke, P., Ben-David, E., Diao, G., Slawski, M.*, & West, B. T. (2025).
 Cox Proportional Hazards Regression Using Linked Data: An Approach Based on
 Mixture Modeling. In \emph{Frontiers of Statistics and Data Science} (pp. 181-200).
 Singapore: Springer Nature Singapore. \doi{10.1007/978-981-96-0742-6_8}

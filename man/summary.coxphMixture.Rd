@@ -27,7 +27,7 @@ An object of class \code{summary.coxphMixture} containing:
 \item{avgcmr}{The average posterior probability of a correct match.}
 }
 \description{
-\code{summary} method for class \code{coxphMixture}. Provides a detailed summary 
-of the fitted model, including coefficients, hazard ratios, standard errors, 
+\code{summary} method for class \code{coxphMixture}. Provides a detailed summary
+of the fitted model, including coefficients, hazard ratios, standard errors,
 z-statistics, and p-values for both the outcome model and the mismatch model.
 }

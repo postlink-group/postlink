@@ -18,19 +18,19 @@ of mismatched records in the data.}
 \item{...}{Additional control arguments. If not provided in \code{control},
 these will be used. Supported arguments:
 \itemize{
-  \item \code{max.iter}: Integer. Maximum number of EM iterations (default: 1000).
-  \item \code{tol}: Numeric. Convergence tolerance for the negative log-likelihood (default: 1e-6).
+\item \code{max.iter}: Integer. Maximum number of EM iterations (default: 1000).
+\item \code{tol}: Numeric. Convergence tolerance for the negative log-likelihood (default: 1e-6).
 }}
 }
 \value{
 A list of results:
 \itemize{
-  \item \code{phat}: Matrix of estimated cell probabilities for the correctly matched population (the target parameter).
-  \item \code{phat0}: Matrix of estimated cell probabilities for the mismatched population (independence model).
-  \item \code{var}: Estimated variance-covariance matrix of the estimators in \code{phat}.
-  \item \code{ftable}: The estimated contingency table of counts for the correctly matched population (adjusted for bias).
-  \item \code{objective}: The final value of the negative log-likelihood.
-  \item \code{converged}: Logical indicating if the algorithm converged within \code{max.iter}.
+\item \code{phat}: Matrix of estimated cell probabilities for the correctly matched population (the target parameter).
+\item \code{phat0}: Matrix of estimated cell probabilities for the mismatched population (independence model).
+\item \code{var}: Estimated variance-covariance matrix of the estimators in \code{phat}.
+\item \code{ftable}: The estimated contingency table of counts for the correctly matched population (adjusted for bias).
+\item \code{objective}: The final value of the negative log-likelihood.
+\item \code{converged}: Logical indicating if the algorithm converged within \code{max.iter}.
 }
 }
 \description{
@@ -50,9 +50,9 @@ algorithm. The observed data is modeled as a mixture:
 \deqn{P_{obs} = (1 - \alpha) P_{sat} + \alpha P_{ind}}
 where:
 \itemize{
-  \item \eqn{\alpha} (\code{m.rate}) is the mismatch rate (fixed/known).
-  \item \eqn{P_{sat}} is the distribution of correct matches (saturated model).
-  \item \eqn{P_{ind}} is the distribution of mismatches (independence model).
+\item \eqn{\alpha} (\code{m.rate}) is the mismatch rate (fixed/known).
+\item \eqn{P_{sat}} is the distribution of correct matches (saturated model).
+\item \eqn{P_{ind}} is the distribution of mismatches (independence model).
 }
 
 The algorithm iteratively updates the posterior probability of a record being

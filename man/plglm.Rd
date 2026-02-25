@@ -47,9 +47,9 @@ adjustment process.}
 }
 \value{
 An object representing the fitted model. The exact class depends on the
-  class of the \code{adjustment} object and the specific internal engine invoked
-  (e.g., \code{fitglm}). The object includes the component \code{call} and,
-  optionally, \code{model}, \code{x}, and \code{y}.
+class of the \code{adjustment} object and the specific internal engine invoked
+(e.g., \code{fitglm}). The object includes the component \code{call} and,
+optionally, \code{model}, \code{x}, and \code{y}.
 }
 \description{
 \code{plglm} fits generalized linear models (GLMs) to linked data, incorporating

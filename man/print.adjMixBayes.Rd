@@ -2,7 +2,7 @@
 % Please edit documentation in R/01_adjMixBayes_methods.R
 \name{print.adjMixBayes}
 \alias{print.adjMixBayes}
-\title{Print Method for `adjMixBayes` Objects}
+\title{Print Method for \code{adjMixBayes} Objects}
 \usage{
 \method{print}{adjMixBayes}(x, ...)
 }

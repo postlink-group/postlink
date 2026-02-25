@@ -2,7 +2,7 @@
 % Please edit documentation in R/ele_glm_methods.R
 \name{confint.glmELE}
 \alias{confint.glmELE}
-\title{Confidence Intervals for `glmELE` Objects}
+\title{Confidence Intervals for \code{glmELE} Objects}
 \usage{
 \method{confint}{glmELE}(object, parm, level = 0.95, weight.matrix = NULL, ...)
 }

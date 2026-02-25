@@ -18,24 +18,24 @@
 #'
 #' @examples
 #' # Example: Using the included brfss demonstration dataset
-#' data(brfss, package = "postlink") 
-#' 
+#' data(brfss, package = "postlink")
+#'
 #' adj_object <- adjELE(linked.data = brfss,
-#'                     m.rate = m.rate,
+#'                     m.rate = unique(brfss$m.rate),
 #'                     blocks = imonth,
 #'                     weight.matrix = "BLUE")
 #' print(adj_object)
-#' 
+#'
 #' @export
 print.adjELE <- function(x, digits = 3, ...) {
- 
+
  # 1. Header (ASCII for CRAN compatibility)
  cat("\n--- Adjustment Object: Exchangeable Linkage Errors (Chambers, 2009) ---\n")
- 
+
  # 2. Data Summary
  has_data <- FALSE
  n_obs <- 0
- 
+
  if (!is.null(x$data_ref) && is.environment(x$data_ref)) {
   if (exists("data", envir = x$data_ref, inherits = FALSE)) {
    stored_data <- x$data_ref$data
@@ -45,7 +45,7 @@ print.adjELE <- function(x, digits = 3, ...) {
    }
   }
  }
- 
+
  cat("\n* Linked Data:")
  if (has_data) {
   cat("\n    Observations:  ", format(n_obs, big.mark = ","))
@@ -53,14 +53,14 @@ print.adjELE <- function(x, digits = 3, ...) {
  } else {
   cat("\n    Status:         Not available / Empty\n")
  }
- 
+
  # 3. Method Specification
  cat("\n* Specification:")
- 
+
  # Weight Matrix Method
  w_mat <- if (!is.null(x$weight.matrix)) x$weight.matrix else "Unknown"
  cat("\n    Weight Matrix:  ", w_mat)
- 
+
  # Blocking Structure
  # Calculate unique blocks safely (ignoring NAs)
  if (!is.null(x$blocks)) {
@@ -73,7 +73,7 @@ print.adjELE <- function(x, digits = 3, ...) {
  } else {
   cat("\n    Blocks:         None specified")
  }
- 
+
  # 4. Mismatch Rates Summary
  cat("\n    Mismatch Rate:  ")
  if (!is.null(x$m.rate)) {
@@ -86,18 +86,18 @@ print.adjELE <- function(x, digits = 3, ...) {
    mean_r <- mean(rates, na.rm = TRUE)
    min_r <- min(rates, na.rm = TRUE)
    max_r <- max(rates, na.rm = TRUE)
-   cat(sprintf("Variable (Mean: %.*f, Range: %.*f - %.*f)", 
+   cat(sprintf("Variable (Mean: %.*f, Range: %.*f - %.*f)",
                digits, mean_r, digits, min_r, digits, max_r))
   }
  } else {
   cat("None specified")
  }
- 
+
  # 5. Audit Size Summary
  if (!is.null(x$audit.size)) {
   audits <- x$audit.size
-  total_audit <- sum(unique(audits), na.rm = TRUE) 
-  
+  total_audit <- sum(unique(audits), na.rm = TRUE)
+
   # If audit.size is length 1 or constant
   if (length(unique(audits)) == 1) {
    # we report the Total if computable, or the raw value if global.
@@ -110,7 +110,7 @@ print.adjELE <- function(x, digits = 3, ...) {
  } else {
   cat("\n    Audit Sample:   None (Using known rates)")
  }
- 
+
  cat("\n\n")
  invisible(x)
 }

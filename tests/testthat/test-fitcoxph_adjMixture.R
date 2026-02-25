@@ -20,11 +20,11 @@ mock_adjMixture <- function(data, m.formula = ~1, m.rate = NULL, safe.matches = 
 # -------------------------------------------------------------------------
 # Helper: Mock Engine (coxphMixture)
 # -------------------------------------------------------------------------
-# We mock the engine to avoid running heavy math and to inspect what data
-# actually gets passed to it.
+# We mock the engine as it is not the focus of these test and
+# inspect what data actually gets passed to it.
 mock_coxph_args <- new.env()
 
-coxphMixture <- function(x, y, cens, z, m.rate, safe.matches, control, ...) {
+my_mock_coxphMixture <- function(x, y, cens, z, m.rate, safe.matches, control, ...) {
  # Capture arguments for inspection
  mock_coxph_args$x <- x
  mock_coxph_args$y <- y
@@ -34,10 +34,13 @@ coxphMixture <- function(x, y, cens, z, m.rate, safe.matches, control, ...) {
  mock_coxph_args$safe.matches <- safe.matches
 
  # Return dummy object structure
- list(
-  coefficients = rep(1, ncol(as.matrix(x))),
-  linear.predictors = rep(0, nrow(as.matrix(x))),
-  match.prob = rep(0.5, nrow(as.matrix(x)))
+ structure(
+  list(
+   coefficients = rep(1, ncol(as.matrix(x))),
+   linear.predictors = rep(0, nrow(as.matrix(x))),
+   match.prob = rep(0.5, nrow(as.matrix(x)))
+  ),
+  class = "coxphMixture"
  )
 }
 
@@ -46,6 +49,8 @@ coxphMixture <- function(x, y, cens, z, m.rate, safe.matches, control, ...) {
 # -------------------------------------------------------------------------
 
 test_that("Basic Dispatch: Passes correct data and transforms Surv object", {
+ local_mocked_bindings(coxphMixture = my_mock_coxphMixture)
+
  # Setup Data
  df <- data.frame(
   id = 1:5,
@@ -82,6 +87,8 @@ test_that("Basic Dispatch: Passes correct data and transforms Surv object", {
 })
 
 test_that("Row Alignment: Correctly subsets adjustment data (Stage 1)", {
+ local_mocked_bindings(coxphMixture = my_mock_coxphMixture)
+
  # Scenario: plcoxph() removed rows 2 and 4 (e.g., due to missingness in X)
  df <- data.frame(time = 1:5, status = 1, x = 1:5, z = 1:5)
  rownames(df) <- c("A", "B", "C", "D", "E")
@@ -105,6 +112,8 @@ test_that("Row Alignment: Correctly subsets adjustment data (Stage 1)", {
 })
 
 test_that("Row Alignment: Handles implicit row ordering (No Row Names)", {
+ local_mocked_bindings(coxphMixture = my_mock_coxphMixture)
+
  # Setup Data
  df <- data.frame(time = 1:5, status = 1, z = 1:5)
 
@@ -131,6 +140,8 @@ test_that("Row Alignment: Handles implicit row ordering (No Row Names)", {
 })
 
 test_that("Missingness in Z: Drops rows and warns (Stage 2 Secondary Intersection)", {
+ local_mocked_bindings(coxphMixture = my_mock_coxphMixture)
+
  # Setup Data: Row C has NA in Z
  df <- data.frame(
   time = 1:5,
@@ -167,6 +178,8 @@ test_that("Missingness in Z: Drops rows and warns (Stage 2 Secondary Intersectio
 })
 
 test_that("Safe Matches: Aligns correctly with subsetting and drops", {
+ local_mocked_bindings(coxphMixture = my_mock_coxphMixture)
+
  # Scenario:
  # 1. Start with 5 rows.
  # 2. plcoxph removes Row 2 (manual subset).
@@ -207,6 +220,8 @@ test_that("Safe Matches: Aligns correctly with subsetting and drops", {
 })
 
 test_that("Input Validation: Switchboard Guardrails", {
+ local_mocked_bindings(coxphMixture = my_mock_coxphMixture)
+
  df <- data.frame(time = 1:5, status = 1, z = 1:5)
  X <- matrix(1:5, ncol=1); rownames(X) <- 1:5
  Y <- Surv(df$time, df$status)

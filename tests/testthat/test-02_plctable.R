@@ -69,20 +69,6 @@ test_that("plctable correctly constructs table from adjustment data", {
  expect_equal(fit$table_sum, 4)
 })
 
-test_that("plctable respects data arguments when adjustment has no data", {
- adj_empty <- list(m.rate = 0.1); class(adj_empty) <- dummy_class_tab
-
- df_local <- data.frame(
-  r = rep("A", 10),
-  c = rep("B", 10)
- )
-
- fit <- plctable(~ r + c, adjustment = adj_empty, data = df_local)
-
- expect_equal(fit$table_sum, 10)
- expect_equal(fit$table_dims, c(1, 1)) # All same values
-})
-
 test_that("plctable handles LHS/RHS formula syntax for xtabs", {
  # xtabs supports `~ x + y` (creates table of x vs y)
  # and `count ~ x + y` (weighted table).

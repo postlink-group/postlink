@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{An object of class \code{ctableMixture}.}
 
-\item{parm}{A specification of which parameters are to be given confidence intervals. 
+\item{parm}{A specification of which parameters are to be given confidence intervals.
 If missing, all parameters (cells) are considered.}
 
 \item{level}{The confidence level required. Defaults to 0.95.}
@@ -20,11 +20,11 @@ If missing, all parameters (cells) are considered.}
 A matrix with columns giving lower and upper confidence limits for each parameter.
 }
 \description{
-Computes Wald-type confidence intervals for the estimated cell probabilities 
+Computes Wald-type confidence intervals for the estimated cell probabilities
 of the correctly matched population.
 }
 \details{
-The intervals are calculated using the standard error estimates derived from 
-\code{\link{vcov.ctableMixture}}. The lower and upper bounds are truncated 
+The intervals are calculated using the standard error estimates derived from
+\code{\link{vcov.ctableMixture}}. The lower and upper bounds are truncated
 at 0 and 1, respectively, to ensure valid probability estimates.
 }

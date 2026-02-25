@@ -2,7 +2,7 @@
 % Please edit documentation in R/ele_glm_methods.R
 \name{predict.glmELE}
 \alias{predict.glmELE}
-\title{Predictions for `glmELE` Objects}
+\title{Predictions for \code{glmELE} Objects}
 \usage{
 \method{predict}{glmELE}(
   object,
@@ -22,7 +22,7 @@
 \item{newdata}{An optional data frame in which to look for variables with which to predict.
 If omitted, the fitted linear predictors from the object are used.}
 
-\item{weight.matrix}{Character string specifying the weighting method to use 
+\item{weight.matrix}{Character string specifying the weighting method to use
 (e.g., "ratio", "LL", "BLUE"). Defaults to the first method found in the object.}
 
 \item{type}{The type of prediction required. The default is on the scale of the linear predictors;
@@ -41,10 +41,10 @@ The default is to predict \code{NA}.}
 }
 \value{
 If \code{se.fit = FALSE} and \code{interval = "none"}, a vector of predictions.
-  Otherwise, a list containing:
-  \item{fit}{Predictions (or a matrix with columns \code{fit}, \code{lwr}, \code{upr} if intervals are requested).}
-  \item{se.fit}{Estimated standard errors (if requested).}
-  \item{residual.scale}{The dispersion parameter used.}
+Otherwise, a list containing:
+\item{fit}{Predictions (or a matrix with columns \code{fit}, \code{lwr}, \code{upr} if intervals are requested).}
+\item{se.fit}{Estimated standard errors (if requested).}
+\item{residual.scale}{The dispersion parameter used.}
 }
 \description{
 Obtains predictions and optionally standard errors from a fitted \code{glmELE} object.

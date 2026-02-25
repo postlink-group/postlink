@@ -2,7 +2,7 @@
 % Please edit documentation in R/01_adjELE.R
 \name{adjELE}
 \alias{adjELE}
-\title{Constructor for Secondary Analysis of Linked Data Assuming Exchangeable 
+\title{Constructor for Secondary Analysis of Linked Data Assuming Exchangeable
 Linkage Errors}
 \usage{
 adjELE(
@@ -16,41 +16,41 @@ adjELE(
 \arguments{
 \item{linked.data}{A data.frame containing the linked dataset.}
 
-\item{m.rate}{Numeric vector; known probability of mismatch for each record 
-or block. Values must be between 0 and 1. Can be a single global rate, 
-a vector of length equal to the number of unique blocks, or a vector of 
+\item{m.rate}{Numeric vector; known probability of mismatch for each record
+or block. Values must be between 0 and 1. Can be a single global rate,
+a vector of length equal to the number of unique blocks, or a vector of
 length equal to the number of rows in \code{linked.data}.}
 
-\item{audit.size}{Numeric vector; sample sizes for the clerical review audit 
-(optional). Used for variance estimation. If provided, must align with 
+\item{audit.size}{Numeric vector; sample sizes for the clerical review audit
+(optional). Used for variance estimation. If provided, must align with
 \code{blocks} similar to \code{m.rate}. Defaults to \code{NULL}.}
 
-\item{blocks}{A vector or an unquoted variable name found in \code{linked.data} 
-identifying the blocking structure used during linkage. If \code{NULL} (default), 
+\item{blocks}{A vector or an unquoted variable name found in \code{linked.data}
+identifying the blocking structure used during linkage. If \code{NULL} (default),
 all records are assumed to belong to a single block.}
 
-\item{weight.matrix}{Character; the method for estimating the weight matrix. 
+\item{weight.matrix}{Character; the method for estimating the weight matrix.
 Must be one of "ratio" (default), "LL", "BLUE", or "all".}
 }
 \value{
 An object of class \code{c("adjELE", "adjustment")}. To minimize
-memory overhead, the underlying \code{linked.data} is stored by reference 
+memory overhead, the underlying \code{linked.data} is stored by reference
 within an environment inside this object.
 }
 \description{
-Specifies the linked data and information on the underlying record linkage 
+Specifies the linked data and information on the underlying record linkage
 process for regression of linked data assuming exchangeable linkage errors
-as developed by Chambers (2009) and Vo et al. (2024). These approaches 
+as developed by Chambers (2009) and Vo et al. (2024). These approaches
 correct for bias from mismatch error via weighting matrices estimated using
 known mismatch rates or clerical reviews (audit samples).
 }
 \details{
 The constructor validates consistency between the mismatch rates, audit sizes,
-and block identifiers. If \code{blocks} are provided, \code{m.rate} must 
-be specified either per-block (length equals number of unique blocks) or 
+and block identifiers. If \code{blocks} are provided, \code{m.rate} must
+be specified either per-block (length equals number of unique blocks) or
 per-record (length equals number of rows).
 
-Explicit provision of \code{linked.data} is strongly recommended for 
+Explicit provision of \code{linked.data} is strongly recommended for
 reproducibility and to ensure the adjustment object fully encapsulates
 the necessary data for downstream model fitting.
 }
@@ -59,16 +59,16 @@ The references below discuss the implemented framework in more detail.
 }
 \examples{
 # Example: Using the included brfss demonstration dataset
-data(brfss, package = "postlink") 
+data(brfss, package = "postlink")
 
 adj_object <- adjELE(linked.data = brfss,
-                    m.rate = m.rate,
+                    m.rate = unique(brfss$m.rate),
                     blocks = imonth,
                     weight.matrix = "BLUE")
 
 }
 \references{
-Chambers, R. (2009). Regression analysis of probability-linked data. 
+Chambers, R. (2009). Regression analysis of probability-linked data.
 \emph{Official Statistics Research Series}, 4, 1-15.
 
 Vo, T. H., Garès, V., Zhang, L. C., Happe, A., Oger, E.,

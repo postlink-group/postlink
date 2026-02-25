@@ -52,7 +52,7 @@ test_that("print.adjELE: Audit size reporting", {
                audit.size = audits)
 
  out <- capture_output(print(adj))
- expect_match(out, "Audit Sample:\\s+Variable \\(Range: 10 - 20\\)")
+ expect_match(out, "Audit Sample:\\s+Variable \\(Range: 10 - 20 \\)")
 })
 
 test_that("print.adjELE: Robustness to empty/broken objects", {

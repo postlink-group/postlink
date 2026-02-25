@@ -1,16 +1,29 @@
 Package: postlink
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Post-Linkage Data Analysis
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
+Depends: R (>= 3.5.0)
+Authors@R: 
+    c(
+    person("Priyanjali", "Bukke", email = "postlink.group@gmail.com", role = c("aut", "cre")),
+    person("Gauri", "Kamat", role = "aut"),
+    person("Jiahao", "Cui", role = "aut"),
+    person("Roee", "Gutman", role = "aut"),
+    person("Martin", "Slawski", role = "aut"),
+    person("Zhenbang", "Wang", role = "ctb"),
+    person("Brady T.", "West", role = "ctb"),
+    person("Emanuel", "Ben-David", role = "ctb"),
+    person("Guoqing", "Diao", role = "ctb")
+    )
+Maintainer: Priyanjali Bukke <postlink.group@gmail.com>
 Imports: stats, survival, rstan, nleqslv, label.switching
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Description: Provides dedicated statistical tools for post-linkage data analysis (PLDA) to account for record linkage errors, particularly in secondary analyses where linkage and downstream modeling are conducted separately. The package implements a cohesive, formula-based regression modeling interface that adjusts for falsely linked records without requiring direct access to the primary, unlinked files. It consolidates multiple adjustment methodologies into a unified framework, including bias-adjusted estimating equations for generalized linear models (linear, logistic, Poisson, and Gamma) and Cox proportional hazards models. Furthermore, it incorporates a mixture model approach also supporting contingency table analyses, alongside Bayesian mixture approaches that enable parameter estimation and multiple imputation of latent match status.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+BugReports: https://github.com/postlink-group/postlink/issues

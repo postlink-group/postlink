@@ -2,7 +2,7 @@
 % Please edit documentation in R/01_adjELE_methods.R
 \name{print.adjELE}
 \alias{print.adjELE}
-\title{Print Method for `adjELE` Objects}
+\title{Print Method for \code{adjELE} Objects}
 \usage{
 \method{print}{adjELE}(x, digits = 3, ...)
 }
@@ -29,10 +29,10 @@ It safely handles cases where the reference data is missing or empty.
 }
 \examples{
 # Example: Using the included brfss demonstration dataset
-data(brfss, package = "postlink") 
+data(brfss, package = "postlink")
 
 adj_object <- adjELE(linked.data = brfss,
-                    m.rate = m.rate,
+                    m.rate = unique(brfss$m.rate),
                     blocks = imonth,
                     weight.matrix = "BLUE")
 print(adj_object)

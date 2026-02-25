@@ -84,7 +84,7 @@ test_that("vcov.coxphMixture returns correct matrix structure", {
  expect_true(is.matrix(vc))
  expect_equal(dim(vc), c(4, 4))
  expect_equal(rownames(vc), c("x1", "x2", "m.z1", "m.z2"))
- expect_equal(diag(vc), rep(0.04, 4))
+ expect_equal(unname(diag(vc)), rep(0.04, 4))
 })
 
 # -------------------------------------------------------------------------

@@ -9,10 +9,10 @@
 \arguments{
 \item{object}{An object of class \code{coxphELE}.}
 
-\item{newdata}{Optional new data frame to obtain predictions for. If omitted, 
+\item{newdata}{Optional new data frame to obtain predictions for. If omitted,
 the linear predictors of the original data are returned.}
 
-\item{type}{The type of prediction required. Type \code{"lp"} (default) returns 
+\item{type}{The type of prediction required. Type \code{"lp"} (default) returns
 the linear predictor. Type \code{"risk"} returns the hazard ratio, \code{exp(lp)}.}
 
 \item{...}{Additional arguments (currently ignored).}
@@ -22,12 +22,12 @@ A numeric vector of predictions.
 }
 \description{
 Computes linear predictors or risk scores from a fitted \code{coxphELE} model.
-If \code{newdata} is provided, the method attempts to construct the model matrix 
+If \code{newdata} is provided, the method attempts to construct the model matrix
 from the call stored in the object.
 }
 \details{
-If \code{newdata} is supplied, the function attempts to retrieve the formula 
-from \code{object$call} or \code{object$formula}. If the original model was fitted 
-using the internal engine directly without a wrapper that stores the call/formula, 
+If \code{newdata} is supplied, the function attempts to retrieve the formula
+from \code{object$call} or \code{object$formula}. If the original model was fitted
+using the internal engine directly without a wrapper that stores the call/formula,
 prediction on new data will fail.
 }
