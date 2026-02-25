@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Post-Linkage Data Analysis <img src="man/figures/light_v2.png" align="right" height="139" alt="postlink hex sticker" />
+# Post-Linkage Data Analysis <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 <!-- badges: start -->
 
