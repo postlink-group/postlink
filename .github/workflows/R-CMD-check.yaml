@@ -11,6 +11,12 @@ permissions: read-all
 
 jobs:
   R-CMD-check:
+    # Only run if the commit message (for pushes) or the PR title/body contains '[run checks]'
+    if: >
+      contains(github.event.head_commit.message, '[run checks]') ||
+      contains(github.event.pull_request.title, '[run checks]') ||
+      contains(github.event.pull_request.body, '[run checks]')
+
     runs-on: ${{ matrix.config.os }}
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
