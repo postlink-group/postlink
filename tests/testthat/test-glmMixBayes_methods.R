@@ -44,17 +44,22 @@ fit_once <- local({
   skip_if_no_stan()
   d <- generate_bayesglm_mixture_data(n = 100, seed = 42)
 
-  cache <<- glmMixBayes(
-   X = d$X,
-   y = d$y,
-   family = "gaussian",
-   control = list(
-    iterations = 2000,
-    burnin.iterations = 1000,
-    seed = 42,
-    cores = 1
+  # Suppress Stan HMC warnings for unit testing purposes.
+  # Divergent transitions fluctuate across OS C++ compilers and
+  # are expected when running short chains on simulated data.
+  suppressWarnings({
+   cache <<- glmMixBayes(
+    X = d$X,
+    y = d$y,
+    family = "gaussian",
+    control = list(
+     iterations = 2000,
+     burnin.iterations = 1000,
+     seed = 42,
+     cores = 1
+    )
    )
-  )
+  })
   cache
  }
 })

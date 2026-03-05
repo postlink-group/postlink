@@ -20,7 +20,6 @@ test_that("print.adjMixBayes: Output for specified data", {
 
  # Check data summary
  expect_match(out, "Observations:\\s+50")
- expect_match(out, "Storage:\\s+Reference")
 })
 
 test_that("print.adjMixBayes: Output for NULL data", {

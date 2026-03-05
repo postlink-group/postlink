@@ -184,5 +184,5 @@ test_that("print methods handle non-convergence gracefully", {
  fit$converged <- FALSE
 
  out <- capture_output(print(fit))
- expect_match(out, "Status: NOT converged")
+ expect_match(out, "Status: Not converged")
 })
