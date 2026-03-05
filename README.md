@@ -70,7 +70,7 @@ locally:
 
 ``` r
 # Using pak:
-install.packages("pak")
+# install.packages("pak")
 pak::pkg_install("postlink-group/postlink")
 
 # Or, alternatively, using devtools:

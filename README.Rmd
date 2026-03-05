@@ -55,7 +55,7 @@ The development version of `postlink` can be installed from GitHub or locally:
 
 ``` r
 # Using pak:
-install.packages("pak")
+# install.packages("pak")
 pak::pkg_install("postlink-group/postlink")
 
 # Or, alternatively, using devtools:
