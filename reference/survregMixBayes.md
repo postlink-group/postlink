@@ -165,8 +165,8 @@ fit <- survregMixBayes(
 #> 
 #> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 9.4e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.94 seconds.
+#> Chain 1: Gradient evaluation took 9.5e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.95 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -191,9 +191,9 @@ fit <- survregMixBayes(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.506 seconds (Warm-up)
-#> Chain 1:                0.496 seconds (Sampling)
-#> Chain 1:                1.002 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.51 seconds (Warm-up)
+#> Chain 1:                0.497 seconds (Sampling)
+#> Chain 1:                1.007 seconds (Total)
 #> Chain 1: 
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
 #> Running the chains for more iterations may help. See
@@ -205,7 +205,7 @@ fit <- survregMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.086                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.087                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
