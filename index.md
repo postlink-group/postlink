@@ -1,0 +1,147 @@
+# **postlink**
+
+Record linkage is often prone to errors, particularly when identifiers
+used for matching records are noisy or non-unique. Mismatches (false
+matches) act as a contaminant in regression analysis, typically leading
+to attenuated estimates. The `postlink` R package is dedicated to
+accounting for linkage errors during analysis of data after record
+linkage (“post-linkage data analysis”). The package currently supports
+three statistical frameworks to account for potential mismatch errors
+during analysis:
+
+- **Weighting**: Corrects bias by solving adjusted estimating equations
+  using block-specific proportions of correct links. It assumes an
+  Exchangeable Linkage Error (ELE) model.
+- **Mixture Modeling**: Uses an Expectation-Maximization (EM) algorithm
+  and infers the latent correct match status using a two-component
+  mixture model.
+- **Bayesian Mixture Modeling**: Performs posterior inference via data
+  augmentation, alternating between imputing the latent match status and
+  updating model parameters to propagate linkage uncertainty.
+
+The `postlink` package currently focuses on methods for secondary
+analysis. For the primary analysis setting, in which the individual
+files are accessible, methods that perform record linkage and analysis
+jointly with direct propagation of uncertainty would be more suitable.
+The long-term goal of `postlink` is to gradually extend support for a
+wide array of linkage and post-linkage analysis scenarios.
+
+## **Package Design**
+
+`postlink` implements a modular, object-oriented architecture designed
+to harmonize usability with computational flexibility. The workflow
+leverages R’s S3 method dispatch to decouple the specification of
+linkage error adjustment from the substantive statistical modeling.
+
+**Phase 1**: Adjustment Specification
+
+Users first define the linked data and the chosen adjustment methodology
+using a constructor function. These constructors validate the data and
+return a lightweight S3 adjustment object.
+
+- [`adjELE()`](https://postlink-group.github.io/postlink/reference/adjELE.md)
+- [`adjMixture()`](https://postlink-group.github.io/postlink/reference/adjMixture.md)
+- [`adjMixBayes()`](https://postlink-group.github.io/postlink/reference/adjMixBayes.md)
+
+**Phase 2**: Estimation & Inference
+
+The adjustment object, if supported, is then passed to a modeling
+wrapper function designed to mimic standard R modeling interfaces.
+
+- [`plglm()`](https://postlink-group.github.io/postlink/reference/plglm.md)
+  for generalized linear models.
+- [`plcoxph()`](https://postlink-group.github.io/postlink/reference/plcoxph.md)
+  for survival outcomes.
+- [`plctable()`](https://postlink-group.github.io/postlink/reference/plctable.md)
+  for contingency table analysis.
+
+Fitted model objects integrate with standard R post-model extractors,
+including [`summary()`](https://rdrr.io/r/base/summary.html),
+[`predict()`](https://rdrr.io/r/stats/predict.html), and
+[`confint()`](https://rdrr.io/r/stats/confint.html)
+
+## **Installation**
+
+The development version of `postlink` can be installed from GitHub or
+locally:
+
+``` r
+# Using pak:
+install.packages("pak")
+pak::pkg_install("postlink-group/postlink")
+
+# Or, alternatively, using devtools:
+# install.packages("devtools")
+devtools::install_github("postlink-group/postlink")
+```
+
+## **System Requirements**
+
+Because `postlink` includes Bayesian mixture models powered by `rstan`,
+installing the development version of the package from source requires a
+working C++ toolchain to compile the underlying models.
+
+Depending on your operating system, please ensure you have the following
+installed:
+
+- **Windows:** Install the version of
+  [Rtools](https://cran.r-project.org/bin/windows/Rtools/) that matches
+  your current R version.
+- **macOS:** Install the Xcode Command Line Tools by opening your
+  terminal and running: `xcode-select --install`
+- **Linux:** Ensure you have the standard C++ compiler and R development
+  tools installed (e.g., `sudo apt-get install r-base-dev` on
+  Ubuntu/Debian).
+
+*(Note: Once `postlink` is officially released on CRAN, Windows and
+macOS users will be able to download pre-compiled binaries, bypassing
+this requirement).*
+
+## **Quick Start**
+
+Here is a basic example illustrating the typical workflow using
+`postlink`.
+
+We analyze the relationship between age at death and year of birth using
+historical records from the LIFE-M project. The dataset contains a mix
+of hand-linked records (assumed correct) and purely machine-linked
+records subject to an approximate 5% mismatch rate.
+
+Instead of fitting the standard glm model ignoring the mismatch errors,
+we use the `postlink` to adjust for potential mismatches.
+
+``` r
+library(postlink)
+
+# Load the LIFE-M demo dataset
+data(lifem)
+
+# Phase 1: Adjustment Specification
+# We model the correct match indicator via logistic regression using 
+# name commonness scores (commf, comml) and a 5% expected mismatch rate.
+adj_object <- adjMixture(
+  linked.data = lifem,
+  m.formula = ~ commf + comml,
+  m.rate = 0.05,
+  safe.matches = hndlnk
+)
+
+# Check specified adjustment
+print(adj_object)
+
+# Phase 2: Estimation & Inference
+# Fit a Gaussian regression model utilizing a cubic polynomial for year of birth.
+fit <- plglm(
+  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+  family = "gaussian",
+  adjustment = adj_object
+)
+
+# View model results
+summary(fit)
+confint(fit)
+```
+
+By explicitly adjusting for linkage errors, `postlink` utilizes the
+entire linked dataset while providing results that align more closely
+with matches assumed to be correct.
