@@ -19,3 +19,23 @@ The input \code{x}, invisibly.
 \description{
 Print a brief summary of a glmMixBayes model
 }
+\examples{
+\donttest{
+# 1. Simulate fast toy data (Gaussian mixture)
+set.seed(601)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+X[, 1] <- 1
+y <- rnorm(n, mean = X \%*\% c(1, 2), sd = 1.5)
+
+# 2. Fit the model with artificially low iterations for speed
+fit <- glmMixBayes(
+  X = X, y = y, family = "gaussian",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 601)
+)
+
+# 3. Print the model object
+print(fit)
+}
+
+}

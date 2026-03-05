@@ -8,7 +8,7 @@ glmMixture(
   x,
   y,
   family,
-  z,
+  z = cbind(rep(1, nrow(x))),
   m.rate = NULL,
   safe.matches = NULL,
   control = list(),
@@ -70,29 +70,14 @@ mixture model framework in the secondary analysis setting. The variance-covarian
 matrix is estimated using the sandwich formula.
 }
 \examples{
-\dontrun{
-# 1. Simulate Data
-set.seed(123)
-n <- 1000
-x <- matrix(rnorm(n), ncol = 1)
-true_beta <- c(1, 2) # Intercept=1, Slope=2
-y <- 1 + 2 * x[,1] + rnorm(n, sd = 0.5)
+data(lifem)
 
-# 2. Introduce Linkage Errors (Shuffle 10\% of data)
-m_rate <- 0.10
-idx_mismatch <- sample(1:n, size = n * m_rate)
-y[idx_mismatch] <- sample(y[idx_mismatch]) # Shuffle y for mismatches
+x <- cbind(1, poly(lifem$unit_yob, 3, raw = TRUE))
+y <- lifem$age_at_death
+z <- cbind(1, lifem$commf, lifem$comml)
 
-# 3. Create Linkage Covariates (z)
-# Assume we have a "matching score" z related to correctness
-z <- matrix(rnorm(n, mean = 1), ncol = 1)
-
-# 4. Fit the Mixture GLM
-fit <- glmMixture(x = cbind(1, x), y = y,
-                  family = "gaussian",
-                  z = cbind(1, z),
-                  m.rate = 0.10)
-}
+fit <- glmMixture(x, y, family = "gaussian",
+                  z, m.rate = 0.05, safe.matches = lifem$hndlnk)
 
 }
 \references{

@@ -50,3 +50,17 @@ Otherwise, a list containing:
 Obtains predictions and optionally standard errors from a fitted \code{glmELE} object.
 This method handles new data, factor level consistency, offsets, and confidence intervals.
 }
+\examples{
+data(brfss, package = "postlink")
+
+adj_object <- adjELE(linked.data = brfss,
+                     m.rate = unique(brfss$m.rate),
+                     blocks = imonth,
+                     weight.matrix = "BLUE")
+
+fit <- plglm(Weight ~ Height + Physhlth + Menthlth + Exerany,
+             family = "gaussian", adjustment = adj_object)
+
+predict(fit)
+
+}

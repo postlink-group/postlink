@@ -21,3 +21,17 @@ A matrix of the estimated covariances between the parameter estimates.
 Extracts the variance-covariance matrix of the main parameters for a specific
 weighting method.
 }
+\examples{
+data(brfss, package = "postlink")
+
+adj_object <- adjELE(linked.data = brfss,
+                     m.rate = unique(brfss$m.rate),
+                     blocks = imonth,
+                     weight.matrix = "BLUE")
+
+fit <- plglm(Weight ~ Height + Physhlth + Menthlth + Exerany,
+             family = "gaussian", adjustment = adj_object)
+
+vcov(fit)
+
+}

@@ -22,3 +22,26 @@ A matrix with two columns (lower and upper bounds) and one row per coefficient.
 \description{
 Credible intervals for glmMixBayes coefficients
 }
+\examples{
+\donttest{
+# Simulate data
+set.seed(604)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+X[, 1] <- 1
+y <- rnorm(n, mean = X \%*\% c(1, 2), sd = 1.5)
+
+# Fit the model
+fit <- glmMixBayes(
+  X = X, y = y, family = "gaussian",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 604)
+)
+
+# Calculate 95\% credible intervals for all outcome coefficients
+confint(fit, level = 0.95)
+
+# Extract credible interval specifically for the 'x1' parameter
+confint(fit, parm = "x1", level = 0.90)
+}
+
+}

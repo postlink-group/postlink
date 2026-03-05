@@ -2,7 +2,7 @@
 % Please edit documentation in R/01_adjMixture.R
 \name{adjMixture}
 \alias{adjMixture}
-\title{Constructor for Secondary Analysis of Linked Data Based on Mixture Modeling}
+\title{Secondary Analysis Constructor Based on Mixture Modeling}
 \usage{
 adjMixture(
   linked.data = NULL,
@@ -39,7 +39,11 @@ process for the "General Framework for Regression with Mismatched Data"
 developed by Slawski et al. (2025). This framework uses a mixture model for
 pairs of linked records whose two components reflect distributions
 conditional on match status, i.e., correct match or mismatch.
-Inference is based on composite likelihood and the EM algorithm.
+Inference is based on composite likelihood and the EM algorithm. Examples of
+information about the underlying record linkage process that can be incorporated
+into the method if available are the assumed overall mismatch rate,
+safe matches, predictors of match status, or predicted probabilities of
+correct matches.
 }
 \details{
 The constructor assumes that any variables defined in \code{m.formula} and
@@ -48,25 +52,19 @@ Explicit provision of \code{linked.data} is strongly recommended for
 reproducibility and to ensure the adjustment object fully encapsulates
 the necessary data for downstream model fitting.
 }
-\note{
-The references below discuss the implemented framework in more detail.\cr\cr
-*Corresponding Author (ebh3ep@virginia.edu)
-}
 \examples{
-# Example: Using the included life-m demonstration dataset
-data(lifem, package = "postlink") 
+# Load the LIFE-M demo dataset
+data(lifem)
 
-# OPTION 1: Passing safe.matches as a bare column name (NSE)
-adj_object_1 <- adjMixture(linked.data = lifem, 
-                           m.formula = ~ commf + comml, 
-                           m.rate = 0.05, 
-                           safe.matches = hndlnk) # Look for 'hndlnk' in lifem
-
-# OPTION 2: Passing safe.matches as an external vector
-adj_object_2 <- adjMixture(linked.data = lifem, 
-                           m.formula = ~ commf + comml, 
-                           m.rate = 0.05, 
-                           safe.matches = lifem$hndlnk)
+# Phase 1: Adjustment Specification
+# We model the correct match indicator via logistic regression using
+# name commonness scores (commf, comml) and a 5\% expected mismatch rate.
+adj_object <- adjMixture(
+ linked.data = lifem,
+ m.formula = ~ commf + comml,
+ m.rate = 0.05,
+ safe.matches = hndlnk
+)
 
 }
 \references{
@@ -83,4 +81,11 @@ Singapore: Springer Nature Singapore. \doi{10.1007/978-981-96-0742-6_8}
 Slawski, M.*, Diao, G., Ben-David, E. (2021). A pseudo-likelihood approach to
 linear regression with partially shuffled data. \emph{Journal of Computational
 and Graphical Statistics}. 30(4), 991-1003. \doi{10.1080/10618600.2020.1870482}
+}
+\seealso{
+\itemize{
+\item \code{\link[=plglm]{plglm()}} for generalized linear regression modeling
+\item \code{\link[=plcoxph]{plcoxph()}} for Cox proportional hazards regression modeling
+\item \code{\link[=plctable]{plctable()}} for contingency table analysis
+}
 }

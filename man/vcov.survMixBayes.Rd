@@ -17,3 +17,24 @@ A covariance matrix.
 \description{
 Returns an empirical posterior covariance matrix of component 1 regression coefficients.
 }
+\examples{
+\donttest{
+# Simulate data
+set.seed(404)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
+           event = rbinom(n, 1, 0.8))
+
+# Fit the model
+fit <- survregMixBayes(
+  X = X, y = y, dist = "weibull",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 404)
+)
+
+# Extract the empirical posterior covariance matrix for component 1
+vcov_mat <- vcov(fit)
+print(vcov_mat)
+}
+
+}

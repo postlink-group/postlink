@@ -21,13 +21,20 @@ Provides a concise summary of the Bayesian adjustment object created by
 \details{
 This method inspects the reference-based data environment to report the number
 of linked records without copying the full dataset. It safely handles cases
-where the linked data is unspecified (NULL).
+where the linked data is unspecified (NULL). It also prints the user-specified
+priors or outlines the defaults that will be used.
 }
 \examples{
-# Setup example data
-data(brfss, package = "postlink")
+set.seed(42)
+n <- 100
+linked_df <- data.frame(
+  x = rnorm(n),
+  y = rnorm(n), # In practice, y would contain mismatch errors
+  match_score = runif(n, 0.7, 1.0)
+)
+adj_obj <- adjMixBayes(linked.data = linked_df)
 
-adj_object <- adjMixBayes(linked.data = brfss)
-print(adj_object)
+# Implicitly calls print.adjMixBayes()
+adj_obj
 
 }

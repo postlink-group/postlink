@@ -10,7 +10,7 @@
 \item{object}{An object of class \code{"glmELE"}.}
 
 \item{parm}{A specification of which parameters are to be given confidence intervals,
-either a vector of numbers or a vector of names. If missing, all parameters are considered.}
+either a vector of numbers or names. If missing, all parameters are considered.}
 
 \item{level}{The confidence level required.}
 
@@ -24,4 +24,18 @@ A matrix (or vector) with columns giving lower and upper confidence limits for e
 }
 \description{
 Computes Wald confidence intervals for one or more parameters in a \code{glmELE} object.
+}
+\examples{
+data(brfss, package = "postlink")
+
+adj_object <- adjELE(linked.data = brfss,
+                     m.rate = unique(brfss$m.rate),
+                     blocks = imonth,
+                     weight.matrix = "BLUE")
+
+fit <- plglm(Weight ~ Height + Physhlth + Menthlth + Exerany,
+             family = "gaussian", adjustment = adj_object)
+
+confint(fit)
+
 }

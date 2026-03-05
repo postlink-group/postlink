@@ -17,3 +17,24 @@ An object of class \code{"summary.glmMixBayes"}, which is printed with a custom 
 \description{
 Summarize a glmMixBayes model fit
 }
+\examples{
+\donttest{
+# Simulate data
+set.seed(602)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+X[, 1] <- 1
+y <- rpois(n, lambda = exp(X \%*\% c(0.5, 0.2)))
+
+# Fit the Poisson mixture model
+fit <- glmMixBayes(
+  X = X, y = y, family = "poisson",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 602)
+)
+
+# Generate and print the comprehensive summary
+fit_summary <- summary(fit)
+print(fit_summary)
+}
+
+}

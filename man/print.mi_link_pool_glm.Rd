@@ -19,3 +19,30 @@ The input \code{x}, invisibly.
 \description{
 Print a pooled MI object from glmMixBayes
 }
+\examples{
+\donttest{
+# Simulate data
+set.seed(607)
+n <- 100
+linked_data <- data.frame(x1 = rnorm(n), y = rnorm(n))
+X <- model.matrix(~ x1, data = linked_data)
+
+# Fit the mixture model
+fit <- glmMixBayes(
+  X = X, y = linked_data$y, family = "gaussian",
+  control = list(iterations = 150, burnin.iterations = 50, seed = 607)
+)
+
+# Perform multiple imputation pooling
+pooled_fit <- mi_with(
+  object = fit,
+  data = linked_data,
+  formula = y ~ x1,
+  family = gaussian()
+)
+
+# Explicitly test the print method
+print(pooled_fit, digits = 4)
+}
+
+}

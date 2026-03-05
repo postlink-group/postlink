@@ -17,3 +17,24 @@ Posterior covariance matrix of component 1's coefficient vector.
 \description{
 Covariance matrix of coefficient estimates for glmMixBayes
 }
+\examples{
+\donttest{
+# Simulate data
+set.seed(603)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+X[, 1] <- 1
+y <- rpois(n, lambda = exp(X \%*\% c(0.5, 0.2)))
+
+# Fit the model
+fit <- glmMixBayes(
+  X = X, y = y, family = "poisson",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 603)
+)
+
+# Extract the empirical posterior covariance matrix for component 1 (Correct Links)
+vcov_mat <- vcov(fit)
+print(vcov_mat)
+}
+
+}

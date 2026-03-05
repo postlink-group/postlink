@@ -2,8 +2,7 @@
 % Please edit documentation in R/01_adjELE.R
 \name{adjELE}
 \alias{adjELE}
-\title{Constructor for Secondary Analysis of Linked Data Assuming Exchangeable
-Linkage Errors}
+\title{Secondary Analysis Constructor Assuming ELE}
 \usage{
 adjELE(
   linked.data,
@@ -14,16 +13,17 @@ adjELE(
 )
 }
 \arguments{
-\item{linked.data}{A data.frame containing the linked dataset.}
+\item{linked.data}{A data.frame containing the data after record linkage.}
 
-\item{m.rate}{Numeric vector; known probability of mismatch for each record
-or block. Values must be between 0 and 1. Can be a single global rate,
+\item{m.rate}{Numeric vector; known or estimated probability of mismatch for
+each record or block. Values must be between 0 and 1. Can be a single global rate,
 a vector of length equal to the number of unique blocks, or a vector of
 length equal to the number of rows in \code{linked.data}.}
 
-\item{audit.size}{Numeric vector; sample sizes for the clerical review audit
-(optional). Used for variance estimation. If provided, must align with
-\code{blocks} similar to \code{m.rate}. Defaults to \code{NULL}.}
+\item{audit.size}{Numeric vector; If the m.rate is estimated, provide sample
+sizes for the clerical review audit. Used for variance estimation.
+If provided, must align with \code{blocks} similar to \code{m.rate}.
+Defaults to \code{NULL} (assume m.rate is known).}
 
 \item{blocks}{A vector or an unquoted variable name found in \code{linked.data}
 identifying the blocking structure used during linkage. If \code{NULL} (default),
@@ -40,7 +40,7 @@ within an environment inside this object.
 \description{
 Specifies the linked data and information on the underlying record linkage
 process for regression of linked data assuming exchangeable linkage errors
-as developed by Chambers (2009) and Vo et al. (2024). These approaches
+(ELE) as developed by Chambers (2009) and Vo et al. (2024). These approaches
 correct for bias from mismatch error via weighting matrices estimated using
 known mismatch rates or clerical reviews (audit samples).
 }
@@ -54,11 +54,7 @@ Explicit provision of \code{linked.data} is strongly recommended for
 reproducibility and to ensure the adjustment object fully encapsulates
 the necessary data for downstream model fitting.
 }
-\note{
-The references below discuss the implemented framework in more detail.
-}
 \examples{
-# Example: Using the included brfss demonstration dataset
 data(brfss, package = "postlink")
 
 adj_object <- adjELE(linked.data = brfss,
@@ -74,4 +70,10 @@ Chambers, R. (2009). Regression analysis of probability-linked data.
 Vo, T. H., Garès, V., Zhang, L. C., Happe, A., Oger, E.,
 Paquelet, S., & Chauvet, G. (2024). Cox regression with linked data.
 \emph{Statistics in Medicine}, 43(2), 296-314. \doi{10.1002/sim.9960}
+}
+\seealso{
+\itemize{
+\item \code{\link[=plglm]{plglm()}} for generalized linear regression modeling
+\item \code{\link[=plcoxph]{plcoxph()}} for Cox proportional hazards regression modeling
+}
 }

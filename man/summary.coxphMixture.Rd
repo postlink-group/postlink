@@ -31,3 +31,38 @@ An object of class \code{summary.coxphMixture} containing:
 of the fitted model, including coefficients, hazard ratios, standard errors,
 z-statistics, and p-values for both the outcome model and the mismatch model.
 }
+\examples{
+library(survival)
+set.seed(203)
+
+# Simulate linked data with heterogeneous mismatch errors
+n <- 200
+x1 <- rnorm(n)
+x2 <- rbinom(n, 1, 0.5)
+true_time <- rexp(n, rate = exp(0.5 * x1 - 0.5 * x2))
+cens_time <- rexp(n, rate = 0.5)
+match_score <- runif(n, 0.5, 1.0)
+
+linked_data <- data.frame(
+  time = pmin(true_time, cens_time),
+  status = as.numeric(true_time <= cens_time),
+  x1 = x1, x2 = x2, match_score = match_score
+)
+
+mis_idx <- which(rbinom(n, 1, prob = 1 - match_score) == 1)
+if (length(mis_idx) > 1) {
+  linked_data$x1[mis_idx] <- linked_data$x1[sample(mis_idx)]
+  linked_data$x2[mis_idx] <- linked_data$x2[sample(mis_idx)]
+}
+
+# Fit the Cox PH Mixture Model
+adj <- adjMixture(linked.data = linked_data, m.formula = ~ match_score)
+fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj,
+               control = list(max.iter = 15))
+
+# Print detailed statistical summary
+# Includes coefficients, hazard ratios, and the estimated average correct match rate
+sum_fit <- summary(fit)
+print(sum_fit)
+
+}

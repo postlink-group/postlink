@@ -27,3 +27,34 @@ Produces a summary of the fitted CoxPH model with linkage error adjustment,
 including coefficient estimates, hazard ratios, standard errors, z-statistics,
 and p-values.
 }
+\examples{
+library(survival)
+set.seed(103)
+
+# Simulate linked data subject to mismatch error
+n <- 200
+x1 <- rnorm(n)
+x2 <- rbinom(n, 1, 0.7)
+true_time <- rexp(n, rate = exp(0.5 * x1 - 0.5 * x2))
+cens_time <- rexp(n, rate = 0.5)
+
+linked_data <- data.frame(
+  time = pmin(true_time, cens_time),
+  status = as.numeric(true_time <= cens_time),
+  x1 = x1, x2 = x2
+)
+
+# Induce 15\% linkage error
+mis_idx <- sample(1:n, size = 0.15 * n)
+linked_data$x1[mis_idx] <- linked_data$x1[sample(mis_idx)]
+linked_data$x2[mis_idx] <- linked_data$x2[sample(mis_idx)]
+
+# Fit the adjusted Cox PH model
+adj <- adjELE(linked.data = linked_data, m.rate = 0.15)
+fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj)
+
+# Generate and print the detailed statistical summary
+sum_fit <- summary(fit)
+print(sum_fit)
+
+}

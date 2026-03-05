@@ -19,3 +19,23 @@ The object \code{x} (invisibly).
 \description{
 Prints the model call and posterior mean regression coefficients for component 1.
 }
+\examples{
+\donttest{
+# 1. Simulate fast toy data
+set.seed(401)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+y <- cbind(time = rweibull(n, shape = 1.5, scale = exp(0.5 * X[, 1])),
+           event = rbinom(n, 1, 0.8))
+
+# 2. Fit the model with artificially low iterations for speed
+fit <- survregMixBayes(
+  X = X, y = y, dist = "weibull",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 401)
+)
+
+# 3. Print the model object
+print(fit)
+}
+
+}

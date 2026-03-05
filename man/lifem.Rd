@@ -3,7 +3,7 @@
 \docType{data}
 \name{lifem}
 \alias{lifem}
-\title{LIFE-M Data}
+\title{Longitudinal Intergenerational Family Electronic Micro-Database}
 \format{
 a data frame with 3,238 rows and 6 variables
 }

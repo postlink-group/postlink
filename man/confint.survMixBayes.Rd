@@ -26,3 +26,26 @@ credible intervals for scalar parameters.
 \description{
 Returns posterior credible intervals for regression coefficients and key parameters.
 }
+\examples{
+\donttest{
+# Simulate data
+set.seed(403)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
+           event = rbinom(n, 1, 0.8))
+
+# Fit the model
+fit <- survregMixBayes(
+  X = X, y = y, dist = "weibull",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 403)
+)
+
+# Calculate 95\% credible intervals for all parameters
+confint(fit, level = 0.95)
+
+# Extract credible intervals specifically for the mixing weight
+confint(fit, parm = "theta", level = 0.90)
+}
+
+}

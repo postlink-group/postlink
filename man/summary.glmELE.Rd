@@ -24,3 +24,17 @@ An object of class \code{"summary.glmELE"}, which is a list containing:
 Summarizes the results from a \code{glmELE} fit, providing coefficient estimates,
 standard errors, test statistics, and p-values for each weighting method used.
 }
+\examples{
+data(brfss, package = "postlink")
+
+adj_object <- adjELE(linked.data = brfss,
+                     m.rate = unique(brfss$m.rate),
+                     blocks = imonth,
+                     weight.matrix = "BLUE")
+
+fit <- plglm(Weight ~ Height + Physhlth + Menthlth + Exerany,
+             family = "gaussian", adjustment = adj_object)
+
+summary(fit)
+
+}

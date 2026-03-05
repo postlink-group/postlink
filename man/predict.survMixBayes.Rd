@@ -19,3 +19,28 @@ A list with posterior mean linear predictors for each component.
 \description{
 Returns posterior mean linear predictors for each component.
 }
+\examples{
+\donttest{
+# Simulate data
+set.seed(405)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
+           event = rbinom(n, 1, 0.8))
+
+# Fit the model
+fit <- survregMixBayes(
+  X = X, y = y, dist = "weibull",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 405)
+)
+
+# Create a new design matrix for prediction
+X_new <- matrix(c(0, 1, -1, 0.5), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+
+# Predict posterior mean linear predictors for each latent component
+preds <- predict(fit, newdata = X_new)
+print(preds$component1)
+print(preds$component2)
+}
+
+}

@@ -21,3 +21,20 @@ Extracts the estimated variance-covariance matrix of the cell probabilities
 from a fitted \code{ctableMixture} object. The variance is estimated using
 the observed information matrix (via the Hessian of the mixture log-likelihood).
 }
+\examples{
+\dontrun{
+set.seed(124)
+linked_df <- data.frame(
+  exposure = sample(c("low", "high"), 300, replace = TRUE),
+  disease = sample(c("yes", "no"), 300, replace = TRUE)
+)
+
+adj <- adjMixture(linked.data = linked_df, m.rate = 0.15)
+fit <- plctable(~ exposure + disease, adjustment = adj)
+
+# Extract the variance-covariance matrix of the cell probabilities
+vmat <- vcov(fit)
+print(vmat)
+}
+
+}

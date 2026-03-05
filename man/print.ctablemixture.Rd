@@ -23,7 +23,18 @@ of the adjustment parameters used by the mixture model.
 }
 \examples{
 \dontrun{
-fit <- plctable(formula = ~ row + col, adjustment = adj, data = linked_df)
+# Fast simulation of linked data
+set.seed(123)
+linked_df <- data.frame(
+  exposure = sample(c("low", "high"), 300, replace = TRUE),
+  disease = sample(c("yes", "no"), 300, replace = TRUE)
+)
+
+# Specify adjustment and fit the model
+adj <- adjMixture(linked.data = linked_df, m.rate = 0.15)
+fit <- plctable(~ exposure + disease, adjustment = adj)
+
+# Explicitly call the print method
 print(fit)
 }
 

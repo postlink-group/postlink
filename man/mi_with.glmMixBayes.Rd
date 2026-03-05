@@ -40,3 +40,36 @@ records to treat as component 1. For each retained draw, the function fits
 the requested model (LM/GLM) on the selected subset, collects coefficients and
 their covariance, and combines them using Rubin's rules (vector/matrix form).
 }
+\examples{
+\donttest{
+# 1. Simulate data linked with errors
+set.seed(606)
+n <- 100
+linked_data <- data.frame(
+  x1 = rnorm(n),
+  y = rnorm(n)
+)
+X <- model.matrix(~ x1, data = linked_data)
+
+# 2. Fit the GLM mixture model
+fit <- glmMixBayes(
+  X = X, y = linked_data$y, family = "gaussian",
+  control = list(iterations = 150, burnin.iterations = 50, seed = 606)
+)
+
+# 3. Multiple Imputation Pooling
+# For each MCMC draw, the model extracts the latent correct-match indicators,
+# fits the specified GLM on the subset of "correct" matches, and pools the
+# results using Rubin's rules.
+pooled_fit <- mi_with(
+  object = fit,
+  data = linked_data,
+  formula = y ~ x1,
+  family = gaussian()
+)
+
+# 4. View pooled results
+print(pooled_fit)
+}
+
+}

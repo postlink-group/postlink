@@ -27,14 +27,18 @@ of linked records without copying the full dataset. It considers cases
 where components (like constraints or safe matches) are unspecified.
 }
 \examples{
-# Setup example data
-data(lifem, package = "postlink")
+# Load the LIFE-M demo dataset
+data(lifem)
 
-# Case 1: Fully specified object
-adj_object <- adjMixture(linked.data = lifem,
-                       m.formula = ~ commf + comml,
-                       m.rate = 0.05,
-                       safe.matches = hndlnk)
+# Phase 1: Adjustment Specification
+adj_object <- adjMixture(
+ linked.data = lifem,
+ m.formula = ~ commf + comml,
+ m.rate = 0.05,
+ safe.matches = hndlnk
+)
+
+# Print specified adjustment
 print(adj_object)
 
 }

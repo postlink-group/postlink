@@ -25,8 +25,10 @@ elements \code{time} and \code{event}. Missing values are not allowed.}
 \item{dist}{One of \code{"gamma"} or \code{"weibull"}. Controls the component-specific
 likelihood.}
 
-\item{priors}{A named \code{list} (or \code{NULL}) of prior specifications used
-by the Stan generator. Any missing entries are filled by
+\item{priors}{A named \code{list} (or \code{NULL}) of prior specifications.
+Because the Stan models are pre-compiled, these strings are parsed into numeric
+hyperparameters and passed to the model's data block. Any missing entries are
+automatically filled with symmetric defaults via
 \code{fill_defaults(priors, p_family = dist, model_type = "survival")}.}
 
 \item{control}{A named \code{list} of tuning parameters with defaults:
@@ -66,9 +68,9 @@ share the same family). Right-censored data are supported.
 This implementation function assumes upstream wrappers have already handled the
 formula/data interface and produced a design matrix \code{X} and survival response \code{y}.
 
-The function builds Stan code, compiles, samples, and then applies a
-label-switching correction (global majority swap + ECR-ITERATIVE-1) to align
-component labels across MCMC draws.
+The function sets up the data, samples from the pre-compiled Stan models,
+and then applies a label-switching correction (global majority swap + ECR-ITERATIVE-1)
+to align component labels across MCMC draws.
 }
 \section{Label switching}{
 
@@ -78,4 +80,50 @@ is more frequent overall, then align per-draw labels using
 accordingly (e.g., \code{beta1}/\code{beta2}, \code{phi}/\code{shape}/\code{scale}, and \code{theta}).
 }
 
-\keyword{internal}
+\examples{
+\donttest{
+# 1. Simulate survival data from a two-component Weibull mixture
+# Component 2 represents correct links (strong signal),
+# and Component 1 represents mismatched links (noise).
+set.seed(301)
+n <- 150
+X <- matrix(rnorm(n * 2), ncol = 2)
+colnames(X) <- c("x1", "x2")
+
+# Latent match status: 80\% correct links (Z=2), 20\% mismatches (Z=1)
+Z_true <- rbinom(n, 1, 0.8) + 1
+
+# Generate survival times based on latent status
+time1 <- rweibull(n, shape = 1.2, scale = exp(0.1 * X[,1])) # Noise
+time2 <- rweibull(n, shape = 1.5, scale = exp(0.5 * X[,1] - 0.5 * X[,2])) # Signal
+obs_time <- ifelse(Z_true == 2, time2, time1)
+
+# Apply right-censoring
+cens_time <- rexp(n, rate = 0.1)
+event <- as.integer(obs_time <= cens_time)
+obs_time <- pmin(obs_time, cens_time)
+
+y <- cbind(time = obs_time, event = event)
+
+# 2. Fit the Bayesian Two-Component Mixture Survival Model
+# Note: Iterations are set artificially low for run time.
+fit <- survregMixBayes(
+  X = X,
+  y = y,
+  dist = "weibull",
+  control = list(iterations = 200, burnin.iterations = 100, seed = 123)
+)
+
+# 3. Inspect the aligned posterior estimates
+# (Label switching is handled automatically via ECR-ITERATIVE-1)
+cat("Component 2 (Correct Links) Coefficients:\n")
+print(colMeans(fit$estimates$m.coefficients))
+
+cat("Component 1 (Mismatches) Coefficients:\n")
+print(colMeans(fit$estimates$coefficients))
+
+cat("Estimated mixing weight (Mismatch proportion):\n")
+print(mean(fit$estimates$theta))
+}
+
+}

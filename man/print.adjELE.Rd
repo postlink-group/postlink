@@ -28,7 +28,6 @@ if they vary across blocks, providing a snapshot of the error assumption complex
 It safely handles cases where the reference data is missing or empty.
 }
 \examples{
-# Example: Using the included brfss demonstration dataset
 data(brfss, package = "postlink")
 
 adj_object <- adjELE(linked.data = brfss,

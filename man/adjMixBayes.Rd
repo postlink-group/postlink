@@ -2,12 +2,17 @@
 % Please edit documentation in R/01_adjMixBayes.R
 \name{adjMixBayes}
 \alias{adjMixBayes}
-\title{Constructor for Secondary Analysis of Linked Data Based on Bayesian Mixture Modeling}
+\title{Secondary Analysis Constructor Based on Bayesian Mixture Modeling}
 \usage{
-adjMixBayes(linked.data = NULL)
+adjMixBayes(linked.data = NULL, priors = NULL)
 }
 \arguments{
 \item{linked.data}{A data.frame containing the linked dataset.}
+
+\item{priors}{A named \code{list} (or \code{NULL}) of prior specifications.
+Because the Stan models are pre-compiled, these strings are parsed into numeric
+hyperparameters and passed to the model's data block. Any missing entries are
+automatically filled with symmetric defaults dynamically during the model fitting phase.}
 }
 \value{
 An object of class \code{c("adjMixBayes", "adjustment")}. To minimize
@@ -27,20 +32,43 @@ imputation.
 Explicit provision of \code{linked.data} is strongly recommended for
 reproducibility and to ensure the adjustment object fully encapsulates
 the necessary data for downstream model fitting.
-
-#' @examples
 }
-\note{
-The reference below discusses the implemented framework in more detail.
-}
-\section{Example: Using the included brfss demonstration dataset}{
-data(brfss, package = "postlink")
+\examples{
+# Simulate true data
+set.seed(123)
+n <- 200
+x <- rnorm(n)
+true_y <- 1.5 + 2 * x + rnorm(n)
 
-adj_object <- adjMixBayes(linked.data = brfss)
-}
+# Induce linkage mismatch errors
+# Assume we have a match probability for each record
+match_prob <- rbeta(n, 8, 2)
+is_mismatch <- rbinom(n, 1, 1 - match_prob)
 
+obs_y <- true_y
+mismatch_idx <- which(is_mismatch == 1)
+if(length(mismatch_idx) > 1) {
+  obs_y[mismatch_idx] <- sample(obs_y[mismatch_idx])
+}
+linked_data <- data.frame(y = obs_y, x = x, match_prob = match_prob)
+
+# Construct the Bayesian mixture adjustment object
+adj_bayes <- adjMixBayes(
+  linked.data = linked_data,
+  priors = list(theta = "beta(2, 2)") # Optional: Override default
+)
+
+class(adj_bayes)
+
+}
 \references{
 Gutman, R., Sammartino, C., Green, T., & Montague, B. (2016). Error adjustments for file
 linking methods using encrypted unique client identifier (eUCI) with application to recently
 released prisoners who are HIV+. \emph{Statistics in Medicine}, 35(1), 115–129. \doi{10.1002/sim.6586}
+}
+\seealso{
+\itemize{
+\item \code{\link[=plglm]{plglm()}} for generalized linear regression modeling
+\item \code{\link[=plsurvreg]{plsurvreg()}} for parametric survival modeling
+}
 }

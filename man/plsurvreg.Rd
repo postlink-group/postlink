@@ -30,7 +30,7 @@ by the \code{\link[survival]{Surv}} function.}
 \item{na.action}{A function for handling NAs.}
 
 \item{dist}{Character string specifying the survival distribution
-(currently it is required to be "weibull").}
+(currently it must be "weibull" or "gamma").}
 
 \item{model}{Logical; if \code{TRUE}, the model frame is returned.}
 
@@ -48,6 +48,44 @@ A fitted survival model object.
 \code{plsurvreg} fits parametric survival models (Accelerated Failure Time models)
 to linked data. It serves as a wrapper for the internal engines, compatible with
 \code{\link[survival]{survreg}} specifications.
+}
+\examples{
+\dontrun{
+library(survival)
+set.seed(202)
+n <- 200
+
+# Simulate Weibull AFT data
+trt <- rbinom(n, 1, 0.5)
+true_time <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))
+cens_time <- rexp(n, 0.05)
+true_obs_time <- pmin(true_time, cens_time)
+true_status <- as.numeric(true_time <= cens_time)
+
+# Induce linkage mismatch errors
+is_mismatch <- rbinom(n, 1, 0.2) # ~20\% overall mismatch rate
+obs_time <- true_obs_time
+obs_status <- true_status
+mismatch_idx <- which(is_mismatch == 1)
+
+if(length(mismatch_idx) > 1) {
+  shuffled <- sample(mismatch_idx)
+  obs_time[mismatch_idx] <- obs_time[shuffled]
+  obs_status[mismatch_idx] <- obs_status[shuffled]
+}
+linked_df <- data.frame(time = obs_time, status = obs_status, trt)
+
+# Specify the Bayesian Mixture Adjustment
+adj <- adjMixBayes(linked.data = linked_df)
+
+# Fit the Adjusted Parametric Survival Model
+fit <- plsurvreg(
+  Surv(time, status) ~ trt,
+  dist = "weibull",
+  adjustment = adj,
+  control = list(iterations = 2000, burnin.iterations = 500)
+)
+}
 }
 \seealso{
 \code{\link[survival]{survreg}}

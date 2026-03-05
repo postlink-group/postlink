@@ -19,3 +19,24 @@ An object of class \code{summary.survMixBayes}.
 \description{
 Computes posterior summaries for coefficients and key distribution parameters.
 }
+\examples{
+\donttest{
+# Simulate data
+set.seed(402)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
+           event = rbinom(n, 1, 0.8))
+
+# Fit the model
+fit <- survregMixBayes(
+  X = X, y = y, dist = "weibull",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 402)
+)
+
+# Generate and print the comprehensive summary
+fit_summary <- summary(fit, probs = c(0.025, 0.5, 0.975))
+print(fit_summary)
+}
+
+}

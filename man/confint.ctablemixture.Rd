@@ -28,3 +28,22 @@ The intervals are calculated using the standard error estimates derived from
 \code{\link{vcov.ctableMixture}}. The lower and upper bounds are truncated
 at 0 and 1, respectively, to ensure valid probability estimates.
 }
+\examples{
+\dontrun{
+set.seed(125)
+linked_df <- data.frame(
+  exposure = sample(c("low", "high"), 300, replace = TRUE),
+  disease = sample(c("yes", "no"), 300, replace = TRUE)
+)
+
+adj <- adjMixture(linked.data = linked_df, m.rate = 0.15)
+fit <- plctable(~ exposure + disease, adjustment = adj)
+
+# Compute 95\% confidence intervals for all cell probabilities
+confint(fit)
+
+# Compute 90\% confidence intervals for specific cells by name
+confint(fit, parm = c("(low, yes)", "(high, no)"), level = 0.90)
+}
+
+}

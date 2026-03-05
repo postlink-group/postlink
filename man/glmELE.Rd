@@ -58,11 +58,24 @@ A list of results:
 \item{df.residual}{The residual degrees of freedom.}
 \item{df.null}{The residual degrees of freedom for the null model.}
 \item{family}{The \code{family} object used.}
+\item{call}{The matched call.}
 }
 \description{
 Fits a generalized linear model (GLM) accounting for exchangeable linkage errors
 (ELE) as defined by Chambers (2009). It solves the unbiased estimating equations resulting
 from the modified mean function induced by mismatch errors.
+}
+\examples{
+data(brfss)
+brfss <- na.omit(brfss)
+
+x <- cbind(1, subset(brfss, select = c(Height,Physhlth,Menthlth,Exerany)))
+y <- brfss$Weight
+
+fit <- glmELE(x, y, family = "gaussian",
+             m.rate = unique(brfss$m.rate), blocks = brfss$imonth,
+             weight.matrix = "BLUE")
+
 }
 \references{
 Chambers, R. (2009). Regression analysis of probability-linked data.

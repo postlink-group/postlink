@@ -25,8 +25,10 @@ should be integer-valued (or coercible without loss).}
 \item{family}{One of \code{"gaussian"}, \code{"poisson"}, \code{"binomial"}, or \code{"gamma"}.
 Controls the component-specific likelihood.}
 
-\item{priors}{A named \code{list} (or \code{NULL}) of prior specifications used
-by the Stan generator. Any missing entries are filled by
+\item{priors}{A named \code{list} (or \code{NULL}) of prior specifications.
+Because the Stan models are pre-compiled, these strings are parsed into numeric
+hyperparameters and passed to the model's data block. Any missing entries are
+automatically filled with symmetric defaults via
 \code{fill_defaults(priors, p_family = family, model_type = "glm")}.}
 
 \item{control}{A named \code{list} of tuning parameters with defaults:
@@ -73,4 +75,41 @@ is more frequent overall, then align per-draw labels using
 accordingly (e.g., \code{beta1}/\code{beta2}, and \code{sigma}/\code{phi}).
 }
 
-\keyword{internal}
+\examples{
+\donttest{
+# 1. Simulate data from a two-component Gaussian mixture
+# Component 2: Correct links (strong signal/relationship)
+# Component 1: False links (noise/null relationship)
+set.seed(501)
+n <- 150
+X <- matrix(rnorm(n * 2), ncol = 2)
+colnames(X) <- c("Intercept", "x1")
+X[, 1] <- 1 # Set intercept
+
+# Latent match status: 70\% correct links (Z=2), 30\% mismatches (Z=1)
+Z_true <- rbinom(n, 1, 0.7) + 1
+
+# Generate responses based on latent status
+y1 <- rnorm(n, mean = X \%*\% c(0, 0), sd = 2)     # Noise (mismatches)
+y2 <- rnorm(n, mean = X \%*\% c(1, 1.5), sd = 0.5) # Signal (correct links)
+y <- ifelse(Z_true == 2, y2, y1)
+
+# 2. Fit the Bayesian Two-Component Mixture GLM
+# Note: Iterations are set artificially low for check speed.
+fit <- glmMixBayes(
+  X = X,
+  y = y,
+  family = "gaussian",
+  control = list(iterations = 200, burnin.iterations = 100, seed = 123)
+)
+
+# 3. Inspect the aligned posterior estimates
+# (Label switching is handled automatically via ECR-ITERATIVE-1)
+cat("Component 2 (Correct Links) Coefficients:\n")
+print(colMeans(fit$estimates$m.coefficients))
+
+cat("Component 1 (Mismatches) Coefficients:\n")
+print(colMeans(fit$estimates$coefficients))
+}
+
+}

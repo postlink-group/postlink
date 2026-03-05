@@ -17,3 +17,26 @@ A pooled object of class \code{mi_link_pool_survreg}.
 \description{
 Performs posterior allocation based pooling for a \code{survMixBayes} fit.
 }
+\examples{
+\donttest{
+# Simulate data
+set.seed(406)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
+           event = rbinom(n, 1, 0.8))
+
+# Fit the model
+fit <- survregMixBayes(
+  X = X, y = y, dist = "weibull",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 406)
+)
+
+# Perform posterior allocation pooling
+pooled_obj <- mi_with(fit)
+
+# View the distribution of posterior probabilities of belonging to component 1
+summary(pooled_obj$p_component1)
+}
+
+}

@@ -28,3 +28,28 @@ The intervals are calculated based on the sandwich variance estimator:
 For Gaussian and Gamma families, a t-distribution is used with residual degrees of freedom.
 For Binomial and Poisson families, a standard normal distribution is used.
 }
+\examples{
+# Load the LIFE-M demo dataset
+data(lifem)
+
+# Phase 1: Adjustment Specification
+# We model the correct match indicator via logistic regression using
+# name commonness scores (commf, comml) and a 5\% expected mismatch rate.
+adj_object <- adjMixture(
+ linked.data = lifem,
+ m.formula = ~ commf + comml,
+ m.rate = 0.05,
+ safe.matches = hndlnk
+)
+
+# Phase 2: Estimation & Inference
+# Fit a Gaussian regression model utilizing a cubic polynomial for year of birth.
+fit <- plglm(
+ age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+ family = "gaussian",
+ adjustment = adj_object
+)
+
+confint(fit)
+
+}

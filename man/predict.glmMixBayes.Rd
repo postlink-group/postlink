@@ -38,3 +38,29 @@ credible interval bounds.
 \description{
 Predictions from a glmMixBayes model
 }
+\examples{
+\donttest{
+# Simulate data
+set.seed(605)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+X[, 1] <- 1
+y <- rpois(n, lambda = exp(X \%*\% c(0.5, 0.8)))
+
+# Fit the Poisson mixture model
+fit <- glmMixBayes(
+  X = X, y = y, family = "poisson",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 605)
+)
+
+# Create a new design matrix for prediction
+X_new <- matrix(c(1, 1,   # Intercepts
+                  0, 1.5), # x1 values
+                ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+
+# Predict expected counts (type = "response") with 95\% credible intervals
+preds <- predict(fit, newx = X_new, type = "response", interval = "credible")
+print(preds)
+}
+
+}

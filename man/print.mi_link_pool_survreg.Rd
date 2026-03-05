@@ -17,3 +17,26 @@ Invisibly returns \code{x}.
 \description{
 Print method for pooled survreg MI object
 }
+\examples{
+\donttest{
+# Simulate data
+set.seed(407)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
+           event = rbinom(n, 1, 0.8))
+
+# Fit the model
+fit <- survregMixBayes(
+  X = X, y = y, dist = "weibull",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 407)
+)
+
+# Create the pooled object via mi_with
+pooled_obj <- mi_with(fit)
+
+# Explicitly call the print method for the pooled object
+print(pooled_obj)
+}
+
+}
