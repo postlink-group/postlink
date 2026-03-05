@@ -37,17 +37,13 @@ jobs:
         env:
           RUN_STAN_TESTS: 'true'
         run: |
-          # Use the 'type' argument to exclude compiled code
-          # and the 'path' argument to specifically ignore the src folder
           cov <- covr::package_coverage(
             type = "tests",
-            quiet = FALSE,
+            quiet = TRUE,   # <-- This stops the log truncation!
             clean = FALSE,
+            line_exclusions = c("src/.*", "R/stanmodels.R", "R/RcppExports.R"),
             install_path = file.path(normalizePath(Sys.getenv("RUNNER_TEMP")), "package")
           )
-
-          # Manually exclude the auto-generated stanExports files from the report
-          cov <- covr::exclude(cov, line_exclusions = list("src/.*"))
 
           print(cov)
           covr::to_cobertura(cov)
