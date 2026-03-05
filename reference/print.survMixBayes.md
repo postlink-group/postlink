@@ -73,8 +73,8 @@ fit <- survregMixBayes(
 #> Chain 1: Iteration: 90 / 100 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 100 / 100 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.19 seconds (Warm-up)
-#> Chain 1:                0.148 seconds (Sampling)
+#> Chain 1:  Elapsed Time: 0.191 seconds (Warm-up)
+#> Chain 1:                0.147 seconds (Sampling)
 #> Chain 1:                0.338 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
@@ -90,7 +90,7 @@ fit <- survregMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.048                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.056                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
