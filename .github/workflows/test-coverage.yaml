@@ -39,10 +39,15 @@ jobs:
             type = "tests",
             quiet = TRUE,
             clean = FALSE,
-            # Use the exact folder name "src", NOT a regex!
-            line_exclusions = c("src", "R/stanmodels.R", "R/RcppExports.R"),
+            line_exclusions = c("R/stanmodels.R", "R/RcppExports.R"),
             install_path = file.path(normalizePath(Sys.getenv("RUNNER_TEMP")), "package")
           )
+
+          # Manually filter out any file starting with "src/"
+          cov <- cov[!grepl("^src/", names(cov))]
+
+          # Ensure the object retains its special covr class after filtering
+          class(cov) <- c("coverage", "list")
 
           print(cov)
           covr::to_cobertura(cov)
