@@ -1,6 +1,4 @@
-# -------------------------------------------------------------------------
 # Generic Definitions for Internal Engines
-# -------------------------------------------------------------------------
 # These generics facilitate the S3 dispatch mechanism described in the design.
 # They allow the adjustment object to dictate the specific estimation routine.
 

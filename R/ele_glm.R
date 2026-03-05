@@ -37,9 +37,21 @@
 #' \item{df.residual}{The residual degrees of freedom.}
 #' \item{df.null}{The residual degrees of freedom for the null model.}
 #' \item{family}{The \code{family} object used.}
+#' \item{call}{The matched call.}
 #'
 #' @importFrom stats gaussian binomial poisson Gamma family glm coef aggregate ave density model.matrix var
 #' @importFrom nleqslv nleqslv
+#'
+#' @examples
+#' data(brfss)
+#' brfss <- na.omit(brfss)
+#'
+#' x <- cbind(1, subset(brfss, select = c(Height,Physhlth,Menthlth,Exerany)))
+#' y <- brfss$Weight
+#'
+#' fit <- glmELE(x, y, family = "gaussian",
+#'              m.rate = unique(brfss$m.rate), blocks = brfss$imonth,
+#'              weight.matrix = "BLUE")
 #'
 #' @references
 #' Chambers, R. (2009). Regression analysis of probability-linked data.
@@ -113,6 +125,7 @@ glmELE <- function(x, y, family = "gaussian",
   if (length(blocks) != n) {
     stop("Error: 'blocks' length does not match the number of observations used in the model.")
   }
+  m.rate <- as.numeric(m.rate)
 
   blocks <- match(blocks, sort(unique(blocks)))
   unique_blocks <- unique(blocks)
@@ -124,14 +137,14 @@ glmELE <- function(x, y, family = "gaussian",
   }
   if (length(lambda) != n_blocks) stop("Error: Length of m.rate does not match number of blocks.")
 
-  if (is.null(audit.size)) {
-    warning("Argument 'audit.size' is NULL. Linkage rates ('m.rate') are treated as fixed/known. Standard errors may be underestimated.")
-  } else {
+  #if (is.null(audit.size)) {
+  #  warning("Argument 'audit.size' is NULL. Linkage rates ('m.rate') are treated as fixed/known.")
+  #} else {
     if (length(audit.size) == 1 && n_blocks > 1) {
       audit.size <- rep(audit.size, n_blocks)
       warning("Single 'audit.size' provided; applying to all blocks.")
     }
-  }
+  #}
 
   if (length(weight.matrix) == 1 && weight.matrix == "all") {
     weight.matrix <- c("ratio", "LL", "BLUE")
@@ -140,7 +153,7 @@ glmELE <- function(x, y, family = "gaussian",
   # Definitions for Internal Functions
 
   IEq.M <- function(M, lambda, blocks, type = "Eq") {
-    nq <- as.numeric(tapply(y, INDEx = blocks, FUN = length))
+    nq <- as.numeric(tapply(y, INDEX = blocks, FUN = length))
     alphaq <- 1 - lambda
     if (type == "Eq") {
       c0q <- ifelse(nq > 1, alphaq * (nq / (nq - 1)), 0)
@@ -211,7 +224,7 @@ glmELE <- function(x, y, family = "gaussian",
       if (family == "poisson") v <- fq
       if (family == "gamma") v <- sigma2(beta_hat, family) * fq^2
       vsum <- as.matrix(tapply(v, list(blocks), sum)[blocks])
-      nq <- as.numeric(tapply(y, INDEx = blocks, FUN = length))[blocks]
+      nq <- as.numeric(tapply(y, INDEX = blocks, FUN = length))[blocks]
       gamma_term <- ifelse(nq > 1, (1 - lambda[blocks]) / (nq - 1), 0)
       Exp <- (lambda[blocks] - gamma_term) * v + (gamma_term) * vsum
     }
@@ -295,6 +308,8 @@ glmELE <- function(x, y, family = "gaussian",
     J_inv <- try(solve(J), silent = TRUE)
     if (inherits(J_inv, "try-error")) cov_mat <- matrix(NA, p, p)
     else cov_mat <- J_inv %*% Vh %*% t(J_inv)
+    colnames(cov_mat) <- colnames(x)
+    rownames(cov_mat) <- colnames(x)
     covhat_list[[i]] <- cov_mat
     var_mat[i, ] <- diag(cov_mat)
 
@@ -341,7 +356,8 @@ glmELE <- function(x, y, family = "gaussian",
     rank = model_rank,
     df.residual = n - p,
     df.null = n - 1,
-    family = fam_obj
+    family = fam_obj,
+    call = match.call()
   )
 
   if (family %in% c("gamma", "gaussian")) {

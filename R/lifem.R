@@ -1,4 +1,4 @@
-#' LIFE-M Data
+#' Longitudinal Intergenerational Family Electronic Micro-Database
 #'
 #' The `lifem` data set contains a subset of data from the Life-M project (\url{https://life-m.org/}) on 3,238 individuals born between 1883
 #' to 1906. These records were obtained from linking birth certificates and death certificates either of two

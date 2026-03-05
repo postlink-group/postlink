@@ -58,33 +58,18 @@
 #' @importFrom stats gaussian binomial quasibinomial optim model.matrix model.frame model.response
 #'
 #' @examples
-#' \dontrun{
-#' # 1. Simulate Data
-#' set.seed(123)
-#' n <- 1000
-#' x <- matrix(rnorm(n), ncol = 1)
-#' true_beta <- c(1, 2) # Intercept=1, Slope=2
-#' y <- 1 + 2 * x[,1] + rnorm(n, sd = 0.5)
+#' data(lifem)
 #'
-#' # 2. Introduce Linkage Errors (Shuffle 10% of data)
-#' m_rate <- 0.10
-#' idx_mismatch <- sample(1:n, size = n * m_rate)
-#' y[idx_mismatch] <- sample(y[idx_mismatch]) # Shuffle y for mismatches
+#' x <- cbind(1, poly(lifem$unit_yob, 3, raw = TRUE))
+#' y <- lifem$age_at_death
+#' z <- cbind(1, lifem$commf, lifem$comml)
 #'
-#' # 3. Create Linkage Covariates (z)
-#' # Assume we have a "matching score" z related to correctness
-#' z <- matrix(rnorm(n, mean = 1), ncol = 1)
-#'
-#' # 4. Fit the Mixture GLM
-#' fit <- glmMixture(x = cbind(1, x), y = y,
-#'                   family = "gaussian",
-#'                   z = cbind(1, z),
-#'                   m.rate = 0.10)
-#' }
+#' fit <- glmMixture(x, y, family = "gaussian",
+#'                   z, m.rate = 0.05, safe.matches = lifem$hndlnk)
 #'
 #' @export
 glmMixture <- function(x, y, family,
-                       z, m.rate = NULL, safe.matches = NULL,
+                       z = cbind(rep(1,nrow(x))), m.rate = NULL, safe.matches = NULL,
                        control = list(), ...) {
 
  # 1. Set-up and Arguments
@@ -95,11 +80,11 @@ glmMixture <- function(x, y, family,
  con[names(dots)] <- dots
 
  x <- as.matrix(x)
- z <- as.matrix(z)
  y <- as.numeric(y)
  n <- nrow(x)
  p <- ncol(x)
  d <- p
+ z <- as.matrix(z)
 
  if (is.null(safe.matches)) safe.matches <- rep(FALSE, n)
 
@@ -144,35 +129,38 @@ glmMixture <- function(x, y, family,
 
  # Initialization: Beta & Shape
  beta_cur <- con$init.beta
- shape_cur <- NA
- stdcur <- NA
+
+ # Define shape_update globally so it is always available for the EM loop
+ shape_update <- function(mu_val, mme, pcur) {
+  f <- function(shape) {
+   -sum(pcur * stats::dgamma(y, shape = shape, rate = shape / mu_val, log = TRUE))
+  }
+  lower_bound <- max(1e-4, 0.1 * mme)
+  upper_bound <- max(10, 10 * mme)
+  stats::optimize(f = f, lower = lower_bound, upper = upper_bound)$minimum
+ }
 
  if (is.null(beta_cur)) {
   if (family_name != "gamma") {
    init_fit <- stats::glm.fit(x, y, family = family)
    beta_cur <- stats::coef(init_fit)
   } else {
-   shape_update <- function(mu_val, mme, pcur) {
-    f <- function(shape) {
-     -sum(pcur * stats::dgamma(y, shape = shape, rate = shape / mu_val, log = TRUE))
-    }
-    lower_bound <- max(1e-4, 0.1 * mme)
-    upper_bound <- max(10, 10 * mme)
-    stats::optimize(f = f, lower = lower_bound, upper = upper_bound)$minimum
-   }
-
    init_fit <- stats::glm.fit(x, y, family = stats::Gamma(link = "log"))
    beta_cur <- stats::coef(init_fit)
-
-   mu_init <- pmax(init_fit$fitted.values, 1e-10)
-   disp_init <- sum(((y - mu_init)/mu_init)^2) / max(1, init_fit$df.residual)
-   if (is.na(disp_init) || disp_init <= 0) disp_init <- 1
-   shape_cur <- shape_update(mu_init, mme = 1/disp_init, rep(1, n))
   }
  }
 
+ # Always initialize dispersion parameters, regardless of whether beta was provided
+ shape_cur <- NA
+ stdcur <- NA
+
  if (family_name == "gaussian") {
-  stdcur <- sqrt(sum((y - x %*% beta_cur)^2) / (n - p))
+  stdcur <- sqrt(sum((y - x %*% beta_cur)^2) / max(1, n - p))
+ } else if (family_name == "gamma") {
+  mu_init <- pmax(family$linkinv(x %*% beta_cur), 1e-10)
+  disp_init <- sum(((y - mu_init)/mu_init)^2) / max(1, n - p)
+  if (is.na(disp_init) || disp_init <= 0) disp_init <- 1
+  shape_cur <- shape_update(mu_init, mme = 1/disp_init, rep(1, n))
  }
 
  # Initialization: Gamma
@@ -182,7 +170,7 @@ glmMixture <- function(x, y, family,
    if (ncol(z) == 1 && all(z == 1)) {
     gamma_cur <- rep(-logitbound, ncol(z))
    } else {
-    gamma_cur <- c(min(logitbound, 0), rep(0, ncol(z) - 1))
+    gamma_cur <- c(max(-logitbound, 0), rep(0, ncol(z) - 1))
    }
   } else {
    gamma_cur <- rep(0, ncol(z))
@@ -227,6 +215,9 @@ glmMixture <- function(x, y, family,
  objs <- numeric(con$max.iter)
  objs[iter] <- nloglik(mu_cur, stdcur, hs, shape_cur)
 
+ converged_flag <- FALSE
+ w_glm_fit <- NULL
+
  while (iter < con$max.iter) {
   # E-Step
   num <- hs[!safe.matches] * fymu_eval(mu_cur, stdcur, !safe.matches, shape_cur)
@@ -239,35 +230,66 @@ glmMixture <- function(x, y, family,
   # M-Step: Gamma
   if (!is.null(logitbound)) {
    if (ncol(z) == 1 && all(z == 1)) {
-    glm_h <- stats::glm.fit(z[!safe.matches, , drop = FALSE], p_cur[!safe.matches], family = stats::quasibinomial())
-    gamma_cur <- max(stats::coef(glm_h), -logitbound)
+    temp_glm_h <- tryCatch(stats::glm.fit(z[!safe.matches, , drop = FALSE], p_cur[!safe.matches], family = stats::quasibinomial()), error = function(e) NULL)
+    if (!is.null(temp_glm_h) && !anyNA(stats::coef(temp_glm_h))) {
+     gamma_cur <- max(stats::coef(temp_glm_h), -logitbound)
+    } else {
+     warning("Mismatch model failed to find valid coefficients. Terminating EM early.")
+     break
+    }
    } else {
-    glm_h <- constrained_logistic_regression(z[!safe.matches, , drop = FALSE], 1 - p_cur[!safe.matches], logitbound, con$cmax.iter)
-    gamma_cur <- -glm_h$beta
+    temp_glm_h <- constrained_logistic_regression(z[!safe.matches, , drop = FALSE], 1 - p_cur[!safe.matches], logitbound, con$cmax.iter)
+    if (!is.null(temp_glm_h) && !anyNA(temp_glm_h$beta)) {
+     gamma_cur <- -temp_glm_h$beta
+    } else {
+     warning("Mismatch model failed to find valid coefficients. Terminating EM early.")
+     break
+    }
    }
   } else {
-   glm_h <- stats::glm.fit(z[!safe.matches, , drop = FALSE], p_cur[!safe.matches], family = stats::quasibinomial())
-   gamma_cur <- stats::coef(glm_h)
+   temp_glm_h <- tryCatch(stats::glm.fit(z[!safe.matches, , drop = FALSE], p_cur[!safe.matches], family = stats::quasibinomial()), error = function(e) NULL)
+   if (!is.null(temp_glm_h) && !anyNA(stats::coef(temp_glm_h))) {
+    gamma_cur <- stats::coef(temp_glm_h)
+   } else {
+    warning("Mismatch model failed to find valid coefficients. Terminating EM early.")
+    break
+   }
   }
   hs[!safe.matches] <- hgamma(z[!safe.matches, , drop = FALSE] %*% gamma_cur)$fun
 
   # M-Step: Beta & Dispersion
   if (family_name != "gamma") {
-   w_glm_fit <- tryCatch(
-    stats::glm.fit(x, y, weights = p_cur, family = family, start = beta_cur),
-    error = function(e) stats::glm.fit(x, y, weights = p_cur, family = family)
-   )
-   beta_cur <- stats::coef(w_glm_fit)
+   temp_glm_fit <- tryCatch(stats::glm.fit(x, y, weights = p_cur, family = family, start = beta_cur), error = function(e) NULL)
+   if (is.null(temp_glm_fit) || anyNA(stats::coef(temp_glm_fit))) {
+    temp_glm_fit <- tryCatch(stats::glm.fit(x, y, weights = p_cur, family = family), error = function(e) NULL)
+   }
+
+   if (!is.null(temp_glm_fit) && !anyNA(stats::coef(temp_glm_fit))) {
+    w_glm_fit <- temp_glm_fit
+    beta_cur <- stats::coef(w_glm_fit)
+   } else {
+    warning("Outcome model failed to converge in M-step. Terminating EM algorithm early.")
+    break
+   }
   } else {
-   w_glm_fit <- tryCatch(
-    stats::glm.fit(x, y, weights = p_cur, family = family, start = beta_cur),
-    error = function(e) stats::glm.fit(x, y, weights = p_cur, family = family)
-   )
-   beta_cur <- stats::coef(w_glm_fit)
-   mu_w <- pmax(w_glm_fit$fitted.values, 1e-10)
-   disp_w <- sum(p_cur * ((y - mu_w)/mu_w)^2) / max(sum(p_cur), 1)
-   if (is.na(disp_w) || disp_w <= 0) disp_w <- 1
-   shape_cur <- shape_update(mu_w, mme = 1/disp_w, p_cur)
+   temp_glm_fit <- tryCatch(stats::glm.fit(x, y, weights = p_cur, family = family, start = beta_cur), error = function(e) NULL)
+   if (is.null(temp_glm_fit) || anyNA(stats::coef(temp_glm_fit))) {
+    temp_glm_fit <- tryCatch(stats::glm.fit(x, y, weights = p_cur, family = family), error = function(e) NULL)
+   }
+
+   if (!is.null(temp_glm_fit) && !anyNA(stats::coef(temp_glm_fit))) {
+    w_glm_fit <- temp_glm_fit
+    beta_cur <- stats::coef(w_glm_fit)
+    mu_w <- pmax(w_glm_fit$fitted.values, 1e-10)
+    disp_w <- sum(p_cur * ((y - mu_w)/mu_w)^2) / max(sum(p_cur), 1)
+    if (is.na(disp_w) || disp_w <= 0) disp_w <- 1
+
+    try_shape <- tryCatch(shape_update(mu_w, mme = 1/disp_w, p_cur), error = function(e) NA)
+    if (!is.na(try_shape)) shape_cur <- try_shape
+   } else {
+    warning("Outcome model failed to converge in M-step. Terminating EM algorithm early.")
+    break
+   }
   }
 
   eta_cur <- x %*% beta_cur
@@ -285,6 +307,7 @@ glmMixture <- function(x, y, family,
    break
   }
   if (abs(objs[iter] - objs[iter - 1]) < con$tol) {
+   converged_flag <- TRUE
    break
   }
  }
@@ -406,7 +429,11 @@ glmMixture <- function(x, y, family,
  covhat <- if (anyNA(cov_1_hat)) matrix(NA, nrow(Hess), ncol(Hess)) else t(solve(Hess, t(cov_1_hat)))
 
  beta_n <- colnames(x)
+ if(!is.null(colnames(z))){
  gamma_n <- colnames(z)
+ } else{
+ gamma_n <- c(1:ncol(z))
+ }
  names(gamma_cur) <- gamma_n
 
  if (family_name == "gaussian") {
@@ -425,13 +452,13 @@ glmMixture <- function(x, y, family,
              residuals = y - mu_cur,
              linear.predictors = eta_cur,
              fitted.values = mu_cur,
-             deviance = w_glm_fit$deviance,
-             null.deviance = w_glm_fit$null.deviance,
+             deviance = if (!is.null(w_glm_fit)) w_glm_fit$deviance else NA,
+             null.deviance = if (!is.null(w_glm_fit)) w_glm_fit$null.deviance else NA,
              df.residual = n - p,
              df.null = n - 1,
              rank = p,
              family = family,
-             converged = iter < con$max.iter,
+             converged = converged_flag,
              match.prob = hs,
              var = covhat,
              objective = objs[1:iter],

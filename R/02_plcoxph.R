@@ -2,7 +2,7 @@
 #'
 #' \code{plcoxph} fits Cox proportional hazards models to linked data, adjusting for
 #' potential mismatch errors. It serves as a wrapper around the internal \code{fitcoxph}
-#' engine, ensuring compatibility with the \code{\link[survival]{coxph}} syntax.
+#' function, ensuring compatibility with the \code{\link[survival]{coxph}} syntax.
 #'
 #' @param formula A formula object, with the response on the left of a ~ operator,
 #'   and the terms on the right. The response must be a survival object as returned
@@ -16,11 +16,54 @@
 #'   (\code{y}) are returned. Defaults are \code{FALSE} and \code{FALSE}.
 #' @param control A list of parameters for controlling the linkage error
 #' adjustment process.
-#' @param ... Additional arguments passed to the internal engine.
+#' @param ... Additional arguments passed to the internal function.
 #'
 #' @return A fitted model object containing the \code{call} and requested design components.
 #'
-#' @seealso \code{\link{plglm}}, \code{\link[survival]{coxph}}
+#' @examples
+#' \dontrun{
+#' library(survival)
+#' set.seed(101)
+#' n <- 250
+#'
+#' # Simulate true survival data
+#' x <- rnorm(n)
+#' true_hazard <- exp(0.5 * x)
+#' true_time <- rexp(n, true_hazard)
+#' true_status <- rbinom(n, 1, 0.8)
+#'
+#' # Induce linkage mismatch errors
+#' match_score <- rbeta(n, 5, 1)
+#' is_mismatch <- rbinom(n, 1, 1 - match_score)
+#'
+#' obs_time <- true_time
+#' obs_status <- true_status
+#' mismatch_idx <- which(is_mismatch == 1)
+#'
+#' # Shuffle time and status together for mismatched records
+#' if(length(mismatch_idx) > 1) {
+#'   shuffled_idx <- sample(mismatch_idx)
+#'   obs_time[mismatch_idx] <- obs_time[shuffled_idx]
+#'   obs_status[mismatch_idx] <- obs_status[shuffled_idx]
+#' }
+#'
+#' linked_data <- data.frame(time = obs_time, status = obs_status, x = x, match_score)
+#'
+#' # Specify the Adjustment Method
+#' adj <- adjMixture(
+#'   linked.data = linked_data,
+#'   m.formula = ~ match_score
+#' )
+#'
+#' # Fit the Adjusted Cox Proportional Hazards Model
+#' fit <- plcoxph(
+#'   Surv(time, status) ~ x,
+#'   adjustment = adj,
+#'   control = list(max.iter = 50)
+#' )
+#' }
+#'
+#' @seealso \code{\link{plglm}}
 #' @export
 plcoxph <- function(formula,
                     adjustment,

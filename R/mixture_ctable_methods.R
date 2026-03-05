@@ -1,11 +1,11 @@
 #' Print Method for Adjusted Contingency Tables
 #'
 #' @description
-#' Prints the estimated contingency table (corrected for linkage error) and a summary 
+#' Prints the estimated contingency table (corrected for linkage error) and a summary
 #' of the adjustment parameters used by the mixture model.
 #'
 #' @param x An object of class \code{ctableMixture}.
-#' @param digits Integer; the number of significant digits to use when printing 
+#' @param digits Integer; the number of significant digits to use when printing
 #' numeric values. Defaults to 3.
 #' @param ... Additional arguments passed to \code{\link{print.default}}.
 #'
@@ -13,45 +13,72 @@
 #'
 #' @examples
 #' \dontrun{
-#' fit <- plctable(formula = ~ row + col, adjustment = adj, data = linked_df)
+#' # Fast simulation of linked data
+#' set.seed(123)
+#' linked_df <- data.frame(
+#'   exposure = sample(c("low", "high"), 300, replace = TRUE),
+#'   disease = sample(c("yes", "no"), 300, replace = TRUE)
+#' )
+#'
+#' # Specify adjustment and fit the model
+#' adj <- adjMixture(linked.data = linked_df, m.rate = 0.15)
+#' fit <- plctable(~ exposure + disease, adjustment = adj)
+#'
+#' # Explicitly call the print method
 #' print(fit)
 #' }
-#' 
+#'
 #' @seealso \code{\link{plctable}}, \code{\link{ctableMixture}}
 #' @export
 print.ctableMixture <- function(x, digits = 3, ...) {
  cat("\nCall:\n")
  dput(x$call)
- 
+
  cat("\n--- Adjusted Contingency Table (Estimated Correct Counts) ---\n")
  # Print the effective counts (ftable) rounded for readability
  print(round(x$ftable, digits))
- 
+
  cat("\n--- Linkage Error Adjustment ---\n")
  cat("Assumed Mismatch Rate (alpha):", format(x$adjustment$m.rate, digits = digits), "\n")
- 
+
  if (isTRUE(x$converged)) {
   cat("Status: Converged in", length(x$objective), "iterations.\n")
  } else {
-  cat("Status: NOT converged (reached max.iter).\n")
+  cat("Status: Not converged (reached max.iter).\n")
  }
- 
+
  invisible(x)
 }
 
 #' Extract Variance-Covariance Matrix from ctableMixture Objects
 #'
 #' @description
-#' Extracts the estimated variance-covariance matrix of the cell probabilities 
-#' from a fitted \code{ctableMixture} object. The variance is estimated using 
+#' Extracts the estimated variance-covariance matrix of the cell probabilities
+#' from a fitted \code{ctableMixture} object. The variance is estimated using
 #' the observed information matrix (via the Hessian of the mixture log-likelihood).
 #'
 #' @param object An object of class \code{ctableMixture}.
 #' @param ... Additional arguments (currently ignored).
 #'
 #' @return A matrix of the estimated covariances between the cell probability estimates.
-#' The row and column names correspond to the cells of the table in row-major order 
+#' The row and column names correspond to the cells of the table in row-major order
 #' (e.g., "(Row1, Col1)", "(Row1, Col2)", ...).
+#'
+#' @examples
+#' \dontrun{
+#' set.seed(124)
+#' linked_df <- data.frame(
+#'   exposure = sample(c("low", "high"), 300, replace = TRUE),
+#'   disease = sample(c("yes", "no"), 300, replace = TRUE)
+#' )
+#'
+#' adj <- adjMixture(linked.data = linked_df, m.rate = 0.15)
+#' fit <- plctable(~ exposure + disease, adjustment = adj)
+#'
+#' # Extract the variance-covariance matrix of the cell probabilities
+#' vmat <- vcov(fit)
+#' print(vmat)
+#' }
 #'
 #' @export
 vcov.ctableMixture <- function(object, ...) {
@@ -61,49 +88,67 @@ vcov.ctableMixture <- function(object, ...) {
 #' Confidence Intervals for Adjusted Cell Probabilities
 #'
 #' @description
-#' Computes Wald-type confidence intervals for the estimated cell probabilities 
+#' Computes Wald-type confidence intervals for the estimated cell probabilities
 #' of the correctly matched population.
 #'
 #' @param object An object of class \code{ctableMixture}.
-#' @param parm A specification of which parameters are to be given confidence intervals. 
+#' @param parm A specification of which parameters are to be given confidence intervals.
 #' If missing, all parameters (cells) are considered.
 #' @param level The confidence level required. Defaults to 0.95.
 #' @param ... Additional arguments (currently ignored).
 #'
 #' @details
-#' The intervals are calculated using the standard error estimates derived from 
-#' \code{\link{vcov.ctableMixture}}. The lower and upper bounds are truncated 
+#' The intervals are calculated using the standard error estimates derived from
+#' \code{\link{vcov.ctableMixture}}. The lower and upper bounds are truncated
 #' at 0 and 1, respectively, to ensure valid probability estimates.
 #'
 #' @return A matrix with columns giving lower and upper confidence limits for each parameter.
 #'
+#' @examples
+#' \dontrun{
+#' set.seed(125)
+#' linked_df <- data.frame(
+#'   exposure = sample(c("low", "high"), 300, replace = TRUE),
+#'   disease = sample(c("yes", "no"), 300, replace = TRUE)
+#' )
+#'
+#' adj <- adjMixture(linked.data = linked_df, m.rate = 0.15)
+#' fit <- plctable(~ exposure + disease, adjustment = adj)
+#'
+#' # Compute 95% confidence intervals for all cell probabilities
+#' confint(fit)
+#'
+#' # Compute 90% confidence intervals for specific cells by name
+#' confint(fit, parm = c("(low, yes)", "(high, no)"), level = 0.90)
+#' }
+#'
 #' @export
 confint.ctableMixture <- function(object, parm, level = 0.95, ...) {
- 
+
  # Extract Estimates and SEs
  # Flatten phat to match the order of vcov (Row-Major)
- est_vec <- c(t(object$phat)) 
+ est_vec <- c(t(object$phat))
  se_vec  <- sqrt(diag(object$var))
- 
+
  # Calculate Critical Value
  alpha_level <- (1 - level) / 2
  z_crit <- stats::qnorm(1 - alpha_level)
- 
+
  # Compute Wald Intervals
  lower <- est_vec - z_crit * se_vec
  upper <- est_vec + z_crit * se_vec
- 
+
  # Truncate at [0, 1] as probabilities cannot exceed these bounds
  lower <- pmax(0, lower)
  upper <- pmin(1, upper)
- 
+
  # Format Output
  ci_mat <- cbind(lower, upper)
- pct_labs <- paste(format(100 * c(alpha_level, 1 - alpha_level), trim = TRUE, 
+ pct_labs <- paste(format(100 * c(alpha_level, 1 - alpha_level), trim = TRUE,
                           scientific = FALSE, digits = 3), "%")
  colnames(ci_mat) <- pct_labs
  rownames(ci_mat) <- colnames(object$var) # Use the (Row, Col) labels
- 
+
  # Subset if 'parm' is provided
  if (!missing(parm)) {
   if (is.character(parm)) {
@@ -112,15 +157,15 @@ confint.ctableMixture <- function(object, parm, level = 0.95, ...) {
    ci_mat <- ci_mat[parm, , drop = FALSE]
   }
  }
- 
+
  return(ci_mat)
 }
 
 #' Summary Method for Adjusted Contingency Tables
 #'
 #' @description
-#' Provides a detailed summary of the \code{ctableMixture} model fit, including 
-#' the estimated cell probabilities with standard errors, convergence status, 
+#' Provides a detailed summary of the \code{ctableMixture} model fit, including
+#' the estimated cell probabilities with standard errors, convergence status,
 #' and a Chi-squared test of independence performed on the adjusted counts.
 #'
 #' @param object An object of class \code{ctableMixture}.
@@ -135,30 +180,49 @@ confint.ctableMixture <- function(object, parm, level = 0.95, ...) {
 #' \item{converged}{Logical indicating if the EM algorithm converged.}
 #' \item{iterations}{Number of iterations performed.}
 #'
+#' @examples
+#' \dontrun{
+#' set.seed(126)
+#' linked_df <- data.frame(
+#'   exposure = sample(c("low", "high"), 300, replace = TRUE),
+#'   disease = sample(c("yes", "no"), 300, replace = TRUE)
+#' )
+#'
+#' adj <- adjMixture(linked.data = linked_df, m.rate = 0.15)
+#' fit <- plctable(~ exposure + disease, adjustment = adj)
+#'
+#' # Generate the detailed summary object
+#' sum_fit <- summary(fit)
+#'
+#' # Access specific components of the summary
+#' print(sum_fit$coefficients)
+#' print(sum_fit$chisq)
+#' }
+#'
 #' @export
 summary.ctableMixture <- function(object, ...) {
- 
+
  # Parameter Summary (Cell Probabilities)
  # Extract vectorized estimates and standard errors
- est_vec <- c(t(object$phat)) 
+ est_vec <- c(t(object$phat))
  se_vec  <- sqrt(diag(object$var))
- 
+
  # Construct coefficient matrix
  coef_mat <- cbind(
   Estimate = est_vec,
   `Std. Error` = se_vec,
-  `z value` = est_vec / se_vec, 
+  `z value` = est_vec / se_vec,
   `Pr(>|z|)` = 2 * (1 - stats::pnorm(abs(est_vec / se_vec)))
  )
  rownames(coef_mat) <- colnames(object$var)
- 
+
  # Independence Test on Adjusted Data
  # We perform a Chi-squared test on the estimated correct counts (ftable).
- # Note: This treats estimated counts as observed for the sake of the test statistic.
- # The p-value is approximate as it does not account for the variance of the 
+ # note: This treats estimated counts as observed for the sake of the test statistic.
+ # The p-value is approximate as it does not account for the variance of the
  # adjustment process itself, but it provides the corrected association metric.
  chisq_res <- suppressWarnings(stats::chisq.test(object$ftable))
- 
+
  # Aggregate Results
  res <- list(
   call = object$call,
@@ -169,51 +233,41 @@ summary.ctableMixture <- function(object, ...) {
   converged = object$converged,
   iterations = length(object$objective)
  )
- 
+
  class(res) <- "summary.ctableMixture"
  return(res)
 }
 
-#' Print Summary of Adjusted Contingency Table
-#'
-#' @description
-#' Prints the summary generated by \code{\link{summary.ctableMixture}}.
-#'
-#' @param x An object of class \code{summary.ctableMixture}.
-#' @param digits Integer; number of significant digits to use. Defaults to 3.
-#' @param ... Additional arguments passed to \code{\link{print.default}}.
-#'
-#' @return The argument \code{x}, invisibly.
-#'
+#' @noRd
 #' @export
 print.summary.ctableMixture <- function(x, digits = 3, ...) {
- 
+
  cat("\nCall:\n")
  dput(x$call)
- 
- cat("\n------------------------------------------------------------\n")
+
+ cat("\n")
  cat("Adjustment for Linkage Error (Mixture Model)\n")
  cat("------------------------------------------------------------\n")
  cat("Assumed Mismatch Rate:", format(x$m.rate, digits = digits), "\n")
  cat("EM Convergence:", x$converged, paste0("(", x$iterations, " iter)"), "\n")
- 
- cat("\n------------------------------------------------------------\n")
+
+ cat("\n")
  cat("Estimated Cell Probabilities (Correctly Matched Population)\n")
  cat("------------------------------------------------------------\n")
- stats::printCoefmat(x$coefficients, digits = digits, P.values = TRUE, 
+ stats::printCoefmat(x$coefficients, digits = digits, P.values = TRUE,
                      has.Pvalue = TRUE, signif.stars = TRUE)
- 
- cat("\n------------------------------------------------------------\n")
+
+ cat("\n")
  cat("Inference for Independence (Based on Adjusted Table)\n")
  cat("------------------------------------------------------------\n")
  cat("Pearson's Chi-squared Statistic\n")
- cat("X-squared =", format(x$chisq$statistic, digits = digits), 
+ cat("X-squared =", format(x$chisq$statistic, digits = digits),
      ", df =", x$chisq$parameter, "\n")
- cat("Note: P-value is not available. The standard Chi-squared distribution \n")
+ cat("note: P-value is not available. The standard Chi-squared distribution \n")
  cat("does not account for uncertainty in the linkage error adjustment.\n")
- 
+
  cat("\nAdjusted Counts (Rounded):\n")
  print(round(x$ftable, 1))
- 
+
  invisible(x)
 }

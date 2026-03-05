@@ -11,6 +11,25 @@
 #'
 #' @return The object \code{x} (invisibly).
 #'
+#' @examples
+#' \donttest{
+#' # 1. Simulate fast toy data
+#' set.seed(401)
+#' n <- 100
+#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+#' y <- cbind(time = rweibull(n, shape = 1.5, scale = exp(0.5 * X[, 1])),
+#'            event = rbinom(n, 1, 0.8))
+#'
+#' # 2. Fit the model with artificially low iterations for speed
+#' fit <- survregMixBayes(
+#'   X = X, y = y, dist = "weibull",
+#'   control = list(iterations = 100, burnin.iterations = 50, seed = 401)
+#' )
+#'
+#' # 3. Print the model object
+#' print(fit)
+#' }
+#'
 #' @export
 #' @method print survMixBayes
 print.survMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
@@ -39,6 +58,26 @@ print.survMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ..
 #'
 #' @return An object of class \code{summary.survMixBayes}.
 #'
+#' @examples
+#' \donttest{
+#' # Simulate data
+#' set.seed(402)
+#' n <- 100
+#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
+#'            event = rbinom(n, 1, 0.8))
+#'
+#' # Fit the model
+#' fit <- survregMixBayes(
+#'   X = X, y = y, dist = "weibull",
+#'   control = list(iterations = 100, burnin.iterations = 50, seed = 402)
+#' )
+#'
+#' # Generate and print the comprehensive summary
+#' fit_summary <- summary(fit, probs = c(0.025, 0.5, 0.975))
+#' print(fit_summary)
+#' }
+#'
 #' @export
 #' @method summary survMixBayes
 summary.survMixBayes <- function(object, probs = c(0.025, 0.5, 0.975), ...) {
@@ -64,16 +103,8 @@ summary.survMixBayes <- function(object, probs = c(0.025, 0.5, 0.975), ...) {
   s
 }
 
-#' Print a summary.survMixBayes object
-#'
-#' @param x An object of class \code{summary.survMixBayes}.
-#' @param digits Number of significant digits to print.
-#' @param ... Additional arguments (unused).
-#'
-#' @return The object \code{x} (invisibly).
-#'
+#' @noRd
 #' @export
-#' @method print summary.survMixBayes
 print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
   cat("Summary of Bayesian mixture survival regression\n")
   if (!is.null(x$call)) {
@@ -116,6 +147,29 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
 #'   coefficients when available. Elements `theta`, `shape1`, `shape2`,
 #'   `scale1`, `scale2` are numeric vectors of length 2 giving lower/upper
 #'   credible intervals for scalar parameters.
+#'
+#' @examples
+#' \donttest{
+#' # Simulate data
+#' set.seed(403)
+#' n <- 100
+#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
+#'            event = rbinom(n, 1, 0.8))
+#'
+#' # Fit the model
+#' fit <- survregMixBayes(
+#'   X = X, y = y, dist = "weibull",
+#'   control = list(iterations = 100, burnin.iterations = 50, seed = 403)
+#' )
+#'
+#' # Calculate 95% credible intervals for all parameters
+#' confint(fit, level = 0.95)
+#'
+#' # Extract credible intervals specifically for the mixing weight
+#' confint(fit, parm = "theta", level = 0.90)
+#' }
+#'
 #' @export
 #' @method confint survMixBayes
 confint.survMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
@@ -153,6 +207,26 @@ confint.survMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
 #'
 #' @return A covariance matrix.
 #'
+#' @examples
+#' \donttest{
+#' # Simulate data
+#' set.seed(404)
+#' n <- 100
+#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
+#'            event = rbinom(n, 1, 0.8))
+#'
+#' # Fit the model
+#' fit <- survregMixBayes(
+#'   X = X, y = y, dist = "weibull",
+#'   control = list(iterations = 100, burnin.iterations = 50, seed = 404)
+#' )
+#'
+#' # Extract the empirical posterior covariance matrix for component 1
+#' vcov_mat <- vcov(fit)
+#' print(vcov_mat)
+#' }
+#'
 #' @export
 #' @method vcov survMixBayes
 vcov.survMixBayes <- function(object, ...) {
@@ -170,6 +244,30 @@ vcov.survMixBayes <- function(object, ...) {
 #' @param ... Additional arguments (unused).
 #'
 #' @return A list with posterior mean linear predictors for each component.
+#'
+#' @examples
+#' \donttest{
+#' # Simulate data
+#' set.seed(405)
+#' n <- 100
+#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
+#'            event = rbinom(n, 1, 0.8))
+#'
+#' # Fit the model
+#' fit <- survregMixBayes(
+#'   X = X, y = y, dist = "weibull",
+#'   control = list(iterations = 100, burnin.iterations = 50, seed = 405)
+#' )
+#'
+#' # Create a new design matrix for prediction
+#' X_new <- matrix(c(0, 1, -1, 0.5), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+#'
+#' # Predict posterior mean linear predictors for each latent component
+#' preds <- predict(fit, newdata = X_new)
+#' print(preds$component1)
+#' print(preds$component2)
+#' }
 #'
 #' @export
 #' @method predict survMixBayes
@@ -197,6 +295,28 @@ predict.survMixBayes <- function(object, newdata = NULL, ...) {
 #'
 #' @return A pooled object of class \code{mi_link_pool_survreg}.
 #'
+#' @examples
+#' \donttest{
+#' # Simulate data
+#' set.seed(406)
+#' n <- 100
+#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
+#'            event = rbinom(n, 1, 0.8))
+#'
+#' # Fit the model
+#' fit <- survregMixBayes(
+#'   X = X, y = y, dist = "weibull",
+#'   control = list(iterations = 100, burnin.iterations = 50, seed = 406)
+#' )
+#'
+#' # Perform posterior allocation pooling
+#' pooled_obj <- mi_with(fit)
+#'
+#' # View the distribution of posterior probabilities of belonging to component 1
+#' summary(pooled_obj$p_component1)
+#' }
+#'
 #' @export
 #' @method mi_with survMixBayes
 mi_with.survMixBayes <- function(object, ...) {
@@ -222,6 +342,28 @@ mi_with.survMixBayes <- function(object, ...) {
 #' @param x An object of class \code{mi_link_pool_survreg}.
 #' @param ... Additional arguments (unused).
 #' @return Invisibly returns \code{x}.
+#'
+#' @examples
+#' \donttest{
+#' # Simulate data
+#' set.seed(407)
+#' n <- 100
+#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
+#'            event = rbinom(n, 1, 0.8))
+#'
+#' # Fit the model
+#' fit <- survregMixBayes(
+#'   X = X, y = y, dist = "weibull",
+#'   control = list(iterations = 100, burnin.iterations = 50, seed = 407)
+#' )
+#'
+#' # Create the pooled object via mi_with
+#' pooled_obj <- mi_with(fit)
+#'
+#' # Explicitly call the print method for the pooled object
+#' print(pooled_obj)
+#' }
 #'
 #' @export
 #' @method print mi_link_pool_survreg

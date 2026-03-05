@@ -20,6 +20,13 @@ NULL
 #'
 #' @return A pooled model object.
 #'
+#' @examples
+#' \donttest{
+#' # mi_with() is a generic function for posterior allocation-based pooling.
+#' # See ?mi_with.glmMixBayes for a complete, executable example demonstrating
+#' # its use with Bayesian GLM mixture models.
+#' }
+#'
 #' @export
 mi_with <- function(object, ...) {
  UseMethod("mi_with", object)
@@ -31,6 +38,26 @@ mi_with <- function(object, ...) {
 #' @param digits Minimum number of significant digits to show.
 #' @param ... Further arguments (unused).
 #' @return The input \code{x}, invisibly.
+#'
+#' @examples
+#' \donttest{
+#' # 1. Simulate fast toy data (Gaussian mixture)
+#' set.seed(601)
+#' n <- 100
+#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+#' X[, 1] <- 1
+#' y <- rnorm(n, mean = X %*% c(1, 2), sd = 1.5)
+#'
+#' # 2. Fit the model with artificially low iterations for speed
+#' fit <- glmMixBayes(
+#'   X = X, y = y, family = "gaussian",
+#'   control = list(iterations = 100, burnin.iterations = 50, seed = 601)
+#' )
+#'
+#' # 3. Print the model object
+#' print(fit)
+#' }
+#'
 #' @export
 #' @method print glmMixBayes
 print.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L),...){
@@ -51,6 +78,27 @@ print.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L),...)
 #' @param object An object of class \code{glmMixBayes}.
 #' @param ... Not used.
 #' @return An object of class \code{"summary.glmMixBayes"}, which is printed with a custom method.
+#'
+#' @examples
+#' \donttest{
+#' # Simulate data
+#' set.seed(602)
+#' n <- 100
+#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+#' X[, 1] <- 1
+#' y <- rpois(n, lambda = exp(X %*% c(0.5, 0.2)))
+#'
+#' # Fit the Poisson mixture model
+#' fit <- glmMixBayes(
+#'   X = X, y = y, family = "poisson",
+#'   control = list(iterations = 100, burnin.iterations = 50, seed = 602)
+#' )
+#'
+#' # Generate and print the comprehensive summary
+#' fit_summary <- summary(fit)
+#' print(fit_summary)
+#' }
+#'
 #' @export
 summary.glmMixBayes <- function(object, ...) {
 
@@ -102,14 +150,7 @@ summary.glmMixBayes <- function(object, ...) {
  out
 }
 
-#' Print method for summary.glmMixBayes
-#'
-#' @param x An object of class \code{"summary.glmMixBayes"}.
-#' @param digits Significant digits to use in printing.
-#' @param signif.stars Logical; if \code{TRUE}, print significance stars for coefficients.
-#'   Defaults to \code{getOption("show.signif.stars")}.
-#' @param ... Additional arguments (unused).
-#' @return The input \code{x}, invisibly.
+#' @noRd
 #' @export
 print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L),
                                       signif.stars = getOption("show.signif.stars"),...){
@@ -152,6 +193,27 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
 #' @param object A \code{glmMixBayes} model object.
 #' @param ... Not used.
 #' @return Posterior covariance matrix of component 1's coefficient vector.
+#'
+#' @examples
+#' \donttest{
+#' # Simulate data
+#' set.seed(603)
+#' n <- 100
+#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+#' X[, 1] <- 1
+#' y <- rpois(n, lambda = exp(X %*% c(0.5, 0.2)))
+#'
+#' # Fit the model
+#' fit <- glmMixBayes(
+#'   X = X, y = y, family = "poisson",
+#'   control = list(iterations = 100, burnin.iterations = 50, seed = 603)
+#' )
+#'
+#' # Extract the empirical posterior covariance matrix for component 1 (Correct Links)
+#' vcov_mat <- vcov(fit)
+#' print(vcov_mat)
+#' }
+#'
 #' @export
 vcov.glmMixBayes <- function(object, ...) {
  stats::cov(object$estimates$coefficients)
@@ -165,6 +227,29 @@ vcov.glmMixBayes <- function(object, ...) {
 #' @param level Probability level for the intervals (default 0.95).
 #' @param ... Not used.
 #' @return A matrix with two columns (lower and upper bounds) and one row per coefficient.
+#'
+#' @examples
+#' \donttest{
+#' # Simulate data
+#' set.seed(604)
+#' n <- 100
+#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+#' X[, 1] <- 1
+#' y <- rnorm(n, mean = X %*% c(1, 2), sd = 1.5)
+#'
+#' # Fit the model
+#' fit <- glmMixBayes(
+#'   X = X, y = y, family = "gaussian",
+#'   control = list(iterations = 100, burnin.iterations = 50, seed = 604)
+#' )
+#'
+#' # Calculate 95% credible intervals for all outcome coefficients
+#' confint(fit, level = 0.95)
+#'
+#' # Extract credible interval specifically for the 'x1' parameter
+#' confint(fit, parm = "x1", level = 0.90)
+#' }
+#'
 #' @export
 #' @method confint glmMixBayes
 confint.glmMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
@@ -188,6 +273,31 @@ confint.glmMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
 #' @param interval Either \code{"none"} or \code{"credible"}, indicating whether to compute a credible interval.
 #' @param level Probability level for the credible interval (default 0.95).
 #' @param ... Not used.
+#'
+#' @examples
+#' \donttest{
+#' # Simulate data
+#' set.seed(605)
+#' n <- 100
+#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+#' X[, 1] <- 1
+#' y <- rpois(n, lambda = exp(X %*% c(0.5, 0.8)))
+#'
+#' # Fit the Poisson mixture model
+#' fit <- glmMixBayes(
+#'   X = X, y = y, family = "poisson",
+#'   control = list(iterations = 100, burnin.iterations = 50, seed = 605)
+#' )
+#'
+#' # Create a new design matrix for prediction
+#' X_new <- matrix(c(1, 1,   # Intercepts
+#'                   0, 1.5), # x1 values
+#'                 ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+#'
+#' # Predict expected counts (type = "response") with 95% credible intervals
+#' preds <- predict(fit, newx = X_new, type = "response", interval = "credible")
+#' print(preds)
+#' }
 #'
 #' @return If \code{se.fit = FALSE} and \code{interval = "none"}, a numeric vector of predicted values.
 #'   Otherwise, a matrix with columns for the fit, (optional) \code{se.fit}, and (optional)
@@ -283,6 +393,39 @@ predict.glmMixBayes <- function(object, newx,
 #' @param quietly If \code{TRUE}, suppress errors from individual failed fits and skip them.
 #' @param ... Additional arguments passed through (currently unused).
 #' @return An object of class \code{c("mi_link_pool_glm", "mi_link_pool")}.
+#'
+#' @examples
+#' \donttest{
+#' # 1. Simulate data linked with errors
+#' set.seed(606)
+#' n <- 100
+#' linked_data <- data.frame(
+#'   x1 = rnorm(n),
+#'   y = rnorm(n)
+#' )
+#' X <- model.matrix(~ x1, data = linked_data)
+#'
+#' # 2. Fit the GLM mixture model
+#' fit <- glmMixBayes(
+#'   X = X, y = linked_data$y, family = "gaussian",
+#'   control = list(iterations = 150, burnin.iterations = 50, seed = 606)
+#' )
+#'
+#' # 3. Multiple Imputation Pooling
+#' # For each MCMC draw, the model extracts the latent correct-match indicators,
+#' # fits the specified GLM on the subset of "correct" matches, and pools the
+#' # results using Rubin's rules.
+#' pooled_fit <- mi_with(
+#'   object = fit,
+#'   data = linked_data,
+#'   formula = y ~ x1,
+#'   family = gaussian()
+#' )
+#'
+#' # 4. View pooled results
+#' print(pooled_fit)
+#' }
+#'
 #' @export
 #' @importFrom stats coef vcov cov lm glm qt model.frame model.matrix gaussian poisson binomial Gamma
 mi_with.glmMixBayes <- function(object, data, formula,
@@ -424,6 +567,33 @@ mi_with.glmMixBayes <- function(object, data, formula,
 #' @param digits the number of significant digits to print.
 #' @param ... further arguments (unused).
 #' @return The input \code{x}, invisibly.
+#'
+#' @examples
+#' \donttest{
+#' # Simulate data
+#' set.seed(607)
+#' n <- 100
+#' linked_data <- data.frame(x1 = rnorm(n), y = rnorm(n))
+#' X <- model.matrix(~ x1, data = linked_data)
+#'
+#' # Fit the mixture model
+#' fit <- glmMixBayes(
+#'   X = X, y = linked_data$y, family = "gaussian",
+#'   control = list(iterations = 150, burnin.iterations = 50, seed = 607)
+#' )
+#'
+#' # Perform multiple imputation pooling
+#' pooled_fit <- mi_with(
+#'   object = fit,
+#'   data = linked_data,
+#'   formula = y ~ x1,
+#'   family = gaussian()
+#' )
+#'
+#' # Explicitly test the print method
+#' print(pooled_fit, digits = 4)
+#' }
+#'
 #' @export
 print.mi_link_pool_glm <- function(x, digits = max(3L, getOption("digits") - 2L), ...) {
   cat("Multiple Imputation (from allocation draws):\n")

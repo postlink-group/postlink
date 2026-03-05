@@ -1,20 +1,20 @@
-#' Constructor for Secondary Analysis of Linked Data Assuming Exchangeable
-#' Linkage Errors
+#' Secondary Analysis Constructor Assuming ELE
 #'
 #' Specifies the linked data and information on the underlying record linkage
 #' process for regression of linked data assuming exchangeable linkage errors
-#' as developed by Chambers (2009) and Vo et al. (2024). These approaches
+#' (ELE) as developed by Chambers (2009) and Vo et al. (2024). These approaches
 #' correct for bias from mismatch error via weighting matrices estimated using
 #' known mismatch rates or clerical reviews (audit samples).
 #'
-#' @param linked.data A data.frame containing the linked dataset.
-#' @param m.rate Numeric vector; known probability of mismatch for each record
-#' or block. Values must be between 0 and 1. Can be a single global rate,
+#' @param linked.data A data.frame containing the data after record linkage.
+#' @param m.rate Numeric vector; known or estimated probability of mismatch for
+#' each record or block. Values must be between 0 and 1. Can be a single global rate,
 #' a vector of length equal to the number of unique blocks, or a vector of
 #' length equal to the number of rows in \code{linked.data}.
-#' @param audit.size Numeric vector; sample sizes for the clerical review audit
-#' (optional). Used for variance estimation. If provided, must align with
-#' \code{blocks} similar to \code{m.rate}. Defaults to \code{NULL}.
+#' @param audit.size Numeric vector; If the m.rate is estimated, provide sample
+#' sizes for the clerical review audit. Used for variance estimation.
+#' If provided, must align with \code{blocks} similar to \code{m.rate}.
+#' Defaults to \code{NULL} (assume m.rate is known).
 #' @param blocks A vector or an unquoted variable name found in \code{linked.data}
 #' identifying the blocking structure used during linkage. If \code{NULL} (default),
 #' all records are assumed to belong to a single block.
@@ -36,7 +36,6 @@
 #' the necessary data for downstream model fitting.
 #'
 #' @examples
-#' # Example: Using the included brfss demonstration dataset
 #' data(brfss, package = "postlink")
 #'
 #' adj_object <- adjELE(linked.data = brfss,
@@ -44,8 +43,9 @@
 #'                     blocks = imonth,
 #'                     weight.matrix = "BLUE")
 #'
-#' @note
-#' The references below discuss the implemented framework in more detail.
+#' @seealso
+#' * [plglm()] for generalized linear regression modeling
+#' * [plcoxph()] for Cox proportional hazards regression modeling
 #'
 #' @references
 #' Chambers, R. (2009). Regression analysis of probability-linked data.

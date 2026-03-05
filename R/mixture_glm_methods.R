@@ -10,6 +10,30 @@
 #' @return A matrix of the estimated covariances between the parameter estimates.
 #' Row and column names correspond to the parameter names (coefficients, dispersion, etc.).
 #'
+#' @examples
+#' # Load the LIFE-M demo dataset
+#' data(lifem)
+#'
+#' # Phase 1: Adjustment Specification
+#' # We model the correct match indicator via logistic regression using
+#' # name commonness scores (commf, comml) and a 5% expected mismatch rate.
+#' adj_object <- adjMixture(
+#'  linked.data = lifem,
+#'  m.formula = ~ commf + comml,
+#'  m.rate = 0.05,
+#'  safe.matches = hndlnk
+#' )
+#'
+#' # Phase 2: Estimation & Inference
+#' # Fit a Gaussian regression model utilizing a cubic polynomial for year of birth.
+#' fit <- plglm(
+#'  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+#'  family = "gaussian",
+#'  adjustment = adj_object
+#' )
+#'
+#' vcov(fit)
+#'
 #' @export
 vcov.glmMixture <- function(object, ...) {
  return(object$var)
@@ -32,6 +56,31 @@ vcov.glmMixture <- function(object, ...) {
 #' For Binomial and Poisson families, a standard normal distribution is used.
 #'
 #' @return A matrix (or vector) with columns giving lower and upper confidence limits for each parameter.
+#'
+#' @examples
+#' # Load the LIFE-M demo dataset
+#' data(lifem)
+#'
+#' # Phase 1: Adjustment Specification
+#' # We model the correct match indicator via logistic regression using
+#' # name commonness scores (commf, comml) and a 5% expected mismatch rate.
+#' adj_object <- adjMixture(
+#'  linked.data = lifem,
+#'  m.formula = ~ commf + comml,
+#'  m.rate = 0.05,
+#'  safe.matches = hndlnk
+#' )
+#'
+#' # Phase 2: Estimation & Inference
+#' # Fit a Gaussian regression model utilizing a cubic polynomial for year of birth.
+#' fit <- plglm(
+#'  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+#'  family = "gaussian",
+#'  adjustment = adj_object
+#' )
+#'
+#' confint(fit)
+#'
 #' @export
 confint.glmMixture <- function(object, parm, level = 0.95, ...) {
  cf <- c(object$coefficients, object$m.coefficients)
@@ -111,9 +160,7 @@ confint.glmMixture <- function(object, parm, level = 0.95, ...) {
 #' @details
 #' If \code{newdata} is omitted, the predictions are based on the data used for the fit.
 #' In that case, \code{type = "link"} corresponds to \code{object$linear.predictors} and
-#' \code{type = "response"} corresponds to \code{object$fitted.values}.
-#'
-#' If \code{newdata} is supplied, the function manually constructs the design matrix
+#' \code{type = "response"} corresponds to \code{object$fitted.values}. If \code{newdata} is supplied, the function manually constructs the design matrix
 #' from the terms object stored in the model. Standard errors are computed using the
 #' sandwich covariance matrix (\code{object$var}).
 #'
@@ -122,6 +169,29 @@ confint.glmMixture <- function(object, parm, level = 0.95, ...) {
 #' \item{fit}{Predictions.}
 #' \item{se.fit}{Estimated standard errors.}
 #' \item{residual.scale}{A scalar giving the square root of the dispersion used in computing the standard errors.}
+#' @examples
+#' # Load the LIFE-M demo dataset
+#' data(lifem)
+#'
+#' # Phase 1: Adjustment Specification
+#' # We model the correct match indicator via logistic regression using
+#' # name commonness scores (commf, comml) and a 5% expected mismatch rate.
+#' adj_object <- adjMixture(
+#'  linked.data = lifem,
+#'  m.formula = ~ commf + comml,
+#'  m.rate = 0.05,
+#'  safe.matches = hndlnk
+#' )
+#'
+#' # Phase 2: Estimation & Inference
+#' # Fit a Gaussian regression model utilizing a cubic polynomial for year of birth.
+#' fit <- plglm(
+#'  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+#'  family = "gaussian",
+#'  adjustment = adj_object
+#' )
+#'
+#' predict(fit)
 #'
 #' @export
 predict.glmMixture <- function(object, newdata = NULL,
@@ -213,6 +283,30 @@ predict.glmMixture <- function(object, newdata = NULL,
 #' @param x An object of class \code{glmMixture}.
 #' @param digits The number of significant digits to use.
 #' @param ... Additional arguments.
+#' @examples
+#' # Load the LIFE-M demo dataset
+#' data(lifem)
+#'
+#' # Phase 1: Adjustment Specification
+#' # We model the correct match indicator via logistic regression using
+#' # name commonness scores (commf, comml) and a 5% expected mismatch rate.
+#' adj_object <- adjMixture(
+#'  linked.data = lifem,
+#'  m.formula = ~ commf + comml,
+#'  m.rate = 0.05,
+#'  safe.matches = hndlnk
+#' )
+#'
+#' # Phase 2: Estimation & Inference
+#' # Fit a Gaussian regression model utilizing a cubic polynomial for year of birth.
+#' fit <- plglm(
+#'  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+#'  family = "gaussian",
+#'  adjustment = adj_object
+#' )
+#'
+#' print(fit)
+#'
 #' @export
 print.glmMixture <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
  cat("\nCall:  ", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n\n", sep = "")
@@ -255,6 +349,29 @@ print.glmMixture <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 #' \item{dispersion}{Estimated dispersion parameter.}
 #' \item{cov.unscaled}{The estimated covariance matrix.}
 #' \item{match.prob}{The posterior match probabilities.}
+#' @examples
+#' # Load the LIFE-M demo dataset
+#' data(lifem)
+#'
+#' # Phase 1: Adjustment Specification
+#' # We model the correct match indicator via logistic regression using
+#' # name commonness scores (commf, comml) and a 5% expected mismatch rate.
+#' adj_object <- adjMixture(
+#'  linked.data = lifem,
+#'  m.formula = ~ commf + comml,
+#'  m.rate = 0.05,
+#'  safe.matches = hndlnk
+#' )
+#'
+#' # Phase 2: Estimation & Inference
+#' # Fit a Gaussian regression model utilizing a cubic polynomial for year of birth.
+#' fit <- plglm(
+#'  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+#'  family = "gaussian",
+#'  adjustment = adj_object
+#' )
+#'
+#' summary(fit)
 #'
 #' @export
 summary.glmMixture <- function(object, dispersion = NULL, ...) {
@@ -339,6 +456,7 @@ summary.glmMixture <- function(object, dispersion = NULL, ...) {
  return(res)
 }
 
+#' @noRd
 #' @export
 print.summary.glmMixture <- function(x, digits = max(3L, getOption("digits") - 3L),
                                      signif.stars = getOption("show.signif.stars"), ...) {

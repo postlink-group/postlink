@@ -24,7 +24,7 @@
 #' @param ... Additional arguments passed to the underlying fitting function.
 #'
 #' @return An object representing the fitted model. The exact class depends on the
-#'   class of the \code{adjustment} object and the specific internal engine invoked
+#'   class of the \code{adjustment} object and the specific internal function invoked
 #'   (e.g., \code{fitglm}). The object includes the component \code{call} and,
 #'   optionally, \code{model}, \code{x}, and \code{y}.
 #'
@@ -40,17 +40,26 @@
 #' response vector to the appropriate \code{fitglm} method.
 #'
 #' @examples
-#' \dontrun{
-#' # Method 1: Using a constructor (Recommended)
-#' adj_obj <- adjELE(linked.data = my_data, m.rate = 0.1)
-#' fit1 <- plglm(y ~ x1 + x2, family = binomial, adjustment = adj_obj)
+#' # Load the LIFE-M demo dataset
+#' data(lifem)
 #'
-#' # Method 2: Manual list specification
-#' # Note: You must ensure the list structure matches what the internal engine expects
-#' adj_list <- list(data = my_data, m.rate = 0.1)
-#' class(adj_list) <- "adjELE" # Manually assign class for S3 dispatch
-#' fit2 <- plglm(y ~ x1 + x2, family = binomial, adjustment = adj_list)
-#' }
+#' # Phase 1: Adjustment Specification
+#' # We model the correct match indicator via logistic regression using
+#' # name commonness scores (commf, comml) and a 5% expected mismatch rate.
+#' adj_object <- adjMixture(
+#'  linked.data = lifem,
+#'  m.formula = ~ commf + comml,
+#'  m.rate = 0.05,
+#'  safe.matches = hndlnk
+#' )
+#'
+#' # Phase 2: Estimation & Inference
+#' # Fit a Gaussian regression model utilizing a cubic polynomial for year of birth.
+#' fit <- plglm(
+#'  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+#'  family = "gaussian",
+#'  adjustment = adj_object
+#' )
 #'
 #' @seealso \code{\link{adjELE}}, \code{\link{adjMixture}}, \code{\link{adjMixBayes}}
 #' @export
@@ -114,7 +123,7 @@ plglm <- function(formula,
  X_mat <- stats::model.matrix(mt, mf)
  Y_vec <- stats::model.response(mf, "any")
 
- # Dispatch to Internal Engine
+ # Dispatch to Internal Function
  fit <- fitglm(x = X_mat,
                y = Y_vec,
                family = family,
@@ -129,7 +138,7 @@ plglm <- function(formula,
  if (y) fit$y <- Y_vec
 
  # class hierarchy
- # 1. Engine Class (e.g., "glmMixture") - preserved from fitglm
+ # 1. Function Class (e.g., "glmMixture") - preserved from fitglm
  # 2. Package Class ("plglm") - added here
  # 3. Standard Classes ("glm", "lm") - added here for compatibility
  class(fit) <- c(class(fit), "plglm", "glm", "lm")

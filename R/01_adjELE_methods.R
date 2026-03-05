@@ -17,7 +17,6 @@
 #' It safely handles cases where the reference data is missing or empty.
 #'
 #' @examples
-#' # Example: Using the included brfss demonstration dataset
 #' data(brfss, package = "postlink")
 #'
 #' adj_object <- adjELE(linked.data = brfss,
@@ -49,7 +48,6 @@ print.adjELE <- function(x, digits = 3, ...) {
  cat("\n* Linked Data:")
  if (has_data) {
   cat("\n    Observations:  ", format(n_obs, big.mark = ","))
-  cat("\n    Storage:        Reference (Environment)\n")
  } else {
   cat("\n    Status:         Not available / Empty\n")
  }

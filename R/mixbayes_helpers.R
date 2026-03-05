@@ -249,7 +249,7 @@ process_variable <- function(value, key) {
 
 
 generate_stan <- function(components, priors = list()) {
-  
+
   # helper defs from priors_helpers.R
   defs <- get_stan_definitions(priors)
   function_definitions <- defs$function_defs
@@ -311,7 +311,7 @@ generate_stan <- function(components, priors = list()) {
     )
 
     return(stan_code)
-  
+
  } else if (identical(components, c("poisson", "poisson"))) {
   # Poisson-Poisson mixture code
     stan_code <- paste(
@@ -370,7 +370,7 @@ generate_stan <- function(components, priors = list()) {
       sep = "\n"
     )
     return(stan_code)
-  
+
   } else if (identical(components, c("gamma","gamma"))) {
     stan_code <- paste(
       "functions {",
@@ -485,8 +485,83 @@ generate_stan <- function(components, priors = list()) {
       sep = "\n"
     )
     return(stan_code)
-    
+
   } else {
     stop("Invalid mixture inputs. Must be: gaussian, poisson, gamma, or binomial")
   }
+}
+
+################################################################################
+# New Functions for Pre-Compiled STAN Pipeline
+################################################################################
+
+# Regex parser to safely extract numbers from strings (e.g., "normal(0, 5)")
+parse_prior_string <- function(prior_str) {
+ prior_str <- trimws(prior_str)
+
+ pattern <- "^([a-zA-Z0-9_]+)\\s*\\(([^)]*)\\)$"
+ if (!grepl(pattern, prior_str)) {
+  stop(sprintf("Prior string '%s' must be in format 'dist(arg1, arg2)'.", prior_str), call. = FALSE)
+ }
+
+ match <- regexec(pattern, prior_str)
+ parts <- regmatches(prior_str, match)[[1]]
+
+ args_str <- parts[3]
+ args_num <- suppressWarnings(as.numeric(strsplit(args_str, ",")[[1]]))
+
+ if (anyNA(args_num)) {
+  stop(sprintf("Could not parse numeric arguments from '%s'.", prior_str), call. = FALSE)
+ }
+
+ list(dist = parts[2], args = args_num)
+}
+
+# Extracts arguments from priors list and builds a flat list for Stan data block
+prepare_stan_priors <- function(priors, family, model_type) {
+ priors <- fill_defaults(priors, family, model_type)
+
+ get_args <- function(key, expected_len = 2) {
+  if (is.null(priors[[key]])) stop(sprintf("Missing prior for '%s'", key), call. = FALSE)
+  parsed <- parse_prior_string(priors[[key]])
+
+  # Handle single-parameter exponential (converts to gamma shape=1, rate=param)
+  if (parsed$dist == "exponential" && expected_len == 2 && length(parsed$args) == 1) {
+   return(c(1.0, parsed$args[1]))
+  }
+
+  if (length(parsed$args) != expected_len) {
+   stop(sprintf("Prior for '%s' expected %d arguments.", key, expected_len), call. = FALSE)
+  }
+  return(parsed$args)
+ }
+
+ # Core parameters for all models
+ out <- list(
+  prior_beta1_mu = get_args("beta1")[1], prior_beta1_sd = get_args("beta1")[2],
+  prior_beta2_mu = get_args("beta2")[1], prior_beta2_sd = get_args("beta2")[2],
+  prior_theta_alpha = get_args("theta")[1], prior_theta_beta = get_args("theta")[2]
+ )
+
+ if (model_type == "glm") {
+  if (family == "gaussian") {
+   out$prior_sigma1_loc <- get_args("sigma1")[1]; out$prior_sigma1_scale <- get_args("sigma1")[2]
+   out$prior_sigma2_loc <- get_args("sigma2")[1]; out$prior_sigma2_scale <- get_args("sigma2")[2]
+  } else if (family == "gamma") {
+   out$prior_phi1_alpha <- get_args("phi1")[1]; out$prior_phi1_beta <- get_args("phi1")[2]
+   out$prior_phi2_alpha <- get_args("phi2")[1]; out$prior_phi2_beta <- get_args("phi2")[2]
+  }
+ } else if (model_type == "survival") {
+  if (family == "gamma") {
+   out$prior_phi1_alpha <- get_args("phi1")[1]; out$prior_phi1_beta <- get_args("phi1")[2]
+   out$prior_phi2_alpha <- get_args("phi2")[1]; out$prior_phi2_beta <- get_args("phi2")[2]
+  } else if (family == "weibull") {
+   out$prior_shape1_alpha <- get_args("shape1")[1]; out$prior_shape1_beta <- get_args("shape1")[2]
+   out$prior_shape2_alpha <- get_args("shape2")[1]; out$prior_shape2_beta <- get_args("shape2")[2]
+   out$prior_scale1_alpha <- get_args("scale1")[1]; out$prior_scale1_beta <- get_args("scale1")[2]
+   out$prior_scale2_alpha <- get_args("scale2")[1]; out$prior_scale2_beta <- get_args("scale2")[2]
+  }
+ }
+
+ return(out)
 }

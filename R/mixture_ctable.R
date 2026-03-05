@@ -1,4 +1,4 @@
-#' Contingency Table Analysis with Mixture-Based Linkage Error Adjustment
+#' Contingency Table Analysis with Mixture-Based Adjustment
 #'
 #' @description
 #' Estimates the cell probabilities of a two-way contingency table in the presence
@@ -55,7 +55,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' # 1. Generate Synthetic Data
+#' # Generate Synthetic Data
 #' set.seed(1234)
 #' K <- 3; L <- 4
 #' n <- 1000
@@ -70,7 +70,7 @@
 #' X <- ceiling(obs_idx / L) # Row indices
 #' Y <- (obs_idx %% L); Y[Y == 0] <- L # Col indices
 #'
-#' # 2. Introduce Linkage Error (Mismatches)
+#' # Introduce Linkage Error (Mismatches)
 #' alpha <- 0.20 # 20% mismatch rate
 #' n_mismatch <- round(n * alpha)
 #' Y_perm <- Y
@@ -80,7 +80,7 @@
 #' # Create Observed Table (with error)
 #' tab_obs <- table(X, Y_perm)
 #'
-#' # 3. Apply Correction Method
+#' # Apply Adjustment Method
 #' fit <- ctableMixture(tab = tab_obs, m.rate = alpha)
 #'
 #' # Inspect Results
