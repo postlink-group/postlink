@@ -72,7 +72,7 @@ confint(fit)
 #> coef poly(unit_yob, 3, raw = TRUE)1  -79.426563  -8.093938
 #> coef poly(unit_yob, 3, raw = TRUE)2   25.388787 204.419170
 #> coef poly(unit_yob, 3, raw = TRUE)3 -116.979978   2.696778
-#> dispersion                           285.021138 461.202280
+#> dispersion                           285.021138 461.202279
 #> m.coef (Intercept)                   -12.407800  -2.715452
 #> m.coef commf                           2.336753  11.125784
 #> m.coef comml                           2.751873  15.196314
