@@ -71,9 +71,9 @@ fit <- glmMixBayes(
 #> Chain 1: Iteration: 140 / 150 [ 93%]  (Sampling)
 #> Chain 1: Iteration: 150 / 150 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.12 seconds (Warm-up)
-#> Chain 1:                0.101 seconds (Sampling)
-#> Chain 1:                0.221 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.14 seconds (Warm-up)
+#> Chain 1:                0.118 seconds (Sampling)
+#> Chain 1:                0.258 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -89,7 +89,7 @@ fit <- glmMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.084                Converged (3 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.115                Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
