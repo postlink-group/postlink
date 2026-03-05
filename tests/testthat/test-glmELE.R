@@ -44,8 +44,6 @@ generate_ele_glm_data <- function(n = 200, m_rate = 0.1, family = "gaussian") {
  ))
 }
 
-context("GLM with Exchangeable Linkage Errors (glmELE)")
-
 test_that("glmELE engine fits all weighting methods for Gaussian", {
  dat <- generate_ele_glm_data(n = 300, m_rate = 0.15, family = "gaussian")
 

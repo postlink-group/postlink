@@ -49,8 +49,6 @@ generate_ele_cox_data <- function(n = 200, m_rate = 0.15, num_blocks = 1) {
  return(list(data = dat, true_beta = true_beta))
 }
 
-context("CoxPH with Exchangeable Linkage Errors (coxphELE)")
-
 test_that("coxphELE engine runs and produces valid output", {
  sim <- generate_ele_cox_data(n = 300, m_rate = 0.1)
 

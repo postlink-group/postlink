@@ -88,8 +88,10 @@ test_that("Gaussian Regression (Identity Link) runs and converges", {
 test_that("Binomial Regression (Logit Link) runs and converges", {
  dat <- generate_mixture_data(family_type = "binomial", alpha = 0.05)
 
- fit <- glmMixture(x = dat$X, y = dat$y, z = dat$Z, family = "binomial",
-                   control = list(max.iter = 1000))
+ fit <- suppressWarnings(
+  glmMixture(x = dat$X, y = dat$y, z = dat$Z, family = "binomial",
+             control = list(max.iter = 1000))
+ )
 
  expect_true(fit$converged)
  expect_equal(length(fit$coefficients), 3)
@@ -148,9 +150,11 @@ test_that("Poisson Regression with Identity Link works", {
 test_that("Binomial Regression with Probit Link works", {
  dat <- generate_mixture_data(family_type = "binomial", link = "probit", alpha = 0.05)
 
- fit <- glmMixture(x = dat$X, y = dat$y, z = dat$Z,
-                   family = binomial(link = "probit"),
-                   control = list(max.iter = 1000, tol = 1e-3, init.beta = dat$true_beta))
+ fit <- suppressWarnings(
+  glmMixture(x = dat$X, y = dat$y, z = dat$Z,
+             family = binomial(link = "probit"),
+             control = list(max.iter = 1000, tol = 1e-3, init.beta = dat$true_beta))
+ )
 
  expect_true(fit$converged)
  expect_equal(as.vector(fit$coefficients), dat$true_beta, tolerance = 0.5)
