@@ -15,15 +15,33 @@ Authors@R:
     person("Emanuel", "Ben-David", role = "ctb"),
     person("Guoqing", "Diao", role = "ctb")
     )
-Maintainer: Priyanjali Bukke <postlink.group@gmail.com>
-Imports: stats, survival, rstan, nleqslv, label.switching
-Description: Provides dedicated statistical tools for post-linkage data analysis (PLDA) to account for record linkage errors, particularly in secondary analyses where linkage and downstream modeling are conducted separately. The package implements a cohesive, formula-based regression modeling interface that adjusts for falsely linked records without requiring direct access to the primary, unlinked files. It consolidates multiple adjustment methodologies into a unified framework, including bias-adjusted estimating equations for generalized linear models (linear, logistic, Poisson, and Gamma) and Cox proportional hazards models. Furthermore, it incorporates a mixture model approach also supporting contingency table analyses, alongside Bayesian mixture approaches that enable parameter estimation and multiple imputation of latent match status.
+Imports: 
+    stats,
+    survival,
+    label.switching,
+    methods,
+    nleqslv,
+    Rcpp (>= 0.12.0),
+    RcppParallel (>= 5.0.1),
+    rstan (>= 2.18.1),
+    rstantools (>= 2.5.0)
+Suggests: 
+    testthat (>= 3.0.0)
+Description: Provides a suite of statistical tools for post-linkage data analysis (PLDA), designed to account for record linkage errors in downstream modeling. The package implements a familiar, formula-based regression interface that adjusts for linkage uncertainty, accommodating workflows where direct access to unlinked primary files is restricted. It consolidates diverse adjustment methodologies, all of which support generalized linear models (linear, logistic, Poisson, and Gamma). For time-to-event data, both the weighting and mixture modeling approaches accommodate Cox proportional hazards models, while the Bayesian approaches extend to parametric survival analysis. Additionally, the framework leverages mixture models for contingency table analyses and utilizes Bayesian methods to enable the multiple imputation of latent match status.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-Suggests: 
-    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 BugReports: https://github.com/postlink-group/postlink/issues
+Biarch: true
+LinkingTo: 
+    BH (>= 1.66.0),
+    Rcpp (>= 0.12.0),
+    RcppEigen (>= 0.3.3.3.0),
+    RcppParallel (>= 5.0.1),
+    rstan (>= 2.18.1),
+    StanHeaders (>= 2.18.0)
+SystemRequirements: GNU make
+URL: https://postlink-group.github.io/postlink/
