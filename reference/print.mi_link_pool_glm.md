@@ -71,9 +71,9 @@ fit <- glmMixBayes(
 #> Chain 1: Iteration: 140 / 150 [ 93%]  (Sampling)
 #> Chain 1: Iteration: 150 / 150 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.139 seconds (Warm-up)
-#> Chain 1:                0.116 seconds (Sampling)
-#> Chain 1:                0.255 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.141 seconds (Warm-up)
+#> Chain 1:                0.117 seconds (Sampling)
+#> Chain 1:                0.258 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
