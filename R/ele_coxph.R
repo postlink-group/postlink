@@ -90,7 +90,7 @@ coxphELE <- function(x, y, cens,
   x_star_sorted <- x_sorted * term_inv_a - x_bar_obs * term_diff
 
   # Define Estimating Equation Function
-  est_eq <- function(beta) {
+  est_eq <- function(beta, ...) {
     lp <- as.vector(x_sorted %*% beta)
     exp_lp <- exp(lp)
 
@@ -114,8 +114,14 @@ coxphELE <- function(x, y, cens,
     return(colMeans(resid))
   }
 
+  # Identify solver-specific arguments from ...
+  solver_args <- list(...)
+  # Remove 'data' if it accidentally leaked in from plcoxph
+  solver_args$data <- NULL
+
   # Solve Estimating Equation
-  sol <- nleqslv::nleqslv(init.beta, est_eq, jacobian = TRUE, ...)
+  sol <- do.call(nleqslv::nleqslv,
+                 c(list(x = init.beta, fn = est_eq, jacobian = TRUE), solver_args))
   coef_est <- sol$x
   J <- sol$jac
   if (sol$termcd > 2) warning("nleqslv algorithm may not have fully converged.")
