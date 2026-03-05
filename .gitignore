@@ -3,3 +3,11 @@
 .RData
 .Ruserdata
 docs
+
+# Ignore compiled object files and binaries
+*.o
+*.so
+*.dll
+src/*.o
+src/*.so
+src/*.dll
