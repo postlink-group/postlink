@@ -183,6 +183,7 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
 #'   corresponding scalar parameters.
 #'
 #' @examples
+#' \donttest{
 #' # Simulate simple Weibull survival data
 #' set.seed(403)
 #' n <- 100

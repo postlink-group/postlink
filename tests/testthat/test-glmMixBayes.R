@@ -124,10 +124,19 @@ test_that("glmMixBayes runs real MCMC and returns a valid object", {
  X <- dat$X
  y <- dat$y
 
+ custom_priors <- list(
+  beta1 = "normal(0,3)",
+  beta2 = "normal(0,4)",
+  sigma1 = "cauchy(0,1.5)",
+  sigma2 = "cauchy(0,2)",
+  theta = "beta(2,2)"
+ )
+
  fit <- glmMixBayes(
   X = X,
   y = y,
   family = "gaussian",
+  priors = custom_priors,
   control = list(
    iterations = 2000,
    burnin.iterations = 1000,
@@ -159,3 +168,6 @@ test_that("glmMixBayes runs real MCMC and returns a valid object", {
  expect_true("dispersion" %in% names(fit$estimates))
  expect_true("m.dispersion" %in% names(fit$estimates))
 })
+
+
+
