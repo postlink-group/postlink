@@ -87,8 +87,8 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Gradient evaluation took 6.4e-05 seconds</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.64 seconds.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Gradient evaluation took 5.8e-05 seconds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.58 seconds.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Adjust your expectations accordingly!</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
@@ -113,9 +113,9 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 90 / 100 [ 90%]  (Sampling)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 100 / 100 [100%]  (Sampling)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:  Elapsed Time: 0.058 seconds (Warm-up)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                0.062 seconds (Sampling)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                0.12 seconds (Total)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:  Elapsed Time: 0.038 seconds (Warm-up)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                0.041 seconds (Sampling)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                0.079 seconds (Total)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>The largest R-hat is NA, indicating chains have not mixed.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> Running the chains for more iterations may help. See</span>
@@ -130,7 +130,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ......................................................................................</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     . Method                         Time (sec)           Status                         . </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ......................................................................................</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     . ECR-ITERATIVE-1                0.096                Converged (4 iterations)       . </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     . ECR-ITERATIVE-1                0.076                Converged (4 iterations)       . </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ......................................................................................</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!</span>
@@ -152,33 +152,33 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Family: weibull </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (component 1) (quantiles):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (component 1 = correct-match) (quantiles):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         2.5%    50%  97.5%</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  0.8265 1.0880 1.4977</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -0.3615 0.0267 0.5531</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (component 2) (quantiles):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients (component 2 = non-match) (quantiles):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         2.5%    50%  97.5%</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  0.0463 0.9834 1.5892</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -0.5977 0.4045 1.0848</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Theta (mix weight for component 1):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Theta (mix weight for component 1 = correct-match):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   2.5%    50%  97.5% </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 0.5240 0.7437 0.9064 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Shape (component 1) (quantiles):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Shape (component 1 = correct-match) (quantiles):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        2.5%    50%  97.5%</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 1.1509 1.4914 2.0428</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Shape (component 2) (quantiles):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Shape (component 2 = non-match) (quantiles):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        2.5%    50%  97.5%</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.9844 1.6636 5.1042</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Scale (component 1) (quantiles):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Scale (component 1 = correct-match) (quantiles):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       2.5%    50%  97.5%</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.889 1.2273 1.6315</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Scale (component 2) (quantiles):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Scale (component 2 = non-match) (quantiles):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        2.5%    50%  97.5%</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.5543 1.1801 3.0561</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>

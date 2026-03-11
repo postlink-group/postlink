@@ -45,8 +45,8 @@ fit <- glmMixBayes(
 #> 
 #> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 4.3e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.43 seconds.
+#> Chain 1: Gradient evaluation took 5.4e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.54 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -71,9 +71,9 @@ fit <- glmMixBayes(
 #> Chain 1: Iteration: 140 / 150 [ 93%]  (Sampling)
 #> Chain 1: Iteration: 150 / 150 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.142 seconds (Warm-up)
-#> Chain 1:                0.118 seconds (Sampling)
-#> Chain 1:                0.26 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.122 seconds (Warm-up)
+#> Chain 1:                0.111 seconds (Sampling)
+#> Chain 1:                0.233 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -89,7 +89,7 @@ fit <- glmMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.117                Converged (3 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.091                Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -110,7 +110,7 @@ pooled_fit <- mi_with(
 
 # Explicitly test the print method
 print(pooled_fit, digits = 4)
-#> Multiple Imputation (from allocation draws):
+#> Pooled regression results across posterior match classifications:
 #>   Retained imputations (m): 100 
 #> 
 #>             Estimate Std.Error  CI.lwr CI.upr       df
