@@ -1,13 +1,12 @@
-#' Bayesian Two-Component Mixture GLM (with label-switching adjustment)
+#' Bayesian two-component mixture generalized linear model
 #'
-#' Fit a two-component Bayesian mixture generalized linear model (GLM) in Stan
-#' with families \code{"gaussian"}, \code{"poisson"}, \code{"binomial"}, or \code{"gamma"}.
-#' This implementation function assumes upstream wrappers have already handled the
-#' formula/data interface and produced a design matrix \code{X} and response \code{y}.
+#' Fits a Bayesian two-component mixture generalized linear model (GLM)
+#' using Stan. Each observation is assumed to arise from one of two latent
+#' components with component-specific regression coefficients.
 #'
-#' The function builds Stan code, compiles, samples, and then applies a
-#' label-switching correction (global majority swap + ECR-ITERATIVE-1) to align
-#' component labels across MCMC draws.
+#' The function supports Gaussian, Poisson, Binomial, and Gamma outcome
+#' families and returns posterior samples of the component-specific
+#' regression parameters and mixture weight.
 #'
 #' @param X A numeric design matrix (N x K), typically from \code{model.matrix()}
 #'   upstream. Missing values are not allowed.
@@ -21,34 +20,77 @@
 #'   hyperparameters and passed to the model's data block. Any missing entries are
 #'   automatically filled with symmetric defaults via
 #'   \code{fill_defaults(priors, p_family = family, model_type = "glm")}.
-#' @param control A named \code{list} of tuning parameters with defaults:
+#' @param control A named \code{list} of MCMC tuning parameters.
+#'   Supported elements include:
 #'   \itemize{
-#'     \item \code{iterations} (default \code{1e4}) total iterations per chain;
-#'     \item \code{burnin.iterations} (default \code{1e3}) warm-up iterations;
-#'     \item \code{seed} (default random integer);
-#'     \item \code{cores} (default \code{getOption("mc.cores", 1L)}).
+#'     \item \code{iterations}: total number of MCMC iterations per chain
+#'       (default \code{1e4});
+#'     \item \code{burnin.iterations}: number of warm-up iterations
+#'       (default \code{1e3});
+#'     \item \code{seed}: random seed used for reproducibility;
+#'     \item \code{cores}: number of CPU cores used for sampling
+#'       (default \code{getOption("mc.cores", 1L)}).
 #'   }
-#'   Values in \code{...} override \code{control}.
-#' @param ... Optional overrides for elements in \code{control}, e.g.
-#'   \code{iterations = 4000}, \code{burnin.iterations = 1000}, \code{seed = 123},
-#'   \code{cores = 2}.
+#'   Values supplied through \code{...} override entries in \code{control}.
+#' @param ... Optional arguments that override elements of
+#'   \code{control}. For example,
+#'   \code{iterations = 4000}, \code{burnin.iterations = 1000},
+#'   \code{seed = 123}, or \code{cores = 2}.
 #'
 #' @return An object of class \code{"glmMixBayes"} containing (at least):
 #' \describe{
-#'   \item{\code{m_samples}}{Aligned \eqn{z} label matrix (S x N).}
-#'   \item{\code{estimates$coefficients}}{Component 1 coefficient draws (S x K).}
-#'   \item{\code{estimates$m.coefficients}}{Component 2 coefficient draws (S x K).}
-#'   \item{\code{estimates$dispersion}}{Component 1 dispersion (family-specific).}
-#'   \item{\code{estimates$m.dispersion}}{Component 2 dispersion (family-specific).}
-#'   \item{\code{family}}{The GLM family string.}
-#'   \item{\code{call}}{The matched call.}
+#'   \item{\code{m_samples}}{Posterior draws of aligned latent component
+#'   labels (matrix of size draws × N), where component 1 corresponds to the
+#'   correct-match component and component 2 to the incorrect-match component.}
+#'
+#'   \item{\code{estimates$coefficients}}{Posterior draws of regression
+#'   coefficients for the correct-match component (component 1; draws × K).}
+#'
+#'   \item{\code{estimates$m.coefficients}}{Posterior draws of regression
+#'   coefficients for the incorrect-match component (component 2; draws × K).}
+#'
+#'   \item{\code{estimates$dispersion}}{Posterior draws of the dispersion
+#'   parameter for the correct-match component (component 1; family-specific).}
+#'
+#'   \item{\code{estimates$m.dispersion}}{Posterior draws of the dispersion
+#'   parameter for the incorrect-match component (component 2; family-specific).}
+#'
+#'   \item{\code{family}}{The GLM family used in the model.}
+#'
+#'   \item{\code{call}}{The matched function call.}
 #' }
 #'
 #' @section Label switching:
-#' We first perform an optional global swap \eqn{(1 \leftrightarrow 2)} if label 2
-#' is more frequent overall, then align per-draw labels using
-#' \code{ECR-ITERATIVE-1} permutations. Component-specific parameters are permuted
-#' accordingly (e.g., \code{beta1}/\code{beta2}, and \code{sigma}/\code{phi}).
+#'
+#' Mixture models are invariant to permutations of component labels,
+#' which can lead to label switching in MCMC output. To ensure
+#' interpretable posterior summaries, this function applies a
+#' post-processing step that aligns component labels across
+#' posterior draws.
+#'
+#' First, an optional global swap of labels (1 ↔ 2) is performed
+#' if component 2 is more frequent overall. Then, labels are
+#' aligned across draws using the \code{ECR-ITERATIVE-1}
+#' relabeling algorithm.
+#'
+#' @references
+#' Gutman, R., Sammartino, C., Green, T., & Montague, B. (2016).
+#' Error adjustments for file linking methods using encrypted unique
+#' client identifier (eUCI) with application to recently released prisoners
+#' who are HIV+. \emph{Statistics in Medicine}, 35(1), 115--129.
+#' \doi{10.1002/sim.6586}
+#'
+#' Stephens, M. (2000).
+#' Dealing with label switching in mixture models.
+#' \emph{Journal of the Royal Statistical Society: Series B
+#' (Statistical Methodology)}, 62(4), 795--809.
+#' \doi{10.1111/1467-9868.00265}
+#'
+#' Papastamoulis, P. (2016).
+#' \emph{label.switching}: An R package for dealing with the label switching
+#' problem in MCMC outputs.
+#' \emph{Journal of Statistical Software}, 69(1), 1--24.
+#' \doi{10.18637/jss.v069.c01}
 #'
 #' @examples
 #' \donttest{

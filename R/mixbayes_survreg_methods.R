@@ -1,15 +1,28 @@
-# Methods for survMixBayes objects
-# S3 methods for the Bayesian two-component survival mixture model.
-
-#' Print a survMixBayes object
+#' Methods for Bayesian mixture survival regression fits
 #'
-#' Prints the model call and posterior mean regression coefficients for component 1.
+#' @description
+#' S3 methods for objects returned by \code{survregMixBayes()}, including
+#' printing, summarizing fitted models, computing credible intervals and
+#' posterior covariance matrices, generating predictions, and pooling results
+#' across posterior component classifications, where component 1 is interpreted
+#' as the correct-match component and component 2 as the non-match component.
+#'
+#' @name mixture_bayessurvreg_methods
+#' @keywords internal
+NULL
+
+#' Print a survMixBayes model object
+#'
+#' Prints the model call and posterior mean regression coefficients for the
+#' first mixture component of the fitted survival model. In this package,
+#' component 1 is interpreted as the correct-match component and component 2
+#' as the non-match component.
 #'
 #' @param x An object of class \code{survMixBayes}.
-#' @param digits Number of significant digits to print.
-#' @param ... Additional arguments (unused).
+#' @param digits Minimum number of significant digits to show.
+#' @param ... Further arguments (unused).
 #'
-#' @return The object \code{x} (invisibly).
+#' @return The input \code{x}, invisibly.
 #'
 #' @examples
 #' \donttest{
@@ -42,21 +55,31 @@ print.survMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ..
   }
   b <- x$estimates$coefficients
   if (is.matrix(b)) {
-    cat("Coefficients (posterior means, component 1):\n")
+    cat("Coefficients (posterior means, component 1 = correct-match):\n")
     print(round(colMeans(b), digits = digits))
   }
   invisible(x)
 }
 
-#' Summarize a survMixBayes object
+#' Summary method for survMixBayes models
 #'
-#' Computes posterior summaries for coefficients and key distribution parameters.
+#' Computes posterior summaries for the regression coefficients, mixing weight,
+#' and component-specific distribution parameters in a fitted
+#' \code{survMixBayes} model. Throughout, component 1 is interpreted as the
+#' correct-match component and component 2 as the non-match component.
 #'
 #' @param object An object of class \code{survMixBayes}.
-#' @param probs Numeric vector of quantile probabilities.
-#' @param ... Additional arguments (unused).
+#' @param probs Numeric vector of probabilities used to compute posterior
+#'   quantiles for the model parameters. The default,
+#'   \code{c(0.025, 0.5, 0.975)}, gives a posterior median and a 95\%
+#'   credible interval.
+#' @param ... Further arguments (unused).
 #'
-#' @return An object of class \code{summary.survMixBayes}.
+#' @return An object of class \code{summary.survMixBayes} containing posterior
+#'   quantile summaries for the regression coefficients in both mixture
+#'   components, the mixing weight, and any family-specific distribution
+#'   parameters included in the fitted model. Component 1 corresponds to the
+#'   correct-match component and component 2 to the non-match component.
 #'
 #' @examples
 #' \donttest{
@@ -73,7 +96,7 @@ print.survMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ..
 #'   control = list(iterations = 100, burnin.iterations = 50, seed = 402)
 #' )
 #'
-#' # Generate and print the comprehensive summary
+#' # Generate and print posterior summaries
 #' fit_summary <- summary(fit, probs = c(0.025, 0.5, 0.975))
 #' print(fit_summary)
 #' }
@@ -119,43 +142,60 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
     print(round(t(mat), digits = digits))
   }
 
-  fmt(x$coef1, "Coefficients (component 1)")
-  fmt(x$coef2, "Coefficients (component 2)")
+  fmt(x$coef1, "Coefficients (component 1 = correct-match)")
+  fmt(x$coef2, "Coefficients (component 2 = non-match)")
 
-  cat("\nTheta (mix weight for component 1):\n")
+  cat("\nTheta (mix weight for component 1 = correct-match):\n")
   print(round(x$theta, digits = digits))
 
-  fmt(x$shape1, "Shape (component 1)")
-  fmt(x$shape2, "Shape (component 2)")
-  fmt(x$scale1, "Scale (component 1)")
-  fmt(x$scale2, "Scale (component 2)")
+  fmt(x$shape1, "Shape (component 1 = correct-match)")
+  fmt(x$shape2, "Shape (component 2 = non-match)")
+  fmt(x$scale1, "Scale (component 1 = correct-match)")
+  fmt(x$scale2, "Scale (component 2 = non-match)")
 
   invisible(x)
 }
 
-#' Confidence intervals for survMixBayes parameters
+#' Credible intervals for parameters from a survMixBayes fit
 #'
-#' Returns posterior credible intervals for regression coefficients and key parameters.
+#' Computes posterior credible intervals for the regression coefficients,
+#' mixing weight, and family-specific distribution parameters from a fitted
+#' \code{survMixBayes} model. The returned intervals are organized by mixture
+#' component and parameter type. Component 1 corresponds to the correct-match
+#' component and component 2 to the non-match component.
 #'
 #' @param object An object of class \code{survMixBayes}.
-#' @param parm Optional. Character vector selecting which elements of the returned
-#'   list to keep. If \code{NULL}, all intervals are returned.
-#' @param level Confidence level.
-#' @param ... Additional arguments (unused).
-#' @return A named list of credible intervals. Elements `coef1` and `coef2`
-#'   are `p x 2` matrices (lower/upper) for component-specific regression
-#'   coefficients when available. Elements `theta`, `shape1`, `shape2`,
-#'   `scale1`, `scale2` are numeric vectors of length 2 giving lower/upper
-#'   credible intervals for scalar parameters.
+#' @param parm Optional character vector selecting which interval blocks to
+#'   return. For example, \code{"theta"} returns only the credible interval for
+#'   the mixing weight. If \code{NULL}, credible intervals are returned for all
+#'   available parameter blocks.
+#' @param level Probability level for the credible intervals. Defaults to
+#'   \code{0.95}.
+#' @param ... Further arguments (unused).
+#'
+#' @return A named list of credible intervals. Elements \code{coef1} and
+#'   \code{coef2} are matrices with one row per regression coefficient and two
+#'   columns giving the lower and upper interval bounds for components 1 and 2,
+#'   respectively, where component 1 is the correct-match component and
+#'   component 2 is the non-match component. Elements such as \code{theta}, \code{shape1},
+#'   \code{shape2}, \code{scale1}, and \code{scale2} are numeric vectors of
+#'   length 2 containing the lower and upper credible interval bounds for the
+#'   corresponding scalar parameters.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate data
+#' # Simulate simple Weibull survival data
 #' set.seed(403)
 #' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
-#'            event = rbinom(n, 1, 0.8))
+#'
+#' x1 <- rnorm(n)
+#' x2 <- rnorm(n)
+#' X <- cbind(x1 = x1, x2 = x2)
+#'
+#' # Observed survival response: time and event indicator
+#' y <- cbind(
+#'   time = rweibull(n, shape = 1.2, scale = exp(x1)),
+#'   event = rbinom(n, 1, 0.8)
+#' )
 #'
 #' # Fit the model
 #' fit <- survregMixBayes(
@@ -198,14 +238,17 @@ confint.survMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
  out
 }
 
-#' Variance-covariance for survMixBayes coefficients
+#' Posterior covariance matrix for survMixBayes coefficients
 #'
-#' Returns an empirical posterior covariance matrix of component 1 regression coefficients.
+#' Returns the empirical posterior covariance matrix of the regression
+#' coefficients for component 1 of a fitted \code{survMixBayes} model.
+#' In this package, component 1 is interpreted as the correct-match component.
 #'
-#' @param object An object of class \code{survMixBayes}.
-#' @param ... Additional arguments (unused).
+#' @param object A \code{survMixBayes} model object.
+#' @param ... Further arguments (unused).
 #'
-#' @return A covariance matrix.
+#' @return Posterior covariance matrix of the regression coefficients for
+#'   component 1, interpreted as the correct-match component.
 #'
 #' @examples
 #' \donttest{
@@ -237,13 +280,17 @@ vcov.survMixBayes <- function(object, ...) {
 
 #' Predict for survMixBayes
 #'
-#' Returns posterior mean linear predictors for each component.
+#' Returns posterior mean linear predictors for each component. Component 1 is
+#' interpreted as the correct-match component and component 2 as the non-match
+#' component.
 #'
 #' @param object An object of class \code{survMixBayes}.
 #' @param newdata Optional design matrix for prediction. If \code{NULL}, uses \code{object$X} if present.
 #' @param ... Additional arguments (unused).
 #'
-#' @return A list with posterior mean linear predictors for each component.
+#' @return A list with posterior mean linear predictors for each component:
+#'   \code{component1} for the correct-match component and \code{component2}
+#'   for the non-match component.
 #'
 #' @examples
 #' \donttest{
@@ -286,14 +333,22 @@ predict.survMixBayes <- function(object, newdata = NULL, ...) {
   list(component1 = mu1, component2 = mu2)
 }
 
-#' Pooling method for survMixBayes objects
+#' Pool posterior component classifications from a survMixBayes fit
 #'
-#' Performs posterior allocation based pooling for a \code{survMixBayes} fit.
+#' Summarizes posterior component classifications from a fitted
+#' \code{survMixBayes} model by computing, for each observation, the posterior
+#' probability of belonging to component 1. In this package, component 1 is
+#' interpreted as the correct-match component.
 #'
 #' @param object An object of class \code{survMixBayes}.
-#' @param ... Additional arguments (unused).
+#' @param ... Further arguments (unused).
 #'
-#' @return A pooled object of class \code{mi_link_pool_survreg}.
+#' @return An object of class
+#'   \code{c("mi_link_pool_survreg", "mi_link_pool")} containing the fitted
+#'   model call, survival distribution, posterior probabilities of belonging to
+#'   component 1 for each observation, where component 1 is interpreted as the
+#'   correct-match component, and the stored posterior draws from the original
+#'   fitted model.
 #'
 #' @examples
 #' \donttest{
@@ -310,10 +365,10 @@ predict.survMixBayes <- function(object, newdata = NULL, ...) {
 #'   control = list(iterations = 100, burnin.iterations = 50, seed = 406)
 #' )
 #'
-#' # Perform posterior allocation pooling
+#' # Summarize posterior component classifications
 #' pooled_obj <- mi_with(fit)
 #'
-#' # View the distribution of posterior probabilities of belonging to component 1
+#' # View the posterior probabilities of belonging to component 1
 #' summary(pooled_obj$p_component1)
 #' }
 #'
@@ -324,7 +379,7 @@ mi_with.survMixBayes <- function(object, ...) {
  z <- object$m_samples
  if (!is.matrix(z)) stop("Expected `m_samples` as a matrix (S x N).")
 
- # Posterior probability of being in component 1
+ # Posterior probability of being in component 1 (correct-match component)
  p1 <- colMeans(z == 1L, na.rm = TRUE)
 
  pooled <- list(
@@ -333,15 +388,21 @@ mi_with.survMixBayes <- function(object, ...) {
   p_component1 = p1,
   estimates = object$estimates
  )
- class(pooled) <- "mi_link_pool_survreg"
+ class(pooled) <- c("mi_link_pool_survreg", "mi_link_pool")
  pooled
 }
 
-#' Print method for pooled survreg MI object
+#' Print pooled posterior component-classification results
+#'
+#' Prints a summary of the posterior probabilities of belonging to component 1,
+#' interpreted here as the correct-match component,
+#' from an object returned by \code{mi_with()} for a
+#' \code{survMixBayes} model.
 #'
 #' @param x An object of class \code{mi_link_pool_survreg}.
-#' @param ... Additional arguments (unused).
-#' @return Invisibly returns \code{x}.
+#' @param ... Further arguments (unused).
+#'
+#' @return The input \code{x}, invisibly.
 #'
 #' @examples
 #' \donttest{
@@ -361,7 +422,7 @@ mi_with.survMixBayes <- function(object, ...) {
 #' # Create the pooled object via mi_with
 #' pooled_obj <- mi_with(fit)
 #'
-#' # Explicitly call the print method for the pooled object
+#' # Print the pooled posterior classification summary
 #' print(pooled_obj)
 #' }
 #'
@@ -369,7 +430,7 @@ mi_with.survMixBayes <- function(object, ...) {
 #' @method print mi_link_pool_survreg
 print.mi_link_pool_survreg <- function(x, ...) {
 
- cat("Pooled posterior allocation (component 1):\n")
+ cat("Posterior classification summary (component 1 = correct-match):\n")
  print(summary(x$p_component1))
  invisible(x)
 }

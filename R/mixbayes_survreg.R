@@ -1,59 +1,116 @@
-#' Bayesian Two-Component Mixture Survival Regression (with label-switching adjustment)
+#' Bayesian two-component mixture survival regression model
 #'
-#' Fit a two-component Bayesian parametric survival regression model in Stan
-#' with component distributions \code{"gamma"} or \code{"weibull"} (both components
-#' share the same family). Right-censored data are supported.
+#' Fits a Bayesian two-component parametric survival regression model
+#' using Stan. Each observation is assumed to arise from one of two latent
+#' components with component-specific survival regression parameters.
 #'
-#' This implementation function assumes upstream wrappers have already handled the
-#' formula/data interface and produced a design matrix \code{X} and survival response \code{y}.
+#' The function supports \code{"gamma"} and \code{"weibull"} component
+#' distributions, with both components sharing the same family. Right-censored
+#' survival outcomes are supported.
 #'
-#' The function sets up the data, samples from the pre-compiled Stan models,
-#' and then applies a label-switching correction (global majority swap + ECR-ITERATIVE-1)
-#' to align component labels across MCMC draws.
+#' Posterior draws are returned for the component-specific regression
+#' parameters and mixing weight. To improve interpretability of posterior
+#' summaries, the function applies a post-processing step that aligns
+#' component labels across posterior draws.
 #'
-#' @param X A numeric design matrix (N x K), typically from \code{model.matrix()}
-#'   upstream. Missing values are not allowed.
-#' @param y A survival response. Either a two-column numeric matrix with columns
-#'   \code{time} and \code{event} (event indicator 1=event, 0=censored), or a list with
-#'   elements \code{time} and \code{event}. Missing values are not allowed.
-#' @param dist One of \code{"gamma"} or \code{"weibull"}. Controls the component-specific
-#'   likelihood.
-#' @param priors A named \code{list} (or \code{NULL}) of prior specifications.
-#'   Because the Stan models are pre-compiled, these strings are parsed into numeric
-#'   hyperparameters and passed to the model's data block. Any missing entries are
-#'   automatically filled with symmetric defaults via
+#' @param X A numeric design matrix (\eqn{N \times K}), typically created by
+#'   \code{model.matrix()}. Each row corresponds to one observation and each
+#'   column to one covariate in the survival model. Missing values are not allowed.
+#'
+#' @param y A survival response. This can be either a two-column numeric matrix
+#'   with columns \code{time} and \code{event}, where \code{event = 1} indicates
+#'   an observed event and \code{event = 0} indicates right censoring, or a list
+#'   with elements \code{time} and \code{event}. Missing values are not allowed.
+#'
+#' @param dist Character string specifying the parametric survival distribution
+#'   used for both mixture components. Supported values are \code{"gamma"} and
+#'   \code{"weibull"}.
+#'
+#' @param priors A named \code{list} of prior specifications, or \code{NULL}.
+#'   Since the Stan models are pre-compiled, prior specifications are converted
+#'   into the corresponding numeric hyperparameters and passed to the model as
+#'   data. Any missing entries are automatically filled in using symmetric
+#'   default values via
 #'   \code{fill_defaults(priors, p_family = dist, model_type = "survival")}.
-#' @param control A named \code{list} of tuning parameters with defaults:
+#'
+#' @param control A named \code{list} of control parameters for posterior
+#'   sampling. Defaults are:
 #'   \itemize{
-#'     \item \code{iterations} (default \code{1e4}) total iterations per chain;
-#'     \item \code{burnin.iterations} (default \code{1e3}) warm-up iterations;
-#'     \item \code{seed} (default random integer);
-#'     \item \code{cores} (default \code{getOption("mc.cores", 1L)}).
+#'     \item \code{iterations} (default \code{1e4}): total number of iterations per chain;
+#'     \item \code{burnin.iterations} (default \code{1e3}): number of warm-up iterations;
+#'     \item \code{seed} (default: a random integer): random seed for reproducibility;
+#'     \item \code{cores} (default \code{getOption("mc.cores", 1L)}): number of CPU cores used.
 #'   }
-#'   Values in \code{...} override \code{control}.
-#' @param ... Optional overrides for elements in \code{control}, e.g.
-#'   \code{iterations = 4000}, \code{burnin.iterations = 1000}, \code{seed = 123},
-#'   \code{cores = 2}.
+#'   Values supplied through \code{...} override the corresponding entries in
+#'   \code{control}.
+#'
+#' @param ... Optional overrides for elements of \code{control}, such as
+#'   \code{iterations = 4000}, \code{burnin.iterations = 1000},
+#'   \code{seed = 123}, or \code{cores = 2}.
 #'
 #' @return An object of class \code{"survMixBayes"} containing (at least):
 #' \describe{
-#'   \item{\code{m_samples}}{Aligned \eqn{z} label matrix (S x N).}
-#'   \item{\code{estimates$coefficients}}{Component 1 coefficient draws (S x K).}
-#'   \item{\code{estimates$m.coefficients}}{Component 2 coefficient draws (S x K).}
-#'   \item{\code{estimates$theta}}{Mixing weight draws for component 1 (length S).}
-#'   \item{\code{estimates$shape}}{Component-specific shape draws (family-specific).}
-#'   \item{\code{estimates$m.shape}}{Component-specific shape draws for component 2 (family-specific).}
-#'   \item{\code{estimates$scale}}{Component-specific scale draws (Weibull only).}
-#'   \item{\code{estimates$m.scale}}{Component-specific scale draws for component 2 (Weibull only).}
-#'   \item{\code{family}}{The survival family string.}
-#'   \item{\code{call}}{The matched call.}
+#'   \item{\code{m_samples}}{Posterior draws of aligned latent component
+#'   labels (matrix of size draws × N), where component 1 corresponds to the
+#'   correct-match component and component 2 to the incorrect-match component.}
+#'
+#'   \item{\code{estimates$coefficients}}{Posterior draws of regression
+#'   coefficients for the correct-match component (component 1; draws × K).}
+#'
+#'   \item{\code{estimates$m.coefficients}}{Posterior draws of regression
+#'   coefficients for the incorrect-match component (component 2; draws × K).}
+#'
+#'   \item{\code{estimates$theta}}{Posterior draws of the mixing weight for the
+#'   correct-match component (component 1; vector of length draws).}
+#'
+#'   \item{\code{estimates$shape}}{Posterior draws of the shape parameter for
+#'   the correct-match component (component 1; family-specific).}
+#'
+#'   \item{\code{estimates$m.shape}}{Posterior draws of the shape parameter for
+#'   the incorrect-match component (component 2; family-specific).}
+#'
+#'   \item{\code{estimates$scale}}{Posterior draws of the scale parameter for
+#'   the correct-match component (component 1; Weibull only).}
+#'
+#'   \item{\code{estimates$m.scale}}{Posterior draws of the scale parameter for
+#'   the incorrect-match component (component 2; Weibull only).}
+#'
+#'   \item{\code{family}}{The survival distribution used in the model.}
+#'
+#'   \item{\code{call}}{The matched function call.}
 #' }
 #'
 #' @section Label switching:
-#' We first perform an optional global swap \eqn{(1 \leftrightarrow 2)} if label 2
-#' is more frequent overall, then align per-draw labels using
-#' \code{ECR-ITERATIVE-1} permutations. Component-specific parameters are permuted
-#' accordingly (e.g., \code{beta1}/\code{beta2}, \code{phi}/\code{shape}/\code{scale}, and \code{theta}).
+#'
+#' Mixture models are invariant to permutations of component labels,
+#' which can lead to label switching in MCMC output. To ensure
+#' interpretable posterior summaries, this function applies a
+#' post-processing step that aligns component labels across
+#' posterior draws.
+#'
+#' First, an optional global swap of labels (1 ↔ 2) is performed
+#' if component 2 is more frequent overall. Then, labels are
+#' aligned across draws using the \code{ECR-ITERATIVE-1}
+#' relabeling algorithm.
+#'
+#' @references
+#' Gutman, R., Sammartino, C., Green, T., & Montague, B. (2016).
+#' Error adjustments for file linking methods using encrypted unique
+#' client identifier (eUCI) with application to recently released prisoners
+#' who are HIV+. \emph{Statistics in Medicine}, 35(1), 115--129.
+#' \doi{10.1002/sim.6586}
+#'
+#' Stephens, M. (2000).
+#' Dealing with label switching in mixture models.
+#' \emph{Journal of the Royal Statistical Society: Series B
+#' (Statistical Methodology)}, 62(4), 795--809.
+#' \doi{10.1111/1467-9868.00265}
+#'
+#' Papastamoulis, P. (2016).
+#' \emph{label.switching}: An R package for dealing with the label switching
+#' problem in MCMC outputs.
+#' \emph{Journal of Statistical Software}, 69(1), 1--24.
+#' \doi{10.18637/jss.v069.c01}
 #'
 #' @examples
 #' \donttest{

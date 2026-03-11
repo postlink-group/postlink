@@ -1,30 +1,31 @@
-#' Methods for Bayesian Two-Component Mixture GLM Fits
+#' Methods for Bayesian mixture GLM fits
 #'
 #' @description
 #' S3 methods for objects returned by \code{glmMixBayes()}, including printing,
-#' summarization, credible intervals, posterior covariance, prediction, and
-#' multiple-imputation-style pooling based on posterior component allocation
-#' draws.
+#' summarizing fitted models, computing credible intervals and posterior
+#' covariance matrices, generating predictions, and pooling regression results
+#' across posterior match classifications.
 #'
 #' @name mixture_bayesglm_methods
 #' @keywords internal
 NULL
 
-#' Posterior allocation based pooling generic
+#' Pool parameter estimates across posterior draws
 #'
-#' Generic function for posterior allocation based pooling of Bayesian
-#' mixture model fits.
+#' Generic function for pooling parameter estimates from Bayesian mixture
+#' models using posterior draws of the latent match classifications.
 #'
 #' @param object A fitted Bayesian mixture model object.
 #' @param ... Additional arguments passed to methods.
 #'
-#' @return A pooled model object.
+#' @return A pooled model object combining parameter estimates across
+#' posterior component allocations.
 #'
 #' @examples
 #' \donttest{
-#' # mi_with() is a generic function for posterior allocation-based pooling.
-#' # See ?mi_with.glmMixBayes for a complete, executable example demonstrating
-#' # its use with Bayesian GLM mixture models.
+#' # mi_with() is a generic function for posterior allocation–based pooling.
+#' # See ?mi_with.glmMixBayes for a complete example illustrating its use
+#' # with Bayesian GLM mixture models.
 #' }
 #'
 #' @export
@@ -32,7 +33,7 @@ mi_with <- function(object, ...) {
  UseMethod("mi_with", object)
 }
 
-#' Print a brief summary of a glmMixBayes model
+#' Print a glmMixBayes model object
 #'
 #' @param x An object of class \code{glmMixBayes}.
 #' @param digits Minimum number of significant digits to show.
@@ -73,7 +74,7 @@ print.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L),...)
   invisible(x)
 }
 
-#' Summarize a glmMixBayes model fit
+#' Summary method for glmMixBayes models
 #'
 #' @param object An object of class \code{glmMixBayes}.
 #' @param ... Not used.
@@ -188,11 +189,12 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
   invisible(x)
 }
 
-#' Covariance matrix of coefficient estimates for glmMixBayes
+#' Posterior covariance matrix for glmMixBayes coefficients
 #'
 #' @param object A \code{glmMixBayes} model object.
 #' @param ... Not used.
-#' @return Posterior covariance matrix of component 1's coefficient vector.
+#' @return Posterior covariance matrix of the regression coefficients for the
+#' primary (correct-match) component.
 #'
 #' @examples
 #' \donttest{
@@ -219,23 +221,34 @@ vcov.glmMixBayes <- function(object, ...) {
  stats::cov(object$estimates$coefficients)
 }
 
-#' Credible intervals for glmMixBayes coefficients
+#' Credible intervals for regression coefficients from a glmMixBayes fit
+#'
+#' Computes posterior credible intervals for the regression coefficients in a
+#' fitted \code{glmMixBayes} model. By default, intervals are returned for all
+#' coefficients in the primary component of the mixture model. A subset of
+#' coefficients can be selected using \code{parm}.
 #'
 #' @param object A \code{glmMixBayes} model object.
-#' @param parm Optional. Parameter names or indices for selecting a subset of
-#'   coefficients. If \code{NULL}, all coefficients are returned.
-#' @param level Probability level for the intervals (default 0.95).
+#' @param parm Optional. Names or numeric indices of coefficients for which
+#'   credible intervals should be returned. If \code{NULL}, intervals are
+#'   returned for all coefficients.
+#' @param level Probability level for the credible intervals. Defaults to
+#'   \code{0.95}.
 #' @param ... Not used.
-#' @return A matrix with two columns (lower and upper bounds) and one row per coefficient.
+#' @return
+#' A matrix with one row per coefficient and two columns giving the lower and
+#' upper credible interval bounds. Row names correspond to coefficient names.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate data
+#' # Simulate simple Gaussian regression data
 #' set.seed(604)
 #' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
-#' X[, 1] <- 1
-#' y <- rnorm(n, mean = X %*% c(1, 2), sd = 1.5)
+#'
+#' x1 <- rnorm(n)
+#' X <- cbind(Intercept = 1, x1 = x1)
+#'
+#' # True model: y = 1 + 2*x1 + error
+#' y <- 1 + 2 * x1 + rnorm(n, sd = 1.5)
 #'
 #' # Fit the model
 #' fit <- glmMixBayes(
@@ -243,12 +256,11 @@ vcov.glmMixBayes <- function(object, ...) {
 #'   control = list(iterations = 100, burnin.iterations = 50, seed = 604)
 #' )
 #'
-#' # Calculate 95% credible intervals for all outcome coefficients
+#' # Calculate 95% credible intervals for all coefficients
 #' confint(fit, level = 0.95)
 #'
-#' # Extract credible interval specifically for the 'x1' parameter
+#' # Extract the credible interval for the x1 coefficient
 #' confint(fit, parm = "x1", level = 0.90)
-#' }
 #'
 #' @export
 #' @method confint glmMixBayes
@@ -375,24 +387,34 @@ predict.glmMixBayes <- function(object, newx,
 }
 
 
-#' Multiple Imputation Pooling from Component Allocation Posterior Samples
+#' Pooling regression fits across posterior draws of correct-match classifications
 #'
 #' @description
-#' Pool regression estimates across many "completed datasets" that arise when
-#' each posterior draw of component allocation indicators \eqn{z} selects a subset of
-#' records to treat as component 1. For each retained draw, the function fits
-#' the requested model (LM/GLM) on the selected subset, collects coefficients and
-#' their covariance, and combines them using Rubin's rules (vector/matrix form).
+#' Use posterior draws of the latent match indicators from \code{glmMixBayes()}
+#' to repeatedly identify which records are treated as correct matches, refit the
+#' requested regression model on those records, and pool the resulting estimates.
 #'
-#' @param object A \code{glmMixBayes} model object containing posterior allocation samples.
+#' Each retained posterior draw defines one subset of records classified as
+#' correct matches. The function fits the specified \code{lm()} or \code{glm()}
+#' model to that subset, extracts the estimated coefficients and their covariance
+#' matrix, and combines the results across draws using multiple-imputation
+#' pooling rules.
+#'
+#' @param object A \code{glmMixBayes} model object containing posterior draws of
+#'   the latent match indicators.
 #' @param data A data.frame with all candidate records in the same row order as used in the model.
 #' @param formula Model formula for refitting on each draw (required).
-#' @param family A \code{stats::family()} object; defaults to a canonical family derived from \code{object$family}.
-#' @param min_n Minimum sample size required to fit the model for a given draw.
-#'   Defaults to \code{p + 1}, where \code{p} is the number of columns in the model matrix.
-#' @param quietly If \code{TRUE}, suppress errors from individual failed fits and skip them.
+#' @param family A \code{stats::family()} object for the refitted model. If not
+#'   supplied, the function chooses a default family based on \code{object$family}.
+#' @param min_n Minimum number of records required to fit the model for a given
+#'   posterior draw. The default is \code{p + 1}, where \code{p} is the number
+#'   of columns in the model matrix.
+#' @param quietly If \code{TRUE}, draws that lead to fitting errors are skipped
+#'   without printing the full error message.
 #' @param ... Additional arguments passed through (currently unused).
-#' @return An object of class \code{c("mi_link_pool_glm", "mi_link_pool")}.
+#' @return An object of class \code{c("mi_link_pool_glm", "mi_link_pool")}
+#'   containing pooled coefficient estimates, standard errors, confidence
+#'   intervals, and related summary information.
 #'
 #' @examples
 #' \donttest{
@@ -412,9 +434,9 @@ predict.glmMixBayes <- function(object, newx,
 #' )
 #'
 #' # 3. Multiple Imputation Pooling
-#' # For each MCMC draw, the model extracts the latent correct-match indicators,
-#' # fits the specified GLM on the subset of "correct" matches, and pools the
-#' # results using Rubin's rules.
+#' # For each retained posterior draw, the function identifies the records
+#' # treated as correct matches, refits the requested model on that subset,
+#' # and then pools the estimates across draws.
 #' pooled_fit <- mi_with(
 #'   object = fit,
 #'   data = linked_data,
@@ -561,9 +583,10 @@ mi_with.glmMixBayes <- function(object, data, formula,
   out
 }
 
-#' Print a pooled MI object from glmMixBayes
+#' Print pooled regression results
 #'
-#' @param x An object of class \code{mi_link_pool_glm}.
+#' @param x An object of class \code{mi_link_pool_glm}, typically returned by
+#'   \code{mi_with()} for a \code{glmMixBayes} fit.
 #' @param digits the number of significant digits to print.
 #' @param ... further arguments (unused).
 #' @return The input \code{x}, invisibly.
@@ -582,7 +605,7 @@ mi_with.glmMixBayes <- function(object, data, formula,
 #'   control = list(iterations = 150, burnin.iterations = 50, seed = 607)
 #' )
 #'
-#' # Perform multiple imputation pooling
+#' # Pool regression fits across posterior draws
 #' pooled_fit <- mi_with(
 #'   object = fit,
 #'   data = linked_data,
@@ -596,7 +619,7 @@ mi_with.glmMixBayes <- function(object, data, formula,
 #'
 #' @export
 print.mi_link_pool_glm <- function(x, digits = max(3L, getOption("digits") - 2L), ...) {
-  cat("Multiple Imputation (from allocation draws):\n")
+  cat("Pooled regression results across posterior match classifications:\n")
   cat("  Retained imputations (m):", x$m, "\n\n")
 
   est <- x$coef
