@@ -19,7 +19,7 @@ Files are grouped into four main categories based on their role in the package a
 -   `01_adjELE.R`, `01_adjMixture.R`, `01_adjMixBayes.R`: The core constructor functions.
 -   `01_adjELE_methods.R`, etc.: The S3 methods (like `print`, `summary`) specifically for these adjustment objects.
 
-4.  Phase 2: Wrapper Models (The `02_` Prefix): These files contain the user-facing modeling functions that parse formulas and dispatch the appropriate internal routine based on the provided adjustment object.
+3.  Phase 2: Wrapper Models (The `02_` Prefix): These files contain the user-facing modeling functions that parse formulas and dispatch the appropriate internal routine based on the provided adjustment object.
 
 -   `02_plglm.R`, `02_plcoxph.R`, `02_plctable.R`, `02_plsurvreg.R`
 
