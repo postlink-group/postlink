@@ -37,11 +37,10 @@ m_rate <- 0.15
 mis_idx <- sample(1:n, size = round(m_rate * n))
 linked_x1 <- x1
 linked_x2 <- x2
-if (length(mis_idx) > 0) {
-  shuff_idx <- sample(mis_idx)
-  linked_x1[mis_idx] <- x1[shuff_idx]
-  linked_x2[mis_idx] <- x2[shuff_idx]
-}
+shuff_idx <- sample(mis_idx)
+linked_x1[mis_idx] <- x1[shuff_idx]
+linked_x2[mis_idx] <- x2[shuff_idx]
+
 linked_data <- data.frame(time = obs_time, status = obs_status,
                           x1 = linked_x1, x2 = linked_x2)
 

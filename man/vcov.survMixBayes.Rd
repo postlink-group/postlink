@@ -2,20 +2,23 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{vcov.survMixBayes}
 \alias{vcov.survMixBayes}
-\title{Variance-covariance for survMixBayes coefficients}
+\title{Posterior covariance matrix for survMixBayes coefficients}
 \usage{
 \method{vcov}{survMixBayes}(object, ...)
 }
 \arguments{
-\item{object}{An object of class \code{survMixBayes}.}
+\item{object}{A \code{survMixBayes} model object.}
 
-\item{...}{Additional arguments (unused).}
+\item{...}{Further arguments (unused).}
 }
 \value{
-A covariance matrix.
+Posterior covariance matrix of the regression coefficients for
+component 1, interpreted as the correct-match component.
 }
 \description{
-Returns an empirical posterior covariance matrix of component 1 regression coefficients.
+Returns the empirical posterior covariance matrix of the regression
+coefficients for component 1 of a fitted \code{survMixBayes} model.
+In this package, component 1 is interpreted as the correct-match component.
 }
 \examples{
 \donttest{

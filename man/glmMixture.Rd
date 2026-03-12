@@ -63,6 +63,7 @@ A list of results:
 \item{df.residual}{The residual degrees of freedom.}
 \item{df.null}{The residual degrees of freedom for the null model.}
 \item{family}{The \code{family} object used.}
+\item{\code{call}}{The matched call.}
 }
 \description{
 Fits a generalized linear model (GLM) accounting for mismatch errors using a

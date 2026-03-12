@@ -23,10 +23,14 @@
 #' adjustment process.
 #' @param ... Additional arguments passed to the underlying fitting function.
 #'
-#' @return An object representing the fitted model. The exact class depends on the
-#'   class of the \code{adjustment} object and the specific internal function invoked
-#'   (e.g., \code{fitglm}). The object includes the component \code{call} and,
-#'   optionally, \code{model}, \code{x}, and \code{y}.
+#' @return
+#' An object representing the fitted model. The specific class and structure of the
+#' returned object depend directly on the `adjustment` method provided:
+#' \itemize{
+#'   \item If `adjustment` is of class `adjELE`, returns an object of class \code{\link{glmELE}}.
+#'   \item If `adjustment` is of class `adjMixture`, returns an object of class \code{\link{glmMixture}}.
+#'   \item If `adjustment` is of class `adjMixBayes`, returns an object of class \code{\link{glmMixBayes}}.
+#' }
 #'
 #' @details
 #' This function attempts to extract the linked data from the \code{adjustment}
@@ -61,7 +65,7 @@
 #'  adjustment = adj_object
 #' )
 #'
-#' @seealso \code{\link{adjELE}}, \code{\link{adjMixture}}, \code{\link{adjMixBayes}}
+#' @seealso \code{\link{adjELE}}, \code{\link{adjMixture}}, \code{\link{adjMixBayes}}, \code{\link{glmELE}}, \code{\link{glmMixture}}, \code{\link{glmMixBayes}}
 #' @export
 plglm <- function(formula,
                   family = gaussian,

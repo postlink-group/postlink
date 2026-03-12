@@ -19,11 +19,15 @@
 #' @param control A list of control parameters.
 #' @param ... Additional arguments passed to the internal engine.
 #'
-#' @return A fitted survival model object.
+#' @return
+#' An object representing the fitted model. The specific class and structure of the
+#' returned object depend directly on the `adjustment` method provided:
+#' \itemize{
+#'   \item If `adjustment` is of class `adjMixBayes`, returns an object of class \code{\link{survregMixBayes}}.
+#' }
 #'
 #' @examples
 #' \dontrun{
-#' library(survival)
 #' set.seed(202)
 #' n <- 200
 #'
@@ -34,17 +38,17 @@
 #' true_obs_time <- pmin(true_time, cens_time)
 #' true_status <- as.numeric(true_time <= cens_time)
 #'
-#' # Induce linkage mismatch errors
+#' # Induce linkage mismatch errors by...
 #' is_mismatch <- rbinom(n, 1, 0.2) # ~20% overall mismatch rate
 #' obs_time <- true_obs_time
 #' obs_status <- true_status
 #' mismatch_idx <- which(is_mismatch == 1)
 #'
-#' if(length(mismatch_idx) > 1) {
-#'   shuffled <- sample(mismatch_idx)
-#'   obs_time[mismatch_idx] <- obs_time[shuffled]
-#'   obs_status[mismatch_idx] <- obs_status[shuffled]
-#' }
+#' # Shuffle time and status together for mismatched records
+#' shuffled <- sample(mismatch_idx)
+#' obs_time[mismatch_idx] <- obs_time[shuffled]
+#' obs_status[mismatch_idx] <- obs_status[shuffled]
+#'
 #' linked_df <- data.frame(time = obs_time, status = obs_status, trt)
 #'
 #' # Specify the Bayesian Mixture Adjustment
@@ -58,7 +62,7 @@
 #'   control = list(iterations = 2000, burnin.iterations = 500)
 #' )
 #' }
-#' @seealso \code{\link[survival]{survreg}}
+#' @seealso \code{\link{adjMixBayes}}, \code{\link{survregMixBayes}}
 #' @export
 plsurvreg <- function(formula,
                       adjustment,

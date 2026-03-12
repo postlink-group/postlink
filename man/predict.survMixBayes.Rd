@@ -14,10 +14,14 @@
 \item{...}{Additional arguments (unused).}
 }
 \value{
-A list with posterior mean linear predictors for each component.
+A list with posterior mean linear predictors for each component:
+\code{component1} for the correct-match component and \code{component2}
+for the non-match component.
 }
 \description{
-Returns posterior mean linear predictors for each component.
+Returns posterior mean linear predictors for each component. Component 1 is
+interpreted as the correct-match component and component 2 as the non-match
+component.
 }
 \examples{
 \donttest{

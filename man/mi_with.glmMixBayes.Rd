@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{mi_with.glmMixBayes}
 \alias{mi_with.glmMixBayes}
-\title{Multiple Imputation Pooling from Component Allocation Posterior Samples}
+\title{Pooling regression fits across posterior draws of correct-match classifications}
 \usage{
 \method{mi_with}{glmMixBayes}(
   object,
@@ -15,30 +15,40 @@
 )
 }
 \arguments{
-\item{object}{A \code{glmMixBayes} model object containing posterior allocation samples.}
+\item{object}{A \code{glmMixBayes} model object containing posterior draws of
+the latent match indicators.}
 
 \item{data}{A data.frame with all candidate records in the same row order as used in the model.}
 
 \item{formula}{Model formula for refitting on each draw (required).}
 
-\item{family}{A \code{stats::family()} object; defaults to a canonical family derived from \code{object$family}.}
+\item{family}{A \code{stats::family()} object for the refitted model. If not
+supplied, the function chooses a default family based on \code{object$family}.}
 
-\item{min_n}{Minimum sample size required to fit the model for a given draw.
-Defaults to \code{p + 1}, where \code{p} is the number of columns in the model matrix.}
+\item{min_n}{Minimum number of records required to fit the model for a given
+posterior draw. The default is \code{p + 1}, where \code{p} is the number
+of columns in the model matrix.}
 
-\item{quietly}{If \code{TRUE}, suppress errors from individual failed fits and skip them.}
+\item{quietly}{If \code{TRUE}, draws that lead to fitting errors are skipped
+without printing the full error message.}
 
 \item{...}{Additional arguments passed through (currently unused).}
 }
 \value{
-An object of class \code{c("mi_link_pool_glm", "mi_link_pool")}.
+An object of class \code{c("mi_link_pool_glm", "mi_link_pool")}
+containing pooled coefficient estimates, standard errors, confidence
+intervals, and related summary information.
 }
 \description{
-Pool regression estimates across many "completed datasets" that arise when
-each posterior draw of component allocation indicators \eqn{z} selects a subset of
-records to treat as component 1. For each retained draw, the function fits
-the requested model (LM/GLM) on the selected subset, collects coefficients and
-their covariance, and combines them using Rubin's rules (vector/matrix form).
+Use posterior draws of the latent match indicators from \code{glmMixBayes()}
+to repeatedly identify which records are treated as correct matches, refit the
+requested regression model on those records, and pool the resulting estimates.
+
+Each retained posterior draw defines one subset of records classified as
+correct matches. The function fits the specified \code{lm()} or \code{glm()}
+model to that subset, extracts the estimated coefficients and their covariance
+matrix, and combines the results across draws using multiple-imputation
+pooling rules.
 }
 \examples{
 \donttest{
@@ -58,9 +68,9 @@ fit <- glmMixBayes(
 )
 
 # 3. Multiple Imputation Pooling
-# For each MCMC draw, the model extracts the latent correct-match indicators,
-# fits the specified GLM on the subset of "correct" matches, and pools the
-# results using Rubin's rules.
+# For each retained posterior draw, the function identifies the records
+# treated as correct matches, refits the requested model on that subset,
+# and then pools the estimates across draws.
 pooled_fit <- mi_with(
   object = fit,
   data = linked_data,

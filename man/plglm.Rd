@@ -46,10 +46,13 @@ adjustment process.}
 \item{...}{Additional arguments passed to the underlying fitting function.}
 }
 \value{
-An object representing the fitted model. The exact class depends on the
-class of the \code{adjustment} object and the specific internal function invoked
-(e.g., \code{fitglm}). The object includes the component \code{call} and,
-optionally, \code{model}, \code{x}, and \code{y}.
+An object representing the fitted model. The specific class and structure of the
+returned object depend directly on the \code{adjustment} method provided:
+\itemize{
+\item If \code{adjustment} is of class \code{adjELE}, returns an object of class \code{\link{glmELE}}.
+\item If \code{adjustment} is of class \code{adjMixture}, returns an object of class \code{\link{glmMixture}}.
+\item If \code{adjustment} is of class \code{adjMixBayes}, returns an object of class \code{\link{glmMixBayes}}.
+}
 }
 \description{
 \code{plglm} fits generalized linear models (GLMs) to linked data, incorporating
@@ -91,5 +94,5 @@ fit <- plglm(
 
 }
 \seealso{
-\code{\link{adjELE}}, \code{\link{adjMixture}}, \code{\link{adjMixBayes}}
+\code{\link{adjELE}}, \code{\link{adjMixture}}, \code{\link{adjMixBayes}}, \code{\link{glmELE}}, \code{\link{glmMixture}}, \code{\link{glmMixBayes}}
 }

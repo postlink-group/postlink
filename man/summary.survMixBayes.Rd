@@ -2,22 +2,32 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{summary.survMixBayes}
 \alias{summary.survMixBayes}
-\title{Summarize a survMixBayes object}
+\title{Summary method for survMixBayes models}
 \usage{
 \method{summary}{survMixBayes}(object, probs = c(0.025, 0.5, 0.975), ...)
 }
 \arguments{
 \item{object}{An object of class \code{survMixBayes}.}
 
-\item{probs}{Numeric vector of quantile probabilities.}
+\item{probs}{Numeric vector of probabilities used to compute posterior
+quantiles for the model parameters. The default,
+\code{c(0.025, 0.5, 0.975)}, gives a posterior median and a 95\\%
+credible interval.}
 
-\item{...}{Additional arguments (unused).}
+\item{...}{Further arguments (unused).}
 }
 \value{
-An object of class \code{summary.survMixBayes}.
+An object of class \code{summary.survMixBayes} containing posterior
+quantile summaries for the regression coefficients in both mixture
+components, the mixing weight, and any family-specific distribution
+parameters included in the fitted model. Component 1 corresponds to the
+correct-match component and component 2 to the non-match component.
 }
 \description{
-Computes posterior summaries for coefficients and key distribution parameters.
+Computes posterior summaries for the regression coefficients, mixing weight,
+and component-specific distribution parameters in a fitted
+\code{survMixBayes} model. Throughout, component 1 is interpreted as the
+correct-match component and component 2 as the non-match component.
 }
 \examples{
 \donttest{
@@ -34,7 +44,7 @@ fit <- survregMixBayes(
   control = list(iterations = 100, burnin.iterations = 50, seed = 402)
 )
 
-# Generate and print the comprehensive summary
+# Generate and print posterior summaries
 fit_summary <- summary(fit, probs = c(0.025, 0.5, 0.975))
 print(fit_summary)
 }

@@ -2,22 +2,25 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{print.survMixBayes}
 \alias{print.survMixBayes}
-\title{Print a survMixBayes object}
+\title{Print a survMixBayes model object}
 \usage{
 \method{print}{survMixBayes}(x, digits = max(3L, getOption("digits") - 3L), ...)
 }
 \arguments{
 \item{x}{An object of class \code{survMixBayes}.}
 
-\item{digits}{Number of significant digits to print.}
+\item{digits}{Minimum number of significant digits to show.}
 
-\item{...}{Additional arguments (unused).}
+\item{...}{Further arguments (unused).}
 }
 \value{
-The object \code{x} (invisibly).
+The input \code{x}, invisibly.
 }
 \description{
-Prints the model call and posterior mean regression coefficients for component 1.
+Prints the model call and posterior mean regression coefficients for the
+first mixture component of the fitted survival model. In this package,
+component 1 is interpreted as the correct-match component and component 2
+as the non-match component.
 }
 \examples{
 \donttest{
