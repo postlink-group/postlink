@@ -2,7 +2,7 @@
 
 `plcoxph` fits Cox proportional hazards models to linked data, adjusting
 for potential mismatch errors. It serves as a wrapper around the
-internal `fitcoxph` function, ensuring compatibility with the
+internal `fitcoxph` function, for compatibility with the
 [`coxph`](https://rdrr.io/pkg/survival/man/coxph.html) syntax.
 
 ## Usage
@@ -63,12 +63,22 @@ plcoxph(
 
 ## Value
 
-A fitted model object containing the `call` and requested design
-components.
+An object representing the fitted model. The specific class and
+structure of the returned object depend directly on the `adjustment`
+method provided:
+
+- If `adjustment` is of class `adjELE`, returns an object of class
+  [`coxphELE`](https://postlink-group.github.io/postlink/reference/coxphELE.md).
+
+- If `adjustment` is of class `adjMixture`, returns an object of class
+  [`coxphMixture`](https://postlink-group.github.io/postlink/reference/coxphMixture.md).
 
 ## See also
 
-[`plglm`](https://postlink-group.github.io/postlink/reference/plglm.md)
+[`adjELE`](https://postlink-group.github.io/postlink/reference/adjELE.md),
+[`adjMixture`](https://postlink-group.github.io/postlink/reference/adjMixture.md),
+[`coxphELE`](https://postlink-group.github.io/postlink/reference/coxphELE.md),
+[`coxphMixture`](https://postlink-group.github.io/postlink/reference/coxphMixture.md)
 
 ## Examples
 

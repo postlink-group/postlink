@@ -1,6 +1,6 @@
-# Print a pooled MI object from glmMixBayes
+# Print pooled regression results
 
-Print a pooled MI object from glmMixBayes
+Print pooled regression results
 
 ## Usage
 
@@ -13,7 +13,9 @@ print(x, digits = max(3L, getOption("digits") - 2L), ...)
 
 - x:
 
-  An object of class `mi_link_pool_glm`.
+  An object of class `mi_link_pool_glm`, typically returned by
+  [`mi_with()`](https://postlink-group.github.io/postlink/reference/mi_with.md)
+  for a `glmMixBayes` fit.
 
 - digits:
 
@@ -45,8 +47,8 @@ fit <- glmMixBayes(
 #> 
 #> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 4.4e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.44 seconds.
+#> Chain 1: Gradient evaluation took 4.2e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.42 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -71,9 +73,9 @@ fit <- glmMixBayes(
 #> Chain 1: Iteration: 140 / 150 [ 93%]  (Sampling)
 #> Chain 1: Iteration: 150 / 150 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.142 seconds (Warm-up)
-#> Chain 1:                0.12 seconds (Sampling)
-#> Chain 1:                0.262 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.139 seconds (Warm-up)
+#> Chain 1:                0.116 seconds (Sampling)
+#> Chain 1:                0.255 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -89,7 +91,7 @@ fit <- glmMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.106                Converged (3 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.116                Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -100,7 +102,7 @@ fit <- glmMixBayes(
 #>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
 #>     Label switching finished. Total time: 0.1 seconds. 
 
-# Perform multiple imputation pooling
+# Pool regression fits across posterior draws
 pooled_fit <- mi_with(
   object = fit,
   data = linked_data,

@@ -1,6 +1,9 @@
-# Pooling method for survMixBayes objects
+# Pool posterior component classifications from a survMixBayes fit
 
-Performs posterior allocation based pooling for a `survMixBayes` fit.
+Summarizes posterior component classifications from a fitted
+`survMixBayes` model by computing, for each observation, the posterior
+probability of belonging to component 1. In this package, component 1 is
+interpreted as the correct-match component.
 
 ## Usage
 
@@ -17,11 +20,15 @@ mi_with(object, ...)
 
 - ...:
 
-  Additional arguments (unused).
+  Further arguments (unused).
 
 ## Value
 
-A pooled object of class `mi_link_pool_survreg`.
+An object of class `c("mi_link_pool_survreg", "mi_link_pool")`
+containing the fitted model call, survival distribution, posterior
+probabilities of belonging to component 1 for each observation, where
+component 1 is interpreted as the correct-match component, and the
+stored posterior draws from the original fitted model.
 
 ## Examples
 
@@ -42,8 +49,8 @@ fit <- survregMixBayes(
 #> 
 #> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 6.5e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.65 seconds.
+#> Chain 1: Gradient evaluation took 6.3e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.63 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -86,7 +93,7 @@ fit <- survregMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.062                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.049                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -97,10 +104,10 @@ fit <- survregMixBayes(
 #>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
 #>     Label switching finished. Total time: 0.1 seconds. 
 
-# Perform posterior allocation pooling
+# Summarize posterior component classifications
 pooled_obj <- mi_with(fit)
 
-# View the distribution of posterior probabilities of belonging to component 1
+# View the posterior probabilities of belonging to component 1
 summary(pooled_obj$p_component1)
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #>   0.340   0.820   0.880   0.847   0.920   1.000 

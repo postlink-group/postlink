@@ -1,10 +1,8 @@
-# Bayesian Two-Component Mixture GLM (with label-switching adjustment)
+# Bayesian two-component mixture generalized linear model
 
-Fit a two-component Bayesian mixture generalized linear model (GLM) in
-Stan with families `"gaussian"`, `"poisson"`, `"binomial"`, or
-`"gamma"`. This implementation function assumes upstream wrappers have
-already handled the formula/data interface and produced a design matrix
-`X` and response `y`.
+Fits a Bayesian two-component mixture generalized linear model (GLM)
+using Stan. Each observation is assumed to arise from one of two latent
+components with component-specific regression coefficients.
 
 ## Usage
 
@@ -49,22 +47,24 @@ glmMixBayes(
 
 - control:
 
-  A named `list` of tuning parameters with defaults:
+  A named `list` of MCMC tuning parameters. Supported elements include:
 
-  - `iterations` (default `1e4`) total iterations per chain;
+  - `iterations`: total number of MCMC iterations per chain (default
+    `1e4`);
 
-  - `burnin.iterations` (default `1e3`) warm-up iterations;
+  - `burnin.iterations`: number of warm-up iterations (default `1e3`);
 
-  - `seed` (default random integer);
+  - `seed`: random seed used for reproducibility;
 
-  - `cores` (default `getOption("mc.cores", 1L)`).
+  - `cores`: number of CPU cores used for sampling (default
+    `getOption("mc.cores", 1L)`).
 
-  Values in `...` override `control`.
+  Values supplied through `...` override entries in `control`.
 
 - ...:
 
-  Optional overrides for elements in `control`, e.g.
-  `iterations = 4000`, `burnin.iterations = 1000`, `seed = 123`,
+  Optional arguments that override elements of `control`. For example,
+  `iterations = 4000`, `burnin.iterations = 1000`, `seed = 123`, or
   `cores = 2`.
 
 ## Value
@@ -73,44 +73,72 @@ An object of class `"glmMixBayes"` containing (at least):
 
 - `m_samples`:
 
-  Aligned \\z\\ label matrix (S x N).
+  Posterior draws of aligned latent component labels (matrix of size
+  draws × N), where component 1 corresponds to the correct-match
+  component and component 2 to the incorrect-match component.
 
 - `estimates$coefficients`:
 
-  Component 1 coefficient draws (S x K).
+  Posterior draws of regression coefficients for the correct-match
+  component (component 1; draws × K).
 
 - `estimates$m.coefficients`:
 
-  Component 2 coefficient draws (S x K).
+  Posterior draws of regression coefficients for the incorrect-match
+  component (component 2; draws × K).
 
 - `estimates$dispersion`:
 
-  Component 1 dispersion (family-specific).
+  Posterior draws of the dispersion parameter for the correct-match
+  component (component 1; family-specific).
 
 - `estimates$m.dispersion`:
 
-  Component 2 dispersion (family-specific).
+  Posterior draws of the dispersion parameter for the incorrect-match
+  component (component 2; family-specific).
 
 - `family`:
 
-  The GLM family string.
+  The GLM family used in the model.
 
 - `call`:
 
-  The matched call.
+  The matched function call.
 
 ## Details
 
-The function builds Stan code, compiles, samples, and then applies a
-label-switching correction (global majority swap + ECR-ITERATIVE-1) to
-align component labels across MCMC draws.
+The function supports Gaussian, Poisson, Binomial, and Gamma outcome
+families and returns posterior samples of the component-specific
+regression parameters and mixture weight.
 
 ## Label switching
 
-We first perform an optional global swap \\(1 \leftrightarrow 2)\\ if
-label 2 is more frequent overall, then align per-draw labels using
-`ECR-ITERATIVE-1` permutations. Component-specific parameters are
-permuted accordingly (e.g., `beta1`/`beta2`, and `sigma`/`phi`).
+Mixture models are invariant to permutations of component labels, which
+can lead to label switching in MCMC output. To ensure interpretable
+posterior summaries, this function applies a post-processing step that
+aligns component labels across posterior draws.
+
+First, an optional global swap of labels (1 ↔ 2) is performed if
+component 2 is more frequent overall. Then, labels are aligned across
+draws using the `ECR-ITERATIVE-1` relabeling algorithm.
+
+## References
+
+Gutman, R., Sammartino, C., Green, T., & Montague, B. (2016). Error
+adjustments for file linking methods using encrypted unique client
+identifier (eUCI) with application to recently released prisoners who
+are HIV+. *Statistics in Medicine*, 35(1), 115–129.
+[doi:10.1002/sim.6586](https://doi.org/10.1002/sim.6586)
+
+Stephens, M. (2000). Dealing with label switching in mixture models.
+*Journal of the Royal Statistical Society: Series B (Statistical
+Methodology)*, 62(4), 795–809.
+[doi:10.1111/1467-9868.00265](https://doi.org/10.1111/1467-9868.00265)
+
+Papastamoulis, P. (2016). *label.switching*: An R package for dealing
+with the label switching problem in MCMC outputs. *Journal of
+Statistical Software*, 69(1), 1–24.
+[doi:10.18637/jss.v069.c01](https://doi.org/10.18637/jss.v069.c01)
 
 ## Examples
 
@@ -144,8 +172,8 @@ fit <- glmMixBayes(
 #> 
 #> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 5.7e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.57 seconds.
+#> Chain 1: Gradient evaluation took 6.1e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.61 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -170,9 +198,9 @@ fit <- glmMixBayes(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.089 seconds (Warm-up)
+#> Chain 1:  Elapsed Time: 0.088 seconds (Warm-up)
 #> Chain 1:                0.069 seconds (Sampling)
-#> Chain 1:                0.158 seconds (Total)
+#> Chain 1:                0.157 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -188,7 +216,7 @@ fit <- glmMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.089                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.087                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!

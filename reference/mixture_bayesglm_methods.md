@@ -1,7 +1,7 @@
-# Methods for Bayesian Two-Component Mixture GLM Fits
+# Methods for Bayesian mixture GLM fits
 
 S3 methods for objects returned by
 [`glmMixBayes()`](https://postlink-group.github.io/postlink/reference/glmMixBayes.md),
-including printing, summarization, credible intervals, posterior
-covariance, prediction, and multiple-imputation-style pooling based on
-posterior component allocation draws.
+including printing, summarizing fitted models, computing credible
+intervals and posterior covariance matrices, generating predictions, and
+pooling regression results across posterior match classifications.

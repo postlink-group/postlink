@@ -72,10 +72,18 @@ plglm(
 
 ## Value
 
-An object representing the fitted model. The exact class depends on the
-class of the `adjustment` object and the specific internal function
-invoked (e.g., `fitglm`). The object includes the component `call` and,
-optionally, `model`, `x`, and `y`.
+An object representing the fitted model. The specific class and
+structure of the returned object depend directly on the `adjustment`
+method provided:
+
+- If `adjustment` is of class `adjELE`, returns an object of class
+  [`glmELE`](https://postlink-group.github.io/postlink/reference/glmELE.md).
+
+- If `adjustment` is of class `adjMixture`, returns an object of class
+  [`glmMixture`](https://postlink-group.github.io/postlink/reference/glmMixture.md).
+
+- If `adjustment` is of class `adjMixBayes`, returns an object of class
+  [`glmMixBayes`](https://postlink-group.github.io/postlink/reference/glmMixBayes.md).
 
 ## Details
 
@@ -93,7 +101,10 @@ response vector to the appropriate `fitglm` method.
 
 [`adjELE`](https://postlink-group.github.io/postlink/reference/adjELE.md),
 [`adjMixture`](https://postlink-group.github.io/postlink/reference/adjMixture.md),
-[`adjMixBayes`](https://postlink-group.github.io/postlink/reference/adjMixBayes.md)
+[`adjMixBayes`](https://postlink-group.github.io/postlink/reference/adjMixBayes.md),
+[`glmELE`](https://postlink-group.github.io/postlink/reference/glmELE.md),
+[`glmMixture`](https://postlink-group.github.io/postlink/reference/glmMixture.md),
+[`glmMixBayes`](https://postlink-group.github.io/postlink/reference/glmMixBayes.md)
 
 ## Examples
 

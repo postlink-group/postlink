@@ -46,19 +46,37 @@ ensure valid probability estimates.
 
 ``` r
 if (FALSE) { # \dontrun{
+## Not run:
 set.seed(125)
-linked_df <- data.frame(
-  exposure = sample(c("low", "high"), 300, replace = TRUE),
-  disease = sample(c("yes", "no"), 300, replace = TRUE)
-)
+n <- 300
 
+# 1. Simulate true categorical data with dependency
+exposure <- sample(c("low", "high"), n, replace = TRUE)
+
+# Induce dependency - High exposure -> higher disease probability
+prob_disease <- ifelse(exposure == "high", 0.7, 0.3)
+true_disease <- ifelse(runif(n) < prob_disease, "yes", "no")
+
+# 2. Induce 15% linkage error
+mis_idx <- sample(1:n, size = floor(0.15 * n))
+obs_disease <- true_disease
+
+if(length(mis_idx) > 1){
+ obs_disease[mis_idx] <- sample(obs_disease[mis_idx])
+}
+
+linked_df <- data.frame(exposure = exposure, disease = obs_disease)
+
+# 3. Fit the adjusted contingency table model
 adj <- adjMixture(linked.data = linked_df, m.rate = 0.15)
 fit <- plctable(~ exposure + disease, adjustment = adj)
 
-# Compute 95% confidence intervals for all cell probabilities
+# 4. Compute confidence intervals
+# 95% CI for all cell probabilities
 confint(fit)
 
-# Compute 90% confidence intervals for specific cells by name
+# 90% CI for specific cells by name
 confint(fit, parm = c("(low, yes)", "(high, no)"), level = 0.90)
+## End(Not run)
 } # }
 ```

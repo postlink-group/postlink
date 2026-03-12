@@ -115,11 +115,11 @@ adjustment process.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An object representing the fitted model. The exact class depends on the
-class of the <code>adjustment</code> object and the specific internal function invoked
-(e.g., <code>fitglm</code>). The object includes the component <code>call</code> and,
-optionally, <code>model</code>, <code>x</code>, and <code>y</code>.</p>
-    </div>
+    <p>An object representing the fitted model. The specific class and structure of the
+returned object depend directly on the <code>adjustment</code> method provided:</p><ul><li><p>If <code>adjustment</code> is of class <code>adjELE</code>, returns an object of class <code><a href="glmELE.html">glmELE</a></code>.</p></li>
+<li><p>If <code>adjustment</code> is of class <code>adjMixture</code>, returns an object of class <code><a href="glmMixture.html">glmMixture</a></code>.</p></li>
+<li><p>If <code>adjustment</code> is of class <code>adjMixBayes</code>, returns an object of class <code><a href="glmMixBayes.html">glmMixBayes</a></code>.</p></li>
+</ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>This function attempts to extract the linked data from the <code>adjustment</code>
@@ -133,7 +133,7 @@ response vector to the appropriate <code>fitglm</code> method.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="adjELE.html">adjELE</a></code>, <code><a href="adjMixture.html">adjMixture</a></code>, <code><a href="adjMixBayes.html">adjMixBayes</a></code></p></div>
+    <div class="dont-index"><p><code><a href="adjELE.html">adjELE</a></code>, <code><a href="adjMixture.html">adjMixture</a></code>, <code><a href="adjMixBayes.html">adjMixBayes</a></code>, <code><a href="glmELE.html">glmELE</a></code>, <code><a href="glmMixture.html">glmMixture</a></code>, <code><a href="glmMixBayes.html">glmMixBayes</a></code></p></div>
     </div>
 
     <div class="section level2">

@@ -37,39 +37,40 @@ parameter.
 ## Examples
 
 ``` r
-library(survival)
 set.seed(104)
-
-# Simulate linked data subject to mismatch error
 n <- 200
-x1 <- rnorm(n)
-x2 <- rbinom(n, 1, 0.7)
-true_time <- rexp(n, rate = exp(0.5 * x1 - 0.5 * x2))
-cens_time <- rexp(n, rate = 0.5)
 
-linked_data <- data.frame(
-  time = pmin(true_time, cens_time),
-  status = as.numeric(true_time <= cens_time),
-  x1 = x1, x2 = x2
-)
+# 1. Simulate covariates
+age_centered <- rnorm(n, 0, 5)
+treatment <- rbinom(n, 1, 0.5)
 
-# Induce 15% linkage error
-mis_idx <- sample(1:n, size = 0.15 * n)
-linked_data$x1[mis_idx] <- linked_data$x1[sample(mis_idx)]
-linked_data$x2[mis_idx] <- linked_data$x2[sample(mis_idx)]
+# 2. Simulate true survival times
+true_time <- rexp(n, rate = exp(0.05 * age_centered - 0.6 * treatment))
+cens_time <- rexp(n, rate = 0.2)
+time <- pmin(true_time, cens_time)
+status <- as.numeric(true_time <= cens_time)
 
-# Fit the adjusted Cox PH model
+# 3. Induce 15% Exchangeable Linkage Error (ELE)
+mis_idx <- sample(1:n, size = floor(0.15 * n))
+linked_age <- age_centered
+linked_trt <- treatment
+
+ # False links drawn uniformly from the target population
+ false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
+ linked_age[mis_idx] <- age_centered[false_link_idx]
+ linked_trt[mis_idx] <- treatment[false_link_idx]
+
+linked_data <- data.frame(time = time, status = status,
+                          age = linked_age, treatment = linked_trt)
+
+# 4. Fit the adjusted Cox PH model
 adj <- adjELE(linked.data = linked_data, m.rate = 0.15)
-fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj)
+fit <- plcoxph(Surv(time, status) ~ age + treatment, adjustment = adj)
+#> Error in Surv(time, status): could not find function "Surv"
 
-# Compute 95% confidence intervals for all coefficients
-confint(fit)
-#>         2.5 %    97.5 %
-#> x1 -0.3822596 0.1305227
-#> x2 -0.3074440 1.1396112
-
-# Compute 90% confidence intervals for a specific parameter
-confint(fit, parm = "x1", level = 0.90)
-#>           5 %       95 %
-#> x1 -0.3410387 0.08930178
+# 5. Compute confidence intervals
+confint(fit) # 95% CI for all coefficients
+#> Error: object 'fit' not found
+confint(fit, parm = "treatment", level = 0.90) # 90% CI for a specific parameter
+#> Error: object 'fit' not found
 ```

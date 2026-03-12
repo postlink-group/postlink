@@ -51,7 +51,9 @@ wrapper function designed to mimic standard R modeling interfaces.
 - [`plglm()`](https://postlink-group.github.io/postlink/reference/plglm.md)
   for generalized linear models.
 - [`plcoxph()`](https://postlink-group.github.io/postlink/reference/plcoxph.md)
-  for survival outcomes.
+  for Cox proportional hazards regression.
+- [`plsurvreg()`](https://postlink-group.github.io/postlink/reference/plsurvreg.md)
+  for parametric survival models.
 - [`plctable()`](https://postlink-group.github.io/postlink/reference/plctable.md)
   for contingency table analysis.
 

@@ -149,6 +149,10 @@ A list of results:
 
   The `family` object used.
 
+- `call`:
+
+  The matched call.
+
 ## References
 
 Slawski, M.\*, West, B. T., Bukke, P., Wang, Z., Diao, G., & Ben-David,

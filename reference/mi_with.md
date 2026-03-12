@@ -1,7 +1,7 @@
-# Posterior allocation based pooling generic
+# Pool parameter estimates across posterior draws
 
-Generic function for posterior allocation based pooling of Bayesian
-mixture model fits.
+Generic function for pooling parameter estimates from Bayesian mixture
+models using posterior draws of the latent match classifications.
 
 ## Usage
 
@@ -21,14 +21,15 @@ mi_with(object, ...)
 
 ## Value
 
-A pooled model object.
+A pooled model object combining parameter estimates across posterior
+component allocations.
 
 ## Examples
 
 ``` r
 # \donttest{
-# mi_with() is a generic function for posterior allocation-based pooling.
-# See ?mi_with.glmMixBayes for a complete, executable example demonstrating
-# its use with Bayesian GLM mixture models.
+# mi_with() is a generic function for posterior allocation–based pooling.
+# See ?mi_with.glmMixBayes for a complete example illustrating its use
+# with Bayesian GLM mixture models.
 # }
 ```

@@ -1,6 +1,10 @@
-# Print method for pooled survreg MI object
+# Print pooled posterior component-classification results
 
-Print method for pooled survreg MI object
+Prints a summary of the posterior probabilities of belonging to
+component 1, interpreted here as the correct-match component, from an
+object returned by
+[`mi_with()`](https://postlink-group.github.io/postlink/reference/mi_with.md)
+for a `survMixBayes` model.
 
 ## Usage
 
@@ -17,11 +21,11 @@ print(x, ...)
 
 - ...:
 
-  Additional arguments (unused).
+  Further arguments (unused).
 
 ## Value
 
-Invisibly returns `x`.
+The input `x`, invisibly.
 
 ## Examples
 
@@ -68,9 +72,9 @@ fit <- survregMixBayes(
 #> Chain 1: Iteration: 90 / 100 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 100 / 100 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.225 seconds (Warm-up)
-#> Chain 1:                0.103 seconds (Sampling)
-#> Chain 1:                0.328 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.223 seconds (Warm-up)
+#> Chain 1:                0.102 seconds (Sampling)
+#> Chain 1:                0.325 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -85,7 +89,7 @@ fit <- survregMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.049                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.058                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -99,7 +103,7 @@ fit <- survregMixBayes(
 # Create the pooled object via mi_with
 pooled_obj <- mi_with(fit)
 
-# Explicitly call the print method for the pooled object
+# Print the pooled posterior classification summary
 print(pooled_obj)
 #> Posterior classification summary (component 1 = correct-match):
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 

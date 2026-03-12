@@ -1,8 +1,8 @@
-# Bayesian Two-Component Mixture Survival Regression (with label-switching adjustment)
+# Bayesian two-component mixture survival regression model
 
-Fit a two-component Bayesian parametric survival regression model in
-Stan with component distributions `"gamma"` or `"weibull"` (both
-components share the same family). Right-censored data are supported.
+Fits a Bayesian two-component parametric survival regression model using
+Stan. Each observation is assumed to arise from one of two latent
+components with component-specific survival regression parameters.
 
 ## Usage
 
@@ -22,47 +22,54 @@ survregMixBayes(
 
 - X:
 
-  A numeric design matrix (N x K), typically from
-  [`model.matrix()`](https://rdrr.io/r/stats/model.matrix.html)
-  upstream. Missing values are not allowed.
+  A numeric design matrix (\\N \times K\\), typically created by
+  [`model.matrix()`](https://rdrr.io/r/stats/model.matrix.html). Each
+  row corresponds to one observation and each column to one covariate in
+  the survival model. Missing values are not allowed.
 
 - y:
 
-  A survival response. Either a two-column numeric matrix with columns
-  `time` and `event` (event indicator 1=event, 0=censored), or a list
+  A survival response. This can be either a two-column numeric matrix
+  with columns `time` and `event`, where `event = 1` indicates an
+  observed event and `event = 0` indicates right censoring, or a list
   with elements `time` and `event`. Missing values are not allowed.
 
 - dist:
 
-  One of `"gamma"` or `"weibull"`. Controls the component-specific
-  likelihood.
+  Character string specifying the parametric survival distribution used
+  for both mixture components. Supported values are `"gamma"` and
+  `"weibull"`.
 
 - priors:
 
-  A named `list` (or `NULL`) of prior specifications. Because the Stan
-  models are pre-compiled, these strings are parsed into numeric
-  hyperparameters and passed to the model's data block. Any missing
-  entries are automatically filled with symmetric defaults via
+  A named `list` of prior specifications, or `NULL`. Since the Stan
+  models are pre-compiled, prior specifications are converted into the
+  corresponding numeric hyperparameters and passed to the model as data.
+  Any missing entries are automatically filled in using symmetric
+  default values via
   `fill_defaults(priors, p_family = dist, model_type = "survival")`.
 
 - control:
 
-  A named `list` of tuning parameters with defaults:
+  A named `list` of control parameters for posterior sampling. Defaults
+  are:
 
-  - `iterations` (default `1e4`) total iterations per chain;
+  - `iterations` (default `1e4`): total number of iterations per chain;
 
-  - `burnin.iterations` (default `1e3`) warm-up iterations;
+  - `burnin.iterations` (default `1e3`): number of warm-up iterations;
 
-  - `seed` (default random integer);
+  - `seed` (default: a random integer): random seed for reproducibility;
 
-  - `cores` (default `getOption("mc.cores", 1L)`).
+  - `cores` (default `getOption("mc.cores", 1L)`): number of CPU cores
+    used.
 
-  Values in `...` override `control`.
+  Values supplied through `...` override the corresponding entries in
+  `control`.
 
 - ...:
 
-  Optional overrides for elements in `control`, e.g.
-  `iterations = 4000`, `burnin.iterations = 1000`, `seed = 123`,
+  Optional overrides for elements of `control`, such as
+  `iterations = 4000`, `burnin.iterations = 1000`, `seed = 123`, or
   `cores = 2`.
 
 ## Value
@@ -71,61 +78,92 @@ An object of class `"survMixBayes"` containing (at least):
 
 - `m_samples`:
 
-  Aligned \\z\\ label matrix (S x N).
+  Posterior draws of aligned latent component labels (matrix of size
+  draws × N), where component 1 corresponds to the correct-match
+  component and component 2 to the incorrect-match component.
 
 - `estimates$coefficients`:
 
-  Component 1 coefficient draws (S x K).
+  Posterior draws of regression coefficients for the correct-match
+  component (component 1; draws × K).
 
 - `estimates$m.coefficients`:
 
-  Component 2 coefficient draws (S x K).
+  Posterior draws of regression coefficients for the incorrect-match
+  component (component 2; draws × K).
 
 - `estimates$theta`:
 
-  Mixing weight draws for component 1 (length S).
+  Posterior draws of the mixing weight for the correct-match component
+  (component 1; vector of length draws).
 
 - `estimates$shape`:
 
-  Component-specific shape draws (family-specific).
+  Posterior draws of the shape parameter for the correct-match component
+  (component 1; family-specific).
 
 - `estimates$m.shape`:
 
-  Component-specific shape draws for component 2 (family-specific).
+  Posterior draws of the shape parameter for the incorrect-match
+  component (component 2; family-specific).
 
 - `estimates$scale`:
 
-  Component-specific scale draws (Weibull only).
+  Posterior draws of the scale parameter for the correct-match component
+  (component 1; Weibull only).
 
 - `estimates$m.scale`:
 
-  Component-specific scale draws for component 2 (Weibull only).
+  Posterior draws of the scale parameter for the incorrect-match
+  component (component 2; Weibull only).
 
 - `family`:
 
-  The survival family string.
+  The survival distribution used in the model.
 
 - `call`:
 
-  The matched call.
+  The matched function call.
 
 ## Details
 
-This implementation function assumes upstream wrappers have already
-handled the formula/data interface and produced a design matrix `X` and
-survival response `y`.
+The function supports `"gamma"` and `"weibull"` component distributions,
+with both components sharing the same family. Right-censored survival
+outcomes are supported.
 
-The function sets up the data, samples from the pre-compiled Stan
-models, and then applies a label-switching correction (global majority
-swap + ECR-ITERATIVE-1) to align component labels across MCMC draws.
+Posterior draws are returned for the component-specific regression
+parameters and mixing weight. To improve interpretability of posterior
+summaries, the function applies a post-processing step that aligns
+component labels across posterior draws.
 
 ## Label switching
 
-We first perform an optional global swap \\(1 \leftrightarrow 2)\\ if
-label 2 is more frequent overall, then align per-draw labels using
-`ECR-ITERATIVE-1` permutations. Component-specific parameters are
-permuted accordingly (e.g., `beta1`/`beta2`, `phi`/`shape`/`scale`, and
-`theta`).
+Mixture models are invariant to permutations of component labels, which
+can lead to label switching in MCMC output. To ensure interpretable
+posterior summaries, this function applies a post-processing step that
+aligns component labels across posterior draws.
+
+First, an optional global swap of labels (1 ↔ 2) is performed if
+component 2 is more frequent overall. Then, labels are aligned across
+draws using the `ECR-ITERATIVE-1` relabeling algorithm.
+
+## References
+
+Gutman, R., Sammartino, C., Green, T., & Montague, B. (2016). Error
+adjustments for file linking methods using encrypted unique client
+identifier (eUCI) with application to recently released prisoners who
+are HIV+. *Statistics in Medicine*, 35(1), 115–129.
+[doi:10.1002/sim.6586](https://doi.org/10.1002/sim.6586)
+
+Stephens, M. (2000). Dealing with label switching in mixture models.
+*Journal of the Royal Statistical Society: Series B (Statistical
+Methodology)*, 62(4), 795–809.
+[doi:10.1111/1467-9868.00265](https://doi.org/10.1111/1467-9868.00265)
+
+Papastamoulis, P. (2016). *label.switching*: An R package for dealing
+with the label switching problem in MCMC outputs. *Journal of
+Statistical Software*, 69(1), 1–24.
+[doi:10.18637/jss.v069.c01](https://doi.org/10.18637/jss.v069.c01)
 
 ## Examples
 
@@ -191,9 +229,9 @@ fit <- survregMixBayes(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.513 seconds (Warm-up)
-#> Chain 1:                0.516 seconds (Sampling)
-#> Chain 1:                1.029 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.508 seconds (Warm-up)
+#> Chain 1:                0.5 seconds (Sampling)
+#> Chain 1:                1.008 seconds (Total)
 #> Chain 1: 
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
 #> Running the chains for more iterations may help. See

@@ -67,6 +67,15 @@ Explicit provision of `linked.data` is strongly recommended for
 reproducibility and to ensure the adjustment object fully encapsulates
 the necessary data for downstream model fitting.
 
+## Note
+
+The internal algorithmic structure for the estimating equations was
+informed by the foundational work presented in Chambers (2009) and Vo et
+al. (2024). Additionally, the original code provided in the Appendix of
+Chambers (2009) was utilized as a benchmark oracle during the unit
+testing phase of package development to check for numerical accuracy and
+validity of the implementation.
+
 ## References
 
 Chambers, R. (2009). Regression analysis of probability-linked data.

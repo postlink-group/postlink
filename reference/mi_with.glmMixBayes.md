@@ -1,11 +1,18 @@
-# Multiple Imputation Pooling from Component Allocation Posterior Samples
+# Pooling regression fits across posterior draws of correct-match classifications
 
-Pool regression estimates across many "completed datasets" that arise
-when each posterior draw of component allocation indicators \\z\\
-selects a subset of records to treat as component 1. For each retained
-draw, the function fits the requested model (LM/GLM) on the selected
-subset, collects coefficients and their covariance, and combines them
-using Rubin's rules (vector/matrix form).
+Use posterior draws of the latent match indicators from
+[`glmMixBayes()`](https://postlink-group.github.io/postlink/reference/glmMixBayes.md)
+to repeatedly identify which records are treated as correct matches,
+refit the requested regression model on those records, and pool the
+resulting estimates.
+
+Each retained posterior draw defines one subset of records classified as
+correct matches. The function fits the specified
+[`lm()`](https://rdrr.io/r/stats/lm.html) or
+[`glm()`](https://rdrr.io/r/stats/glm.html) model to that subset,
+extracts the estimated coefficients and their covariance matrix, and
+combines the results across draws using multiple-imputation pooling
+rules.
 
 ## Usage
 
@@ -26,7 +33,8 @@ mi_with(
 
 - object:
 
-  A `glmMixBayes` model object containing posterior allocation samples.
+  A `glmMixBayes` model object containing posterior draws of the latent
+  match indicators.
 
 - data:
 
@@ -39,18 +47,20 @@ mi_with(
 
 - family:
 
-  A [`stats::family()`](https://rdrr.io/r/stats/family.html) object;
-  defaults to a canonical family derived from `object$family`.
+  A [`stats::family()`](https://rdrr.io/r/stats/family.html) object for
+  the refitted model. If not supplied, the function chooses a default
+  family based on `object$family`.
 
 - min_n:
 
-  Minimum sample size required to fit the model for a given draw.
-  Defaults to `p + 1`, where `p` is the number of columns in the model
-  matrix.
+  Minimum number of records required to fit the model for a given
+  posterior draw. The default is `p + 1`, where `p` is the number of
+  columns in the model matrix.
 
 - quietly:
 
-  If `TRUE`, suppress errors from individual failed fits and skip them.
+  If `TRUE`, draws that lead to fitting errors are skipped without
+  printing the full error message.
 
 - ...:
 
@@ -58,7 +68,9 @@ mi_with(
 
 ## Value
 
-An object of class `c("mi_link_pool_glm", "mi_link_pool")`.
+An object of class `c("mi_link_pool_glm", "mi_link_pool")` containing
+pooled coefficient estimates, standard errors, confidence intervals, and
+related summary information.
 
 ## Examples
 
@@ -81,8 +93,8 @@ fit <- glmMixBayes(
 #> 
 #> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 4.4e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.44 seconds.
+#> Chain 1: Gradient evaluation took 4.1e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.41 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -107,9 +119,9 @@ fit <- glmMixBayes(
 #> Chain 1: Iteration: 140 / 150 [ 93%]  (Sampling)
 #> Chain 1: Iteration: 150 / 150 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.066 seconds (Warm-up)
-#> Chain 1:                0.219 seconds (Sampling)
-#> Chain 1:                0.285 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.064 seconds (Warm-up)
+#> Chain 1:                0.208 seconds (Sampling)
+#> Chain 1:                0.272 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is 1.15, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -125,7 +137,7 @@ fit <- glmMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.072                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.07                 Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -137,9 +149,9 @@ fit <- glmMixBayes(
 #>     Label switching finished. Total time: 0.1 seconds. 
 
 # 3. Multiple Imputation Pooling
-# For each MCMC draw, the model extracts the latent correct-match indicators,
-# fits the specified GLM on the subset of "correct" matches, and pools the
-# results using Rubin's rules.
+# For each retained posterior draw, the function identifies the records
+# treated as correct matches, refits the requested model on that subset,
+# and then pools the estimates across draws.
 pooled_fit <- mi_with(
   object = fit,
   data = linked_data,

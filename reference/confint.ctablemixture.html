@@ -86,20 +86,38 @@ at 0 and 1, respectively, to ensure valid probability estimates.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co">## Not run:</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">125</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">linked_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  exposure <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"low"</span>, <span class="st">"high"</span><span class="op">)</span>, <span class="fl">300</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  disease <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"yes"</span>, <span class="st">"no"</span><span class="op">)</span>, <span class="fl">300</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">300</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># 1. Simulate true categorical data with dependency</span></span></span>
+<span class="r-in"><span><span class="va">exposure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"low"</span>, <span class="st">"high"</span><span class="op">)</span>, <span class="va">n</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Induce dependency - High exposure -&gt; higher disease probability</span></span></span>
+<span class="r-in"><span><span class="va">prob_disease</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">exposure</span> <span class="op">==</span> <span class="st">"high"</span>, <span class="fl">0.7</span>, <span class="fl">0.3</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">true_disease</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">&lt;</span> <span class="va">prob_disease</span>, <span class="st">"yes"</span>, <span class="st">"no"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># 2. Induce 15% linkage error</span></span></span>
+<span class="r-in"><span><span class="va">mis_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">n</span>, size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="fl">0.15</span> <span class="op">*</span> <span class="va">n</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">obs_disease</span> <span class="op">&lt;-</span> <span class="va">true_disease</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">mis_idx</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span><span class="op">{</span></span></span>
+<span class="r-in"><span> <span class="va">obs_disease</span><span class="op">[</span><span class="va">mis_idx</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">obs_disease</span><span class="op">[</span><span class="va">mis_idx</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">linked_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>exposure <span class="op">=</span> <span class="va">exposure</span>, disease <span class="op">=</span> <span class="va">obs_disease</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># 3. Fit the adjusted contingency table model</span></span></span>
 <span class="r-in"><span><span class="va">adj</span> <span class="op">&lt;-</span> <span class="fu"><a href="adjMixture.html">adjMixture</a></span><span class="op">(</span>linked.data <span class="op">=</span> <span class="va">linked_df</span>, m.rate <span class="op">=</span> <span class="fl">0.15</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="plctable.html">plctable</a></span><span class="op">(</span><span class="op">~</span> <span class="va">exposure</span> <span class="op">+</span> <span class="va">disease</span>, adjustment <span class="op">=</span> <span class="va">adj</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Compute 95% confidence intervals for all cell probabilities</span></span></span>
+<span class="r-in"><span><span class="co"># 4. Compute confidence intervals</span></span></span>
+<span class="r-in"><span><span class="co"># 95% CI for all cell probabilities</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Compute 90% confidence intervals for specific cells by name</span></span></span>
+<span class="r-in"><span><span class="co"># 90% CI for specific cells by name</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span>, parm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"(low, yes)"</span>, <span class="st">"(high, no)"</span><span class="op">)</span>, level <span class="op">=</span> <span class="fl">0.90</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co">## End(Not run)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

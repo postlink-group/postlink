@@ -47,7 +47,7 @@ x2 <- rbinom(n, 1, 0.5)
 true_time <- rexp(n, rate = exp(0.5 * x1 - 0.5 * x2))
 cens_time <- rexp(n, rate = 0.5)
 
-# 2. Simulate auxiliary match scores and heterogeneous linkage errors
+# 2. Simulate auxiliary match scores and linkage errors
 # Lower match scores correspond to a higher probability of mismatch
 match_score <- runif(n, 0.5, 1.0)
 is_mismatch <- rbinom(n, 1, prob = 1 - match_score)
@@ -56,11 +56,9 @@ is_mismatch <- rbinom(n, 1, prob = 1 - match_score)
 linked_x1 <- x1
 linked_x2 <- x2
 mis_idx <- which(is_mismatch == 1)
-if (length(mis_idx) > 1) {
-  shuffled_idx <- sample(mis_idx)
-  linked_x1[mis_idx] <- x1[shuffled_idx]
-  linked_x2[mis_idx] <- x2[shuffled_idx]
-}
+shuffled_idx <- sample(mis_idx)
+linked_x1[mis_idx] <- x1[shuffled_idx]
+linked_x2[mis_idx] <- x2[shuffled_idx]
 
 linked_data <- data.frame(
   time = pmin(true_time, cens_time),

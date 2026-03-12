@@ -64,19 +64,19 @@ data for downstream model fitting.
 
 ## References
 
-Slawski, M.\*, West, B. T., Bukke, P., Wang, Z., Diao, G., & Ben-David,
-E. (2025). A general framework for regression with mismatched data based
-on mixture modelling. *Journal of the Royal Statistical Society Series
-A: Statistics in Society*, 188(3), 896-919.
+Slawski, M., West, B. T., Bukke, P., Wang, Z., Diao, G., & Ben-David, E.
+(2025). A general framework for regression with mismatched data based on
+mixture modelling. *Journal of the Royal Statistical Society Series A:
+Statistics in Society*, 188(3), 896-919.
 [doi:10.1093/jrsssa/qnae083](https://doi.org/10.1093/jrsssa/qnae083)
 
-Bukke, P., Ben-David, E., Diao, G., Slawski, M.\*, & West, B. T. (2025).
+Bukke, P., Ben-David, E., Diao, G., Slawski, M., & West, B. T. (2025).
 Cox Proportional Hazards Regression Using Linked Data: An Approach Based
 on Mixture Modeling. In *Frontiers of Statistics and Data Science* (pp.
 181-200). Singapore: Springer Nature Singapore.
 [doi:10.1007/978-981-96-0742-6_8](https://doi.org/10.1007/978-981-96-0742-6_8)
 
-Slawski, M.\*, Diao, G., Ben-David, E. (2021). A pseudo-likelihood
+Slawski, M., Diao, G., Ben-David, E. (2021). A pseudo-likelihood
 approach to linear regression with partially shuffled data. *Journal of
 Computational and Graphical Statistics*. 30(4), 991-1003.
 [doi:10.1080/10618600.2020.1870482](https://doi.org/10.1080/10618600.2020.1870482)

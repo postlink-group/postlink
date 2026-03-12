@@ -81,7 +81,7 @@ supplying pre-computed design matrices and response vectors, the
 underlying computational functions can be directly used if preferred
 (e.g.,
 [`coxphELE()`](https://postlink-group.github.io/postlink/reference/coxphELE.md),
-[`glmMixBayes()`](https://postlink-group.github.io/postlink/reference/glmMixBayes.md),
+[`glmMixture()`](https://postlink-group.github.io/postlink/reference/glmMixture.md),
 [`survregMixBayes()`](https://postlink-group.github.io/postlink/reference/survregMixBayes.md)).
 
 ## References
@@ -89,15 +89,22 @@ underlying computational functions can be directly used if preferred
 Chambers, R. (2009). Regression analysis of probability-linked data.
 *Official Statistics Research Series*, 4, 1-15.
 
+Chambers, R. L., Fabrizi, E., Ranalli, M. G., Salvati, N., & Wang, S.
+(2023). Robust regression using probabilistically linked data. *Wiley
+Interdisciplinary Reviews: Computational Statistics*, 15(2), e1596.
+[doi:10.1002/wics.1596](https://doi.org/10.1002/wics.1596)
+
 Gutman, R., Sammartino, C., Green, T., & Montague, B. (2016). Error
 adjustments for file linking methods using encrypted unique client
 identifier (eUCI) with application to recently released prisoners who
 are HIV+. *Statistics in Medicine*, 35(1), 115–129.
 [doi:10.1002/sim.6586](https://doi.org/10.1002/sim.6586)
 
-Slawski, M., West, B., Bukke, P., Wang, Z., Diao, G., & Ben-David, E.
-(2023). A General Framework for Regression with Mismatched Data Based on
-Mixture Modeling. *arXiv preprint arXiv:2306.00909*.
+Slawski, M., West, B. T., Bukke, P., Wang, Z., Diao, G., & Ben-David, E.
+(2025). A general framework for regression with mismatched data based on
+mixture modelling. *Journal of the Royal Statistical Society Series A:
+Statistics in Society*, 188(3), 896-919.
+[doi:10.1093/jrsssa/qnae083](https://doi.org/10.1093/jrsssa/qnae083)
 
 Vo, T. H., Garès, V., Zhang, L. C., Happe, A., Oger, E., Paquelet, S., &
 Chauvet, G. (2024). Cox regression with linked data. *Statistics in

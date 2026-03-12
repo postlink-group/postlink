@@ -54,7 +54,17 @@ plctable(
 
 ## Value
 
-A fitted model object tailored for contingency table analysis.
+An object representing the fitted model. The specific class and
+structure of the returned object depend directly on the `adjustment`
+method provided:
+
+- If `adjustment` is of class `adjMixture`, returns an object of class
+  [`ctableMixture`](https://postlink-group.github.io/postlink/reference/ctableMixture.md).
+
+## See also
+
+[`adjMixture`](https://postlink-group.github.io/postlink/reference/adjMixture.md),
+[`ctableMixture`](https://postlink-group.github.io/postlink/reference/ctableMixture.md)
 
 ## Examples
 

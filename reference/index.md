@@ -29,13 +29,14 @@
   Confidence Intervals for `glmELE` Objects
 
 - [`confint(`*`<glmMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/confint.glmMixBayes.md)
-  : Credible intervals for glmMixBayes coefficients
+  : Credible intervals for regression coefficients from a glmMixBayes
+  fit
 
 - [`confint(`*`<glmMixture>`*`)`](https://postlink-group.github.io/postlink/reference/confint.glmMixture.md)
   : Confidence Intervals for glmMixture Objects
 
 - [`confint(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/confint.survMixBayes.md)
-  : Confidence intervals for survMixBayes parameters
+  : Credible intervals for parameters from a survMixBayes fit
 
 - [`coxphELE()`](https://postlink-group.github.io/postlink/reference/coxphELE.md)
   : Fit a CoxPH Model Assuming Exchangeable Linkage Errors
@@ -50,7 +51,7 @@
   : GLM with ELE-Based Linkage Error Adjustment
 
 - [`glmMixBayes()`](https://postlink-group.github.io/postlink/reference/glmMixBayes.md)
-  : Bayesian Two-Component Mixture GLM (with label-switching adjustment)
+  : Bayesian two-component mixture generalized linear model
 
 - [`glmMixture()`](https://postlink-group.github.io/postlink/reference/glmMixture.md)
   : GLM with Mixture-Based Linkage Error Adjustment
@@ -59,14 +60,14 @@
   : Longitudinal Intergenerational Family Electronic Micro-Database
 
 - [`mi_with()`](https://postlink-group.github.io/postlink/reference/mi_with.md)
-  : Posterior allocation based pooling generic
+  : Pool parameter estimates across posterior draws
 
 - [`mi_with(`*`<glmMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/mi_with.glmMixBayes.md)
-  : Multiple Imputation Pooling from Component Allocation Posterior
-  Samples
+  : Pooling regression fits across posterior draws of correct-match
+  classifications
 
 - [`mi_with(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/mi_with.survMixBayes.md)
-  : Pooling method for survMixBayes objects
+  : Pool posterior component classifications from a survMixBayes fit
 
 - [`plcoxph()`](https://postlink-group.github.io/postlink/reference/plcoxph.md)
   : Fit Cox Proportional Hazards Models with Linkage Error Adjustment
@@ -134,19 +135,19 @@
   Print a `glmELE` Object
 
 - [`print(`*`<glmMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/print.glmMixBayes.md)
-  : Print a brief summary of a glmMixBayes model
+  : Print a glmMixBayes model object
 
 - [`print(`*`<glmMixture>`*`)`](https://postlink-group.github.io/postlink/reference/print.glmMixture.md)
   : Print a glmMixture Object
 
 - [`print(`*`<mi_link_pool_glm>`*`)`](https://postlink-group.github.io/postlink/reference/print.mi_link_pool_glm.md)
-  : Print a pooled MI object from glmMixBayes
+  : Print pooled regression results
 
 - [`print(`*`<mi_link_pool_survreg>`*`)`](https://postlink-group.github.io/postlink/reference/print.mi_link_pool_survreg.md)
-  : Print method for pooled survreg MI object
+  : Print pooled posterior component-classification results
 
 - [`print(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/print.survMixBayes.md)
-  : Print a survMixBayes object
+  : Print a survMixBayes model object
 
 - [`summary(`*`<coxphELE>`*`)`](https://postlink-group.github.io/postlink/reference/summary.coxphELE.md)
   : Summary of a coxphELE Object
@@ -163,17 +164,16 @@
   Summarize a `glmELE` Object
 
 - [`summary(`*`<glmMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/summary.glmMixBayes.md)
-  : Summarize a glmMixBayes model fit
+  : Summary method for glmMixBayes models
 
 - [`summary(`*`<glmMixture>`*`)`](https://postlink-group.github.io/postlink/reference/summary.glmMixture.md)
   : Summarizing GLM Mixture Fits
 
 - [`summary(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/summary.survMixBayes.md)
-  : Summarize a survMixBayes object
+  : Summary method for survMixBayes models
 
 - [`survregMixBayes()`](https://postlink-group.github.io/postlink/reference/survregMixBayes.md)
-  : Bayesian Two-Component Mixture Survival Regression (with
-  label-switching adjustment)
+  : Bayesian two-component mixture survival regression model
 
 - [`vcov(`*`<coxphELE>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.coxphELE.md)
   : Variance-Covariance Matrix for coxphELE Objects
@@ -190,10 +190,10 @@
   Extract Variance-Covariance Matrix from a `glmELE` Object
 
 - [`vcov(`*`<glmMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.glmMixBayes.md)
-  : Covariance matrix of coefficient estimates for glmMixBayes
+  : Posterior covariance matrix for glmMixBayes coefficients
 
 - [`vcov(`*`<glmMixture>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.glmMixture.md)
   : Extract Variance-Covariance Matrix from a glmMixture Object
 
 - [`vcov(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.survMixBayes.md)
-  : Variance-covariance for survMixBayes coefficients
+  : Posterior covariance matrix for survMixBayes coefficients

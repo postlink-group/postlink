@@ -1,6 +1,9 @@
-# Credible intervals for glmMixBayes coefficients
+# Credible intervals for regression coefficients from a glmMixBayes fit
 
-Credible intervals for glmMixBayes coefficients
+Computes posterior credible intervals for the regression coefficients in
+a fitted `glmMixBayes` model. By default, intervals are returned for all
+coefficients in the primary component of the mixture model. A subset of
+coefficients can be selected using `parm`.
 
 ## Usage
 
@@ -17,12 +20,13 @@ confint(object, parm = NULL, level = 0.95, ...)
 
 - parm:
 
-  Optional. Parameter names or indices for selecting a subset of
-  coefficients. If `NULL`, all coefficients are returned.
+  Optional. Names or numeric indices of coefficients for which credible
+  intervals should be returned. If `NULL`, intervals are returned for
+  all coefficients.
 
 - level:
 
-  Probability level for the intervals (default 0.95).
+  Probability level for the credible intervals. Defaults to `0.95`.
 
 - ...:
 
@@ -30,19 +34,22 @@ confint(object, parm = NULL, level = 0.95, ...)
 
 ## Value
 
-A matrix with two columns (lower and upper bounds) and one row per
-coefficient.
+A matrix with one row per coefficient and two columns giving the lower
+and upper credible interval bounds. Row names correspond to coefficient
+names.
 
 ## Examples
 
 ``` r
-# \donttest{
-# Simulate data
+# Simulate simple Gaussian regression data
 set.seed(604)
 n <- 100
-X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
-X[, 1] <- 1
-y <- rnorm(n, mean = X %*% c(1, 2), sd = 1.5)
+
+x1 <- rnorm(n)
+X <- cbind(Intercept = 1, x1 = x1)
+
+# True model: y = 1 + 2*x1 + error
+y <- 1 + 2 * x1 + rnorm(n, sd = 1.5)
 
 # Fit the model
 fit <- glmMixBayes(
@@ -52,8 +59,8 @@ fit <- glmMixBayes(
 #> 
 #> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 7.5e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.75 seconds.
+#> Chain 1: Gradient evaluation took 6.9e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.69 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -78,11 +85,11 @@ fit <- glmMixBayes(
 #> Chain 1: Iteration: 90 / 100 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 100 / 100 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.081 seconds (Warm-up)
-#> Chain 1:                0.11 seconds (Sampling)
-#> Chain 1:                0.191 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.074 seconds (Warm-up)
+#> Chain 1:                0.079 seconds (Sampling)
+#> Chain 1:                0.153 seconds (Total)
 #> Chain 1: 
-#> Warning: The largest R-hat is 2.19, indicating chains have not mixed.
+#> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#r-hat
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
@@ -91,12 +98,11 @@ fit <- glmMixBayes(
 #> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#tail-ess
-#> Global label swap performed: label 2 dominates label 1.
 #> 
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.05                 Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.049                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -107,15 +113,14 @@ fit <- glmMixBayes(
 #>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
 #>     Label switching finished. Total time: 0.1 seconds. 
 
-# Calculate 95% credible intervals for all outcome coefficients
+# Calculate 95% credible intervals for all coefficients
 confint(fit, level = 0.95)
 #>                2.5%    97.5%
-#> Intercept 0.7557846 1.346217
-#> x1        1.5826242 2.093995
+#> Intercept 0.7260174 1.300971
+#> x1        1.6197921 2.128374
 
-# Extract credible interval specifically for the 'x1' parameter
+# Extract the credible interval for the x1 coefficient
 confint(fit, parm = "x1", level = 0.90)
-#>          5%      95%
-#> x1 1.613289 2.077088
-# }
+#>         5%      95%
+#> x1 1.67836 2.109774
 ```
