@@ -44,7 +44,8 @@ Users first define the linked data and the chosen adjustment methodology using a
 The adjustment object, if supported, is then passed to a modeling wrapper function designed to mimic standard R modeling interfaces.
 
 -   `plglm()` for generalized linear models.
--   `plcoxph()` for survival outcomes.
+-   `plcoxph()` for Cox proportional hazards regression.
+-   `plsurvreg()` for parametric survival models.
 -   `plctable()` for contingency table analysis.
 
 Fitted model objects integrate with standard R post-model extractors, including `summary()`, `predict()`, and `confint()`
