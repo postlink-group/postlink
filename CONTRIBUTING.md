@@ -1,9 +1,3 @@
----
-editor_options: 
-  markdown: 
-    wrap: sentence
----
-
 # Contributing to postlink
 
 Thank you for visiting this page!
