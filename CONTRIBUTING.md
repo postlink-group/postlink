@@ -31,7 +31,7 @@ package architecture:
 - `01_adjELE_methods.R`, etc.: The S3 methods (like `print`, `summary`)
   specifically for these adjustment objects.
 
-4.  Phase 2: Wrapper Models (The `02_` Prefix): These files contain the
+3.  Phase 2: Wrapper Models (The `02_` Prefix): These files contain the
     user-facing modeling functions that parse formulas and dispatch the
     appropriate internal routine based on the provided adjustment
     object.
@@ -42,17 +42,12 @@ package architecture:
     computational routines are completely decoupled from the wrappers.
     They are named using a `[method]_[model]` syntax.
 
-- ``` R
-  ELE: `ele_glm.R`, `ele_coxph.R`, and their associated `*_methods.R` files.
-  ```
-
-- ``` R
-  Mixture: `mixture_glm.R`, `mixture_coxph.R`, `mixture_ctable.R`, `mixture_helpers.R`, etc. 
-  ```
-
-- ``` R
-  Bayesian Mixture: `mixbayes_glm.R`, `mixbayes_survreg.R`, `mixbayes_helpers.R`, etc.
-  ```
+- ELE: `ele_glm.R`, `ele_coxph.R`, and their associated `*_methods.R`
+  files.
+- Mixture: `mixture_glm.R`, `mixture_coxph.R`, `mixture_ctable.R`,
+  `mixture_helpers.R`, etc.
+- Bayesian Mixture: `mixbayes_glm.R`, `mixbayes_survreg.R`,
+  `mixbayes_helpers.R`, etc.
 
 5.  Datasets:
 

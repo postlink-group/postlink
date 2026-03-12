@@ -93,8 +93,8 @@ fit <- glmMixBayes(
 #> 
 #> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 4e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.4 seconds.
+#> Chain 1: Gradient evaluation took 4.2e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.42 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -119,9 +119,9 @@ fit <- glmMixBayes(
 #> Chain 1: Iteration: 140 / 150 [ 93%]  (Sampling)
 #> Chain 1: Iteration: 150 / 150 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.066 seconds (Warm-up)
-#> Chain 1:                0.213 seconds (Sampling)
-#> Chain 1:                0.279 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.065 seconds (Warm-up)
+#> Chain 1:                0.209 seconds (Sampling)
+#> Chain 1:                0.274 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is 1.15, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See

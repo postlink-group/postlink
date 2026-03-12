@@ -69,9 +69,9 @@ fit <- glmMixBayes(
 #> Chain 1: Iteration: 90 / 100 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 100 / 100 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.118 seconds (Warm-up)
-#> Chain 1:                0.138 seconds (Sampling)
-#> Chain 1:                0.256 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.117 seconds (Warm-up)
+#> Chain 1:                0.137 seconds (Sampling)
+#> Chain 1:                0.254 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -95,7 +95,7 @@ fit <- glmMixBayes(
 #>     Retrieve the 1 best clusterings: [...]$clusters
 #>     Retrieve the 1 CPU times: [...]$timings
 #>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
-#>     Label switching finished. Total time: 0 seconds. 
+#>     Label switching finished. Total time: 0.1 seconds. 
 
 # Extract the empirical posterior covariance matrix for component 1 (Correct Links)
 vcov_mat <- vcov(fit)
