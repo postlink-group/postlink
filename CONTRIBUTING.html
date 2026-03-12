@@ -40,7 +40,7 @@
 <div id="contributing-to-postlink" class="section level1">
 
 <p>Thank you for visiting this page!</p>
-<p>This page is currently under development, but in the meantime, if you found a bug, have a feature request, or would like to contribute to the package, please open an issue or email <a href="mailto:postlink.group@gmail.com" class="email">postlink.group@gmail.com</a> to discuss your proposed changes. We look forward to your feedback and collaborating with you.</p>
+<p>This page is currently under development, but in the meantime, if you found a bug, have a feature request, or would be interested in contributing to the package, please open an issue or email <a href="mailto:postlink.group@gmail.com" class="email">postlink.group@gmail.com</a> to discuss the proposed changes. We look forward to your feedback and collaborating with you.</p>
 <div class="section level2">
 <h2 id="the-r-directory-layout">The <code>R/</code> Directory Layout<a class="anchor" aria-label="anchor" href="#the-r-directory-layout"></a></h2>
 <p>Files are grouped into four main categories based on their role in the package architecture:</p>
@@ -51,13 +51,20 @@
 <code>postlink-package.R</code>: The core package-level documentation and namespace directives.</li>
 <li>
 <code>stanmodels.R</code>: The interface for pre-compiled Stan/C++ models used in Bayesian adjustments.</li>
-</ul><ol start="2" style="list-style-type: decimal"><li>Phase 1: Adjustment Constructors (The <code>01_</code> Prefix):</li>
-</ol><p>These files contain the user-facing constructor functions that define the linked data and specify the adjustment method. * <code>01_adjELE.R</code>, <code>01_adjMixture.R</code>, <code>01_adjMixBayes.R</code>: The core constructor functions. * <code>01_adjELE_methods.R</code>, etc.: The S3 methods (like <code>print</code>, <code>summary</code>) specifically for these adjustment objects.</p>
-<ol start="3" style="list-style-type: decimal"><li>Phase 2: Wrapper Models (The <code>02_</code> Prefix):</li>
-</ol><p>These files contain the user-facing modeling functions that parse formulas and dispatch the appropriate internal routine based on the provided adjustment object. * <code>02_plglm.R</code>, <code>02_plcoxph.R</code>, <code>02_plctable.R</code>, <code>02_plsurvreg.R</code></p>
-<ol start="4" style="list-style-type: decimal"><li>Internal Routines for the Adjustment Methods:</li>
-</ol><p>The internal computational routines are completely decoupled from the wrappers. They are named using a <code>[method]_[model]</code> syntax. * <strong>ELE</strong>: <code>ele_glm.R</code>, <code>ele_coxph.R</code>, and their associated <code>*_methods.R</code> files. * <strong>Mixture</strong>: <code>mixture_glm.R</code>, <code>mixture_coxph.R</code>, <code>mixture_ctable.R</code>, <code>mixture_helpers.R</code>, etc. * <strong>Bayesian Mixture</strong>: <code>mixbayes_glm.R</code>, <code>mixbayes_survreg.R</code>, <code>mixbayes_helpers.R</code>, etc.</p>
-<ol start="5" style="list-style-type: decimal"><li>Datasets:</li>
+</ul><ol start="2" style="list-style-type: decimal"><li>Phase 1: Adjustment Constructors (The <code>01_</code> Prefix): These files contain the user-facing constructor functions that define the linked data and specify the adjustment method.</li>
+</ol><ul><li>
+<code>01_adjELE.R</code>, <code>01_adjMixture.R</code>, <code>01_adjMixBayes.R</code>: The core constructor functions.</li>
+<li>
+<code>01_adjELE_methods.R</code>, etc.: The S3 methods (like <code>print</code>, <code>summary</code>) specifically for these adjustment objects.</li>
+</ul><ol start="4" style="list-style-type: decimal"><li>Phase 2: Wrapper Models (The <code>02_</code> Prefix): These files contain the user-facing modeling functions that parse formulas and dispatch the appropriate internal routine based on the provided adjustment object.</li>
+</ol><ul><li>
+<code>02_plglm.R</code>, <code>02_plcoxph.R</code>, <code>02_plctable.R</code>, <code>02_plsurvreg.R</code>
+</li>
+</ul><ol start="4" style="list-style-type: decimal"><li>Internal Routines for the Adjustment Methods: The internal computational routines are completely decoupled from the wrappers. They are named using a <code>[method]_[model]</code> syntax.</li>
+</ol><ul><li><div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>ELE<span class="sc">:</span> <span class="st">`</span><span class="at">ele_glm.R</span><span class="st">`</span>, <span class="st">`</span><span class="at">ele_coxph.R</span><span class="st">`</span>, and their associated <span class="st">`</span><span class="at">*_methods.R</span><span class="st">`</span> files.</span></code></pre></div></li>
+<li><div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>Mixture<span class="sc">:</span> <span class="st">`</span><span class="at">mixture_glm.R</span><span class="st">`</span>, <span class="st">`</span><span class="at">mixture_coxph.R</span><span class="st">`</span>, <span class="st">`</span><span class="at">mixture_ctable.R</span><span class="st">`</span>, <span class="st">`</span><span class="at">mixture_helpers.R</span><span class="st">`</span>, etc. </span></code></pre></div></li>
+<li><div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>Bayesian Mixture<span class="sc">:</span> <span class="st">`</span><span class="at">mixbayes_glm.R</span><span class="st">`</span>, <span class="st">`</span><span class="at">mixbayes_survreg.R</span><span class="st">`</span>, <span class="st">`</span><span class="at">mixbayes_helpers.R</span><span class="st">`</span>, etc.</span></code></pre></div></li>
+</ul><ol start="5" style="list-style-type: decimal"><li>Datasets:</li>
 </ol><ul><li>
 <code>lifem.R</code>, <code>brfss.R</code>: Roxygen documentation for the included demo datasets.</li>
 </ul></div>
