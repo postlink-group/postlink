@@ -64,19 +64,24 @@ internal routines. Advanced users, developers, or researchers running large-scal
 simulations can bypass the wrapper functions and formula-parsing overhead entirely.
 By supplying pre-computed design matrices and response vectors, the underlying
 computational functions can be directly used if preferred (e.g., \code{\link{coxphELE}()},
-\code{\link{glmMixBayes}()}, \code{\link{survregMixBayes}()}).
+\code{\link{glmMixture}()}, \code{\link{survregMixBayes}()}).
 }
 \references{
 Chambers, R. (2009). Regression analysis of probability-linked data.
 \emph{Official Statistics Research Series}, 4, 1-15.
 
+Chambers, R. L., Fabrizi, E., Ranalli, M. G., Salvati, N., & Wang, S. (2023).
+Robust regression using probabilistically linked data. \emph{Wiley Interdisciplinary
+Reviews: Computational Statistics}, 15(2), e1596. \doi{10.1002/wics.1596}
+
 Gutman, R., Sammartino, C., Green, T., & Montague, B. (2016). Error adjustments for file
 linking methods using encrypted unique client identifier (eUCI) with application to recently
 released prisoners who are HIV+. \emph{Statistics in Medicine}, 35(1), 115–129. \doi{10.1002/sim.6586}
 
-Slawski, M., West, B., Bukke, P., Wang, Z., Diao, G., & Ben-David, E. (2023).
-A General Framework for Regression with Mismatched Data Based on Mixture Modeling.
-\emph{arXiv preprint arXiv:2306.00909}.
+Slawski, M., West, B. T., Bukke, P., Wang, Z., Diao, G., &
+Ben-David, E. (2025). A general framework for regression with mismatched
+data based on mixture modelling. \emph{Journal of the Royal Statistical Society
+Series A: Statistics in Society}, 188(3), 896-919. \doi{10.1093/jrsssa/qnae083}
 
 Vo, T. H., Garès, V., Zhang, L. C., Happe, A., Oger, E., Paquelet, S., & Chauvet, G. (2024).
 Cox regression with linked data. \emph{Statistics in Medicine}, 43(2), 296-314. \doi{10.1002/sim.9960}

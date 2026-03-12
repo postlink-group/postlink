@@ -2,11 +2,11 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{mixture_bayesglm_methods}
 \alias{mixture_bayesglm_methods}
-\title{Methods for Bayesian Two-Component Mixture GLM Fits}
+\title{Methods for Bayesian mixture GLM fits}
 \description{
 S3 methods for objects returned by \code{glmMixBayes()}, including printing,
-summarization, credible intervals, posterior covariance, prediction, and
-multiple-imputation-style pooling based on posterior component allocation
-draws.
+summarizing fitted models, computing credible intervals and posterior
+covariance matrices, generating predictions, and pooling regression results
+across posterior match classifications.
 }
 \keyword{internal}

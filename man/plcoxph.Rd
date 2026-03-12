@@ -39,12 +39,17 @@ adjustment process.}
 \item{...}{Additional arguments passed to the internal function.}
 }
 \value{
-A fitted model object containing the \code{call} and requested design components.
+An object representing the fitted model. The specific class and structure of the
+returned object depend directly on the \code{adjustment} method provided:
+\itemize{
+\item If \code{adjustment} is of class \code{adjELE}, returns an object of class \code{\link{coxphELE}}.
+\item If \code{adjustment} is of class \code{adjMixture}, returns an object of class \code{\link{coxphMixture}}.
+}
 }
 \description{
 \code{plcoxph} fits Cox proportional hazards models to linked data, adjusting for
 potential mismatch errors. It serves as a wrapper around the internal \code{fitcoxph}
-function, ensuring compatibility with the \code{\link[survival]{coxph}} syntax.
+function, for compatibility with the \code{\link[survival]{coxph}} syntax.
 }
 \examples{
 \dontrun{
@@ -91,5 +96,5 @@ fit <- plcoxph(
 
 }
 \seealso{
-\code{\link{plglm}}
+\code{\link{adjELE}}, \code{\link{adjMixture}}, \code{\link{coxphELE}}, \code{\link{coxphMixture}}
 }

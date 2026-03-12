@@ -2,20 +2,23 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{print.mi_link_pool_survreg}
 \alias{print.mi_link_pool_survreg}
-\title{Print method for pooled survreg MI object}
+\title{Print pooled posterior component-classification results}
 \usage{
 \method{print}{mi_link_pool_survreg}(x, ...)
 }
 \arguments{
 \item{x}{An object of class \code{mi_link_pool_survreg}.}
 
-\item{...}{Additional arguments (unused).}
+\item{...}{Further arguments (unused).}
 }
 \value{
-Invisibly returns \code{x}.
+The input \code{x}, invisibly.
 }
 \description{
-Print method for pooled survreg MI object
+Prints a summary of the posterior probabilities of belonging to component 1,
+interpreted here as the correct-match component,
+from an object returned by \code{mi_with()} for a
+\code{survMixBayes} model.
 }
 \examples{
 \donttest{
@@ -35,7 +38,7 @@ fit <- survregMixBayes(
 # Create the pooled object via mi_with
 pooled_obj <- mi_with(fit)
 
-# Explicitly call the print method for the pooled object
+# Print the pooled posterior classification summary
 print(pooled_obj)
 }
 

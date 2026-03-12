@@ -35,7 +35,8 @@ z-statistics, and p-values for both the outcome model and the mismatch model.
 library(survival)
 set.seed(203)
 
-# Simulate linked data with heterogeneous mismatch errors
+# Simulate linked data with mismatch errors
+# Lower match scores correspond to a higher probability of mismatch
 n <- 200
 x1 <- rnorm(n)
 x2 <- rbinom(n, 1, 0.5)
@@ -50,10 +51,8 @@ linked_data <- data.frame(
 )
 
 mis_idx <- which(rbinom(n, 1, prob = 1 - match_score) == 1)
-if (length(mis_idx) > 1) {
-  linked_data$x1[mis_idx] <- linked_data$x1[sample(mis_idx)]
-  linked_data$x2[mis_idx] <- linked_data$x2[sample(mis_idx)]
-}
+linked_data$x1[mis_idx] <- linked_data$x1[sample(mis_idx)]
+linked_data$x2[mis_idx] <- linked_data$x2[sample(mis_idx)]
 
 # Fit the Cox PH Mixture Model
 adj <- adjMixture(linked.data = linked_data, m.formula = ~ match_score)

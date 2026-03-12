@@ -2,12 +2,13 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{print.mi_link_pool_glm}
 \alias{print.mi_link_pool_glm}
-\title{Print a pooled MI object from glmMixBayes}
+\title{Print pooled regression results}
 \usage{
 \method{print}{mi_link_pool_glm}(x, digits = max(3L, getOption("digits") - 2L), ...)
 }
 \arguments{
-\item{x}{An object of class \code{mi_link_pool_glm}.}
+\item{x}{An object of class \code{mi_link_pool_glm}, typically returned by
+\code{mi_with()} for a \code{glmMixBayes} fit.}
 
 \item{digits}{the number of significant digits to print.}
 
@@ -17,7 +18,7 @@
 The input \code{x}, invisibly.
 }
 \description{
-Print a pooled MI object from glmMixBayes
+Print pooled regression results
 }
 \examples{
 \donttest{
@@ -33,7 +34,7 @@ fit <- glmMixBayes(
   control = list(iterations = 150, burnin.iterations = 50, seed = 607)
 )
 
-# Perform multiple imputation pooling
+# Pool regression fits across posterior draws
 pooled_fit <- mi_with(
   object = fit,
   data = linked_data,

@@ -42,7 +42,11 @@ by the \code{\link[survival]{Surv}} function.}
 \item{...}{Additional arguments passed to the internal engine.}
 }
 \value{
-A fitted survival model object.
+An object representing the fitted model. The specific class and structure of the
+returned object depend directly on the \code{adjustment} method provided:
+\itemize{
+\item If \code{adjustment} is of class \code{adjMixBayes}, returns an object of class \code{\link{survregMixBayes}}.
+}
 }
 \description{
 \code{plsurvreg} fits parametric survival models (Accelerated Failure Time models)
@@ -51,7 +55,6 @@ to linked data. It serves as a wrapper for the internal engines, compatible with
 }
 \examples{
 \dontrun{
-library(survival)
 set.seed(202)
 n <- 200
 
@@ -62,17 +65,17 @@ cens_time <- rexp(n, 0.05)
 true_obs_time <- pmin(true_time, cens_time)
 true_status <- as.numeric(true_time <= cens_time)
 
-# Induce linkage mismatch errors
+# Induce linkage mismatch errors by...
 is_mismatch <- rbinom(n, 1, 0.2) # ~20\% overall mismatch rate
 obs_time <- true_obs_time
 obs_status <- true_status
 mismatch_idx <- which(is_mismatch == 1)
 
-if(length(mismatch_idx) > 1) {
-  shuffled <- sample(mismatch_idx)
-  obs_time[mismatch_idx] <- obs_time[shuffled]
-  obs_status[mismatch_idx] <- obs_status[shuffled]
-}
+# Shuffle time and status together for mismatched records
+shuffled <- sample(mismatch_idx)
+obs_time[mismatch_idx] <- obs_time[shuffled]
+obs_status[mismatch_idx] <- obs_status[shuffled]
+
 linked_df <- data.frame(time = obs_time, status = obs_status, trt)
 
 # Specify the Bayesian Mixture Adjustment
@@ -88,5 +91,5 @@ fit <- plsurvreg(
 }
 }
 \seealso{
-\code{\link[survival]{survreg}}
+\code{\link{adjMixBayes}}, \code{\link{survregMixBayes}}
 }

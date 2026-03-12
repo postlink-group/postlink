@@ -2,34 +2,42 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{confint.glmMixBayes}
 \alias{confint.glmMixBayes}
-\title{Credible intervals for glmMixBayes coefficients}
+\title{Credible intervals for regression coefficients from a glmMixBayes fit}
 \usage{
 \method{confint}{glmMixBayes}(object, parm = NULL, level = 0.95, ...)
 }
 \arguments{
 \item{object}{A \code{glmMixBayes} model object.}
 
-\item{parm}{Optional. Parameter names or indices for selecting a subset of
-coefficients. If \code{NULL}, all coefficients are returned.}
+\item{parm}{Optional. Names or numeric indices of coefficients for which
+credible intervals should be returned. If \code{NULL}, intervals are
+returned for all coefficients.}
 
-\item{level}{Probability level for the intervals (default 0.95).}
+\item{level}{Probability level for the credible intervals. Defaults to
+\code{0.95}.}
 
 \item{...}{Not used.}
 }
 \value{
-A matrix with two columns (lower and upper bounds) and one row per coefficient.
+A matrix with one row per coefficient and two columns giving the lower and
+upper credible interval bounds. Row names correspond to coefficient names.
 }
 \description{
-Credible intervals for glmMixBayes coefficients
+Computes posterior credible intervals for the regression coefficients in a
+fitted \code{glmMixBayes} model. By default, intervals are returned for all
+coefficients in the primary component of the mixture model. A subset of
+coefficients can be selected using \code{parm}.
 }
 \examples{
-\donttest{
-# Simulate data
+# Simulate simple Gaussian regression data
 set.seed(604)
 n <- 100
-X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
-X[, 1] <- 1
-y <- rnorm(n, mean = X \%*\% c(1, 2), sd = 1.5)
+
+x1 <- rnorm(n)
+X <- cbind(Intercept = 1, x1 = x1)
+
+# True model: y = 1 + 2*x1 + error
+y <- 1 + 2 * x1 + rnorm(n, sd = 1.5)
 
 # Fit the model
 fit <- glmMixBayes(
@@ -37,11 +45,10 @@ fit <- glmMixBayes(
   control = list(iterations = 100, burnin.iterations = 50, seed = 604)
 )
 
-# Calculate 95\% credible intervals for all outcome coefficients
+# Calculate 95\% credible intervals for all coefficients
 confint(fit, level = 0.95)
 
-# Extract credible interval specifically for the 'x1' parameter
+# Extract the credible interval for the x1 coefficient
 confint(fit, parm = "x1", level = 0.90)
-}
 
 }

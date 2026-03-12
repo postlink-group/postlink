@@ -2,20 +2,28 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{mi_with.survMixBayes}
 \alias{mi_with.survMixBayes}
-\title{Pooling method for survMixBayes objects}
+\title{Pool posterior component classifications from a survMixBayes fit}
 \usage{
 \method{mi_with}{survMixBayes}(object, ...)
 }
 \arguments{
 \item{object}{An object of class \code{survMixBayes}.}
 
-\item{...}{Additional arguments (unused).}
+\item{...}{Further arguments (unused).}
 }
 \value{
-A pooled object of class \code{mi_link_pool_survreg}.
+An object of class
+\code{c("mi_link_pool_survreg", "mi_link_pool")} containing the fitted
+model call, survival distribution, posterior probabilities of belonging to
+component 1 for each observation, where component 1 is interpreted as the
+correct-match component, and the stored posterior draws from the original
+fitted model.
 }
 \description{
-Performs posterior allocation based pooling for a \code{survMixBayes} fit.
+Summarizes posterior component classifications from a fitted
+\code{survMixBayes} model by computing, for each observation, the posterior
+probability of belonging to component 1. In this package, component 1 is
+interpreted as the correct-match component.
 }
 \examples{
 \donttest{
@@ -32,10 +40,10 @@ fit <- survregMixBayes(
   control = list(iterations = 100, burnin.iterations = 50, seed = 406)
 )
 
-# Perform posterior allocation pooling
+# Summarize posterior component classifications
 pooled_obj <- mi_with(fit)
 
-# View the distribution of posterior probabilities of belonging to component 1
+# View the posterior probabilities of belonging to component 1
 summary(pooled_obj$p_component1)
 }
 

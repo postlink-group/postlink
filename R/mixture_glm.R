@@ -43,6 +43,7 @@
 #' \item{df.residual}{The residual degrees of freedom.}
 #' \item{df.null}{The residual degrees of freedom for the null model.}
 #' \item{family}{The \code{family} object used.}
+#' \item{\code{call}}{The matched call.}
 #'
 #' @references
 #' Slawski, M.*, West, B. T., Bukke, P., Wang, Z., Diao, G., &

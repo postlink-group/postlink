@@ -33,7 +33,11 @@ adjustment process.}
 \item{...}{Additional arguments passed to the internal function.}
 }
 \value{
-A fitted model object tailored for contingency table analysis.
+An object representing the fitted model. The specific class and structure of the
+returned object depend directly on the \code{adjustment} method provided:
+\itemize{
+\item If \code{adjustment} is of class \code{adjMixture}, returns an object of class \code{\link{ctableMixture}}.
+}
 }
 \description{
 \code{plctable} constructs a contingency table and adjusts the fitted model for
@@ -76,4 +80,7 @@ fit <- plctable(
 )
 }
 
+}
+\seealso{
+\code{\link{adjMixture}}, \code{\link{ctableMixture}}
 }

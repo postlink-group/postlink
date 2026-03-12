@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{mi_with}
 \alias{mi_with}
-\title{Posterior allocation based pooling generic}
+\title{Pool parameter estimates across posterior draws}
 \usage{
 mi_with(object, ...)
 }
@@ -12,17 +12,18 @@ mi_with(object, ...)
 \item{...}{Additional arguments passed to methods.}
 }
 \value{
-A pooled model object.
+A pooled model object combining parameter estimates across
+posterior component allocations.
 }
 \description{
-Generic function for posterior allocation based pooling of Bayesian
-mixture model fits.
+Generic function for pooling parameter estimates from Bayesian mixture
+models using posterior draws of the latent match classifications.
 }
 \examples{
 \donttest{
-# mi_with() is a generic function for posterior allocation-based pooling.
-# See ?mi_with.glmMixBayes for a complete, executable example demonstrating
-# its use with Bayesian GLM mixture models.
+# mi_with() is a generic function for posterior allocation–based pooling.
+# See ?mi_with.glmMixBayes for a complete example illustrating its use
+# with Bayesian GLM mixture models.
 }
 
 }

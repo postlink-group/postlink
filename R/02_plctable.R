@@ -14,7 +14,12 @@
 #' adjustment process.
 #' @param ... Additional arguments passed to the internal function.
 #'
-#' @return A fitted model object tailored for contingency table analysis.
+#' @return
+#' An object representing the fitted model. The specific class and structure of the
+#' returned object depend directly on the `adjustment` method provided:
+#' \itemize{
+#'   \item If `adjustment` is of class `adjMixture`, returns an object of class \code{\link{ctableMixture}}.
+#' }
 #'
 #' @examples
 #' \dontrun{
@@ -52,6 +57,8 @@
 #'   adjustment = adj
 #' )
 #' }
+#'
+#' @seealso \code{\link{adjMixture}}, \code{\link{ctableMixture}}
 #'
 #' @export
 plctable <- function(formula,

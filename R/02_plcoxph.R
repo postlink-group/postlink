@@ -2,7 +2,7 @@
 #'
 #' \code{plcoxph} fits Cox proportional hazards models to linked data, adjusting for
 #' potential mismatch errors. It serves as a wrapper around the internal \code{fitcoxph}
-#' function, ensuring compatibility with the \code{\link[survival]{coxph}} syntax.
+#' function, for compatibility with the \code{\link[survival]{coxph}} syntax.
 #'
 #' @param formula A formula object, with the response on the left of a ~ operator,
 #'   and the terms on the right. The response must be a survival object as returned
@@ -18,7 +18,13 @@
 #' adjustment process.
 #' @param ... Additional arguments passed to the internal function.
 #'
-#' @return A fitted model object containing the \code{call} and requested design components.
+#' @return
+#' An object representing the fitted model. The specific class and structure of the
+#' returned object depend directly on the `adjustment` method provided:
+#' \itemize{
+#'   \item If `adjustment` is of class `adjELE`, returns an object of class \code{\link{coxphELE}}.
+#'   \item If `adjustment` is of class `adjMixture`, returns an object of class \code{\link{coxphMixture}}.
+#' }
 #'
 #' @examples
 #' \dontrun{
@@ -63,7 +69,7 @@
 #' )
 #' }
 #'
-#' @seealso \code{\link{plglm}}
+#' @seealso \code{\link{adjELE}}, \code{\link{adjMixture}}, \code{\link{coxphELE}}, \code{\link{coxphMixture}}
 #' @export
 plcoxph <- function(formula,
                     adjustment,

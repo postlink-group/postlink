@@ -57,7 +57,8 @@ estimator stored in the object and evaluates it at the time points found in
 library(survival)
 set.seed(205)
 
-# Simulate linked data with heterogeneous mismatch errors
+# Simulate auxiliary match scores and linkage errors
+# Lower match scores correspond to a higher probability of mismatch
 n <- 200
 x1 <- rnorm(n)
 x2 <- rbinom(n, 1, 0.5)
@@ -72,10 +73,8 @@ linked_data <- data.frame(
 )
 
 mis_idx <- which(rbinom(n, 1, prob = 1 - match_score) == 1)
-if (length(mis_idx) > 1) {
-  linked_data$x1[mis_idx] <- linked_data$x1[sample(mis_idx)]
-  linked_data$x2[mis_idx] <- linked_data$x2[sample(mis_idx)]
-}
+linked_data$x1[mis_idx] <- linked_data$x1[sample(mis_idx)]
+linked_data$x2[mis_idx] <- linked_data$x2[sample(mis_idx)]
 
 # Fit the Cox PH Mixture Model
 # Note: We set `y = TRUE` to store the response for baseline hazard reconstruction

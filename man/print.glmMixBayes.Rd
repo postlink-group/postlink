@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{print.glmMixBayes}
 \alias{print.glmMixBayes}
-\title{Print a brief summary of a glmMixBayes model}
+\title{Print a glmMixBayes model object}
 \usage{
 \method{print}{glmMixBayes}(x, digits = max(3L, getOption("digits") - 3L), ...)
 }
@@ -17,7 +17,7 @@
 The input \code{x}, invisibly.
 }
 \description{
-Print a brief summary of a glmMixBayes model
+Print a glmMixBayes model object
 }
 \examples{
 \donttest{

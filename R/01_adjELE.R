@@ -55,6 +55,13 @@
 #' Paquelet, S., & Chauvet, G. (2024). Cox regression with linked data.
 #' \emph{Statistics in Medicine}, 43(2), 296-314. \doi{10.1002/sim.9960}
 #'
+#' @note
+#' The internal algorithmic structure for the estimating equations was informed by
+#' the foundational work presented in Chambers (2009) and Vo et al. (2024).
+#' Additionally, the original code provided in the Appendix of Chambers (2009)
+#' was utilized as a benchmark oracle during the unit testing phase of package
+#' development to check for numerical accuracy and validity of the implementation.
+#'
 #' @export
 adjELE <- function(linked.data,
                    m.rate,
