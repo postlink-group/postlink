@@ -26,9 +26,9 @@ Files are grouped into four main categories based on their role in the package a
 
 4.  Internal Routines for the Adjustment Methods: The internal computational routines are completely decoupled from the wrappers. They are named using a `[method]_[model]` syntax.
 
--     ELE: `ele_glm.R`, `ele_coxph.R`, and their associated `*_methods.R` files.
--     Mixture: `mixture_glm.R`, `mixture_coxph.R`, `mixture_ctable.R`, `mixture_helpers.R`, etc. 
--     Bayesian Mixture: `mixbayes_glm.R`, `mixbayes_survreg.R`, `mixbayes_helpers.R`, etc.
+-    ELE: `ele_glm.R`, `ele_coxph.R`, and their associated `*_methods.R` files.
+-    Mixture: `mixture_glm.R`, `mixture_coxph.R`, `mixture_ctable.R`, `mixture_helpers.R`, etc. 
+-    Bayesian Mixture: `mixbayes_glm.R`, `mixbayes_survreg.R`, `mixbayes_helpers.R`, etc.
 
 5.  Datasets:
 
