@@ -13,13 +13,13 @@ NULL
 #' Pool parameter estimates across posterior draws
 #'
 #' Generic function for pooling parameter estimates from Bayesian mixture
-#' models using posterior draws of the latent match classifications.
+#' models using posterior draws of the latent component indicators.
 #'
 #' @param object A fitted Bayesian mixture model object.
 #' @param ... Additional arguments passed to methods.
 #'
 #' @return A pooled model object combining parameter estimates across
-#' posterior component allocations.
+#' posterior component-indicator draws.
 #'
 #' @examples
 #' \dontrun{
@@ -179,7 +179,7 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
   cat(" ", sep="\n")
   cat("Family:", x$family, " ", sep="\n")
 
-  cat("(For Correct Matches):", sep="\n")
+  cat("(Component 1 = Correct-match):", sep = "\n")
 
   cat("Outcome Model Coefficients:", sep="\n")
   stats::printCoefmat(x$coefficients,quote=F, digits = digits,
@@ -192,7 +192,7 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
     cat("\n")
   }
 
-  cat("(For Mismatches):", sep="\n")
+  cat("(Component 2 = Incorrect-match):", sep = "\n")
 
   cat("Outcome Model Coefficients:", sep="\n")
   stats::printCoefmat(x$m.coefficients,quote=F, digits = digits,
@@ -212,8 +212,8 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
 #'
 #' @param object A \code{glmMixBayes} model object.
 #' @param ... Not used.
-#' @return Posterior covariance matrix of the regression coefficients for the
-#' primary (correct-match) component.
+#' @return Posterior covariance matrix of the regression coefficients for
+#' component 1 (the correct-match component).
 #'
 #' @examples
 #' \dontrun{
@@ -253,7 +253,7 @@ vcov.glmMixBayes <- function(object, ...) {
 #'
 #' Computes posterior credible intervals for the regression coefficients in a
 #' fitted \code{glmMixBayes} model. By default, intervals are returned for all
-#' coefficients in the primary component of the mixture model. A subset of
+#' coefficients in component 1 of the mixture model. A subset of
 #' coefficients can be selected using \code{parm}.
 #'
 #' @param object A \code{glmMixBayes} model object.

@@ -115,8 +115,8 @@
 #' @examples
 #' \donttest{
 #' # 1. Simulate survival data from a two-component Weibull mixture
-#' # Component 2 represents correct links (strong signal),
-#' # and Component 1 represents mismatched links (noise).
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents mismatched links (noise).
 #' set.seed(301)
 #' n <- 150
 #' X <- matrix(rnorm(n * 2), ncol = 2)
@@ -148,13 +148,13 @@
 #'
 #' # 3. Inspect the aligned posterior estimates
 #' # (Label switching is handled automatically via ECR-ITERATIVE-1)
-#' cat("Component 2 (Correct Links) Coefficients:\n")
+#' cat("Component 1 (Correct Links) Coefficients:\n")
 #' print(colMeans(fit$estimates$m.coefficients))
 #'
-#' cat("Component 1 (Mismatches) Coefficients:\n")
+#' cat("Component 2 (Incorrect Links) Coefficients:\n")
 #' print(colMeans(fit$estimates$coefficients))
 #'
-#' cat("Estimated mixing weight (Mismatch proportion):\n")
+#' cat("Estimated mixing weight (Correct-link proportion):\n")
 #' print(mean(fit$estimates$theta))
 #' }
 #'
