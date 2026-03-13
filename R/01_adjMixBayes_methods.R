@@ -14,14 +14,20 @@
 #' priors or outlines the defaults that will be used.
 #'
 #' @examples
-#' set.seed(42)
-#' n <- 100
-#' linked_df <- data.frame(
-#'   x = rnorm(n),
-#'   y = rnorm(n), # In practice, y would contain mismatch errors
-#'   match_score = runif(n, 0.7, 1.0)
+#' data(lifem)
+#'
+#' # lifem data preprocessing
+#' # For computational efficiency in the example, we work with a subset of the lifem data.
+#' lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+#' lifem_small <- rbind(
+#'   head(subset(lifem, hndlnk == 1), 100),
+#'   head(subset(lifem, hndlnk == 0), 20)
 #' )
-#' adj_obj <- adjMixBayes(linked.data = linked_df)
+#'
+#' adj_obj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
 #'
 #' # Implicitly calls print.adjMixBayes()
 #' adj_obj

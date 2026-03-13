@@ -24,28 +24,20 @@
 #' the necessary data for downstream model fitting.
 #'
 #' @examples
-#' # Simulate true data
-#' set.seed(123)
-#' n <- 200
-#' x <- rnorm(n)
-#' true_y <- 1.5 + 2 * x + rnorm(n)
+#' data(lifem)
 #'
-#' # Induce linkage mismatch errors
-#' # Assume we have a match probability for each record
-#' match_prob <- rbeta(n, 8, 2)
-#' is_mismatch <- rbinom(n, 1, 1 - match_prob)
-#'
-#' obs_y <- true_y
-#' mismatch_idx <- which(is_mismatch == 1)
-#' if(length(mismatch_idx) > 1) {
-#'   obs_y[mismatch_idx] <- sample(obs_y[mismatch_idx])
-#' }
-#' linked_data <- data.frame(y = obs_y, x = x, match_prob = match_prob)
+#' # lifem data preprocessing
+#' # For computational efficiency in the example, we work with a subset of the lifem data.
+#' lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+#' lifem_small <- rbind(
+#'   head(subset(lifem, hndlnk == 1), 100),
+#'   head(subset(lifem, hndlnk == 0), 20)
+#' )
 #'
 #' # Construct the Bayesian mixture adjustment object
 #' adj_bayes <- adjMixBayes(
-#'   linked.data = linked_data,
-#'   priors = list(theta = "beta(2, 2)") # Optional: Override default
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
 #' )
 #'
 #' class(adj_bayes)

@@ -22,7 +22,7 @@ NULL
 #' posterior component allocations.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # mi_with() is a generic function for posterior allocation–based pooling.
 #' # See ?mi_with.glmMixBayes for a complete example illustrating its use
 #' # with Bayesian GLM mixture models.
@@ -41,21 +41,31 @@ mi_with <- function(object, ...) {
 #' @return The input \code{x}, invisibly.
 #'
 #' @examples
-#' \donttest{
-#' # 1. Simulate fast toy data (Gaussian mixture)
-#' set.seed(601)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
-#' X[, 1] <- 1
-#' y <- rnorm(n, mean = X %*% c(1, 2), sd = 1.5)
+#' \dontrun{
+#' data(lifem)
 #'
-#' # 2. Fit the model with artificially low iterations for speed
-#' fit <- glmMixBayes(
-#'   X = X, y = y, family = "gaussian",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 601)
+#' # lifem data preprocessing
+#' # For computational efficiency in the example, we work with a subset of the lifem data.
+#' lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+#' lifem_small <- rbind(
+#'   head(subset(lifem, hndlnk == 1), 100),
+#'   head(subset(lifem, hndlnk == 0), 20)
 #' )
 #'
-#' # 3. Print the model object
+#' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
+#' y <- lifem_small$age_at_death
+#'
+#' fit <- glmMixBayes(
+#'   X = x,
+#'   y = y,
+#'   family = "gaussian",
+#'   control = list(
+#'     iterations = 200,
+#'     burnin.iterations = 100,
+#'     seed = 123
+#'   )
+#' )
+#'
 #' print(fit)
 #' }
 #'
@@ -81,23 +91,32 @@ print.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L),...)
 #' @return An object of class \code{"summary.glmMixBayes"}, which is printed with a custom method.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate data
-#' set.seed(602)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
-#' X[, 1] <- 1
-#' y <- rpois(n, lambda = exp(X %*% c(0.5, 0.2)))
+#' \dontrun{
+#' data(lifem)
 #'
-#' # Fit the Poisson mixture model
-#' fit <- glmMixBayes(
-#'   X = X, y = y, family = "poisson",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 602)
+#' # lifem data preprocessing
+#' # For computational efficiency in the example, we work with a subset of the lifem data.
+#' lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+#' lifem_small <- rbind(
+#'   head(subset(lifem, hndlnk == 1), 100),
+#'   head(subset(lifem, hndlnk == 0), 20)
 #' )
 #'
-#' # Generate and print the comprehensive summary
-#' fit_summary <- summary(fit)
-#' print(fit_summary)
+#' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
+#' y <- lifem_small$age_at_death
+#'
+#' fit <- glmMixBayes(
+#'   X = x,
+#'   y = y,
+#'   family = "gaussian",
+#'   control = list(
+#'     iterations = 200,
+#'     burnin.iterations = 100,
+#'     seed = 123
+#'   )
+#' )
+#'
+#' summary(fit)
 #' }
 #'
 #' @export
@@ -197,23 +216,32 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
 #' primary (correct-match) component.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate data
-#' set.seed(603)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
-#' X[, 1] <- 1
-#' y <- rpois(n, lambda = exp(X %*% c(0.5, 0.2)))
+#' \dontrun{
+#' data(lifem)
 #'
-#' # Fit the model
-#' fit <- glmMixBayes(
-#'   X = X, y = y, family = "poisson",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 603)
+#' # lifem data preprocessing
+#' # For computational efficiency in the example, we work with a subset of the lifem data.
+#' lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+#' lifem_small <- rbind(
+#'   head(subset(lifem, hndlnk == 1), 100),
+#'   head(subset(lifem, hndlnk == 0), 20)
 #' )
 #'
-#' # Extract the empirical posterior covariance matrix for component 1 (Correct Links)
-#' vcov_mat <- vcov(fit)
-#' print(vcov_mat)
+#' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
+#' y <- lifem_small$age_at_death
+#'
+#' fit <- glmMixBayes(
+#'   X = x,
+#'   y = y,
+#'   family = "gaussian",
+#'   control = list(
+#'     iterations = 200,
+#'     burnin.iterations = 100,
+#'     seed = 123
+#'   )
+#' )
+#'
+#' vcov(fit)
 #' }
 #'
 #' @export
@@ -240,27 +268,33 @@ vcov.glmMixBayes <- function(object, ...) {
 #' upper credible interval bounds. Row names correspond to coefficient names.
 #'
 #' @examples
-#' # Simulate simple Gaussian regression data
-#' set.seed(604)
-#' n <- 100
+#' \dontrun{
+#' data(lifem)
 #'
-#' x1 <- rnorm(n)
-#' X <- cbind(Intercept = 1, x1 = x1)
-#'
-#' # True model: y = 1 + 2*x1 + error
-#' y <- 1 + 2 * x1 + rnorm(n, sd = 1.5)
-#'
-#' # Fit the model
-#' fit <- glmMixBayes(
-#'   X = X, y = y, family = "gaussian",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 604)
+#' # lifem data preprocessing
+#' # For computational efficiency in the example, we work with a subset of the lifem data.
+#' lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+#' lifem_small <- rbind(
+#'   head(subset(lifem, hndlnk == 1), 100),
+#'   head(subset(lifem, hndlnk == 0), 20)
 #' )
 #'
-#' # Calculate 95% credible intervals for all coefficients
-#' confint(fit, level = 0.95)
+#' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
+#' y <- lifem_small$age_at_death
 #'
-#' # Extract the credible interval for the x1 coefficient
-#' confint(fit, parm = "x1", level = 0.90)
+#' fit <- glmMixBayes(
+#'   X = x,
+#'   y = y,
+#'   family = "gaussian",
+#'   control = list(
+#'     iterations = 200,
+#'     burnin.iterations = 100,
+#'     seed = 123
+#'   )
+#' )
+#'
+#' confint(fit)
+#' }
 #'
 #' @export
 #' @method confint glmMixBayes
@@ -286,34 +320,40 @@ confint.glmMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
 #' @param level Probability level for the credible interval (default 0.95).
 #' @param ... Not used.
 #'
-#' @examples
-#' \donttest{
-#' # Simulate data
-#' set.seed(605)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
-#' X[, 1] <- 1
-#' y <- rpois(n, lambda = exp(X %*% c(0.5, 0.8)))
-#'
-#' # Fit the Poisson mixture model
-#' fit <- glmMixBayes(
-#'   X = X, y = y, family = "poisson",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 605)
-#' )
-#'
-#' # Create a new design matrix for prediction
-#' X_new <- matrix(c(1, 1,   # Intercepts
-#'                   0, 1.5), # x1 values
-#'                 ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
-#'
-#' # Predict expected counts (type = "response") with 95% credible intervals
-#' preds <- predict(fit, newx = X_new, type = "response", interval = "credible")
-#' print(preds)
-#' }
-#'
 #' @return If \code{se.fit = FALSE} and \code{interval = "none"}, a numeric vector of predicted values.
 #'   Otherwise, a matrix with columns for the fit, (optional) \code{se.fit}, and (optional)
 #'   credible interval bounds.
+#'
+#' @examples
+#' \dontrun{
+#' data(lifem)
+#'
+#' # lifem data preprocessing
+#' # For computational efficiency in the example, we work with a subset of the lifem data.
+#' lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+#' lifem_small <- rbind(
+#'   head(subset(lifem, hndlnk == 1), 100),
+#'   head(subset(lifem, hndlnk == 0), 20)
+#' )
+#'
+#' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
+#' y <- lifem_small$age_at_death
+#'
+#' fit <- glmMixBayes(
+#'   X = x,
+#'   y = y,
+#'   family = "gaussian",
+#'   control = list(
+#'     iterations = 200,
+#'     burnin.iterations = 100,
+#'     seed = 123
+#'   )
+#' )
+#'
+#' newx <- cbind(1, poly(c(0.2, 0.5, 0.8), 3, raw = TRUE))
+#' predict(fit, newx = newx, type = "response")
+#' }
+#'
 #' @export
 predict.glmMixBayes <- function(object, newx,
                                 type = c("link", "response"),
@@ -417,34 +457,38 @@ predict.glmMixBayes <- function(object, newx,
 #'   intervals, and related summary information.
 #'
 #' @examples
-#' \donttest{
-#' # 1. Simulate data linked with errors
-#' set.seed(606)
-#' n <- 100
-#' linked_data <- data.frame(
-#'   x1 = rnorm(n),
-#'   y = rnorm(n)
-#' )
-#' X <- model.matrix(~ x1, data = linked_data)
+#' \dontrun{
+#' data(lifem)
 #'
-#' # 2. Fit the GLM mixture model
+#' # lifem data preprocessing
+#' # For computational efficiency in the example, we work with a subset of the lifem data.
+#' lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+#' lifem_small <- rbind(
+#'   head(subset(lifem, hndlnk == 1), 100),
+#'   head(subset(lifem, hndlnk == 0), 20)
+#' )
+#'
+#' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
+#' y <- lifem_small$age_at_death
+#'
 #' fit <- glmMixBayes(
-#'   X = X, y = linked_data$y, family = "gaussian",
-#'   control = list(iterations = 150, burnin.iterations = 50, seed = 606)
+#'   X = x,
+#'   y = y,
+#'   family = "gaussian",
+#'   control = list(
+#'     iterations = 200,
+#'     burnin.iterations = 100,
+#'     seed = 123
+#'   )
 #' )
 #'
-#' # 3. Multiple Imputation Pooling
-#' # For each retained posterior draw, the function identifies the records
-#' # treated as correct matches, refits the requested model on that subset,
-#' # and then pools the estimates across draws.
 #' pooled_fit <- mi_with(
 #'   object = fit,
-#'   data = linked_data,
-#'   formula = y ~ x1,
+#'   data = lifem_small,
+#'   formula = age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = gaussian()
 #' )
 #'
-#' # 4. View pooled results
 #' print(pooled_fit)
 #' }
 #'
@@ -592,28 +636,38 @@ mi_with.glmMixBayes <- function(object, data, formula,
 #' @return The input \code{x}, invisibly.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate data
-#' set.seed(607)
-#' n <- 100
-#' linked_data <- data.frame(x1 = rnorm(n), y = rnorm(n))
-#' X <- model.matrix(~ x1, data = linked_data)
+#' \dontrun{
+#' data(lifem)
 #'
-#' # Fit the mixture model
-#' fit <- glmMixBayes(
-#'   X = X, y = linked_data$y, family = "gaussian",
-#'   control = list(iterations = 150, burnin.iterations = 50, seed = 607)
+#' # lifem data preprocessing
+#' # For computational efficiency in the example, we work with a subset of the lifem data.
+#' lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+#' lifem_small <- rbind(
+#'   head(subset(lifem, hndlnk == 1), 100),
+#'   head(subset(lifem, hndlnk == 0), 20)
 #' )
 #'
-#' # Pool regression fits across posterior draws
+#' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
+#' y <- lifem_small$age_at_death
+#'
+#' fit <- glmMixBayes(
+#'   X = x,
+#'   y = y,
+#'   family = "gaussian",
+#'   control = list(
+#'     iterations = 200,
+#'     burnin.iterations = 100,
+#'     seed = 123
+#'   )
+#' )
+#'
 #' pooled_fit <- mi_with(
 #'   object = fit,
-#'   data = linked_data,
-#'   formula = y ~ x1,
+#'   data = lifem_small,
+#'   formula = age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = gaussian()
 #' )
 #'
-#' # Explicitly test the print method
 #' print(pooled_fit, digits = 4)
 #' }
 #'

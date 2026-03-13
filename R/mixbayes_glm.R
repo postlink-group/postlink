@@ -93,40 +93,30 @@
 #' \doi{10.18637/jss.v069.c01}
 #'
 #' @examples
-#' \donttest{
-#' # 1. Simulate data from a two-component Gaussian mixture
-#' # Component 2: Correct links (strong signal/relationship)
-#' # Component 1: False links (noise/null relationship)
-#' set.seed(501)
-#' n <- 150
-#' X <- matrix(rnorm(n * 2), ncol = 2)
-#' colnames(X) <- c("Intercept", "x1")
-#' X[, 1] <- 1 # Set intercept
+#' \dontrun{
+#' data(lifem)
 #'
-#' # Latent match status: 70% correct links (Z=2), 30% mismatches (Z=1)
-#' Z_true <- rbinom(n, 1, 0.7) + 1
-#'
-#' # Generate responses based on latent status
-#' y1 <- rnorm(n, mean = X %*% c(0, 0), sd = 2)     # Noise (mismatches)
-#' y2 <- rnorm(n, mean = X %*% c(1, 1.5), sd = 0.5) # Signal (correct links)
-#' y <- ifelse(Z_true == 2, y2, y1)
-#'
-#' # 2. Fit the Bayesian Two-Component Mixture GLM
-#' # Note: Iterations are set artificially low for check speed.
-#' fit <- glmMixBayes(
-#'   X = X,
-#'   y = y,
-#'   family = "gaussian",
-#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
+#' # lifem data preprocessing
+#' # For computational efficiency in the example, we work with a subset of the lifem data.
+#' lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+#' lifem_small <- rbind(
+#'   head(subset(lifem, hndlnk == 1), 100),
+#'   head(subset(lifem, hndlnk == 0), 20)
 #' )
 #'
-#' # 3. Inspect the aligned posterior estimates
-#' # (Label switching is handled automatically via ECR-ITERATIVE-1)
-#' cat("Component 2 (Correct Links) Coefficients:\n")
-#' print(colMeans(fit$estimates$m.coefficients))
+#' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
+#' y <- lifem_small$age_at_death
 #'
-#' cat("Component 1 (Mismatches) Coefficients:\n")
-#' print(colMeans(fit$estimates$coefficients))
+#' fit <- glmMixBayes(
+#'   X = x,
+#'   y = y,
+#'   family = "gaussian",
+#'   control = list(
+#'     iterations = 200,
+#'     burnin.iterations = 100,
+#'     seed = 123
+#'   )
+#' )
 #' }
 #'
 #' @export
