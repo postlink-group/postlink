@@ -51,38 +51,34 @@ matrix, and combines the results across draws using multiple-imputation
 pooling rules.
 }
 \examples{
-\dontrun{
-data(lifem)
-
-# lifem data preprocessing
-# For computational efficiency in the example, we work with a subset of the lifem data.
-lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
-lifem_small <- rbind(
-  head(subset(lifem, hndlnk == 1), 100),
-  head(subset(lifem, hndlnk == 0), 20)
+\donttest{
+# 1. Simulate data linked with errors
+set.seed(606)
+n <- 100
+linked_data <- data.frame(
+  x1 = rnorm(n),
+  y = rnorm(n)
 )
+X <- model.matrix(~ x1, data = linked_data)
 
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
-
+# 2. Fit the GLM mixture model
 fit <- glmMixBayes(
-  X = x,
-  y = y,
-  family = "gaussian",
-  control = list(
-    iterations = 200,
-    burnin.iterations = 100,
-    seed = 123
-  )
+  X = X, y = linked_data$y, family = "gaussian",
+  control = list(iterations = 150, burnin.iterations = 50, seed = 606)
 )
 
+# 3. Multiple Imputation Pooling
+# For each retained posterior draw, the function identifies the records
+# treated as correct matches, refits the requested model on that subset,
+# and then pools the estimates across draws.
 pooled_fit <- mi_with(
   object = fit,
-  data = lifem_small,
-  formula = age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+  data = linked_data,
+  formula = y ~ x1,
   family = gaussian()
 )
 
+# 4. View pooled results
 print(pooled_fit)
 }
 

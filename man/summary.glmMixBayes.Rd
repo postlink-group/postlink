@@ -18,32 +18,23 @@ An object of class \code{"summary.glmMixBayes"}, which is printed with a custom 
 Summary method for glmMixBayes models
 }
 \examples{
-\dontrun{
-data(lifem)
+\donttest{
+# Simulate data
+set.seed(602)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+X[, 1] <- 1
+y <- rpois(n, lambda = exp(X \%*\% c(0.5, 0.2)))
 
-# lifem data preprocessing
-# For computational efficiency in the example, we work with a subset of the lifem data.
-lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
-lifem_small <- rbind(
-  head(subset(lifem, hndlnk == 1), 100),
-  head(subset(lifem, hndlnk == 0), 20)
-)
-
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
-
+# Fit the Poisson mixture model
 fit <- glmMixBayes(
-  X = x,
-  y = y,
-  family = "gaussian",
-  control = list(
-    iterations = 200,
-    burnin.iterations = 100,
-    seed = 123
-  )
+  X = X, y = y, family = "poisson",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 602)
 )
 
-summary(fit)
+# Generate and print the comprehensive summary
+fit_summary <- summary(fit)
+print(fit_summary)
 }
 
 }

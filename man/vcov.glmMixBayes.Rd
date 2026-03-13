@@ -19,32 +19,23 @@ primary (correct-match) component.
 Posterior covariance matrix for glmMixBayes coefficients
 }
 \examples{
-\dontrun{
-data(lifem)
+\donttest{
+# Simulate data
+set.seed(603)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+X[, 1] <- 1
+y <- rpois(n, lambda = exp(X \%*\% c(0.5, 0.2)))
 
-# lifem data preprocessing
-# For computational efficiency in the example, we work with a subset of the lifem data.
-lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
-lifem_small <- rbind(
-  head(subset(lifem, hndlnk == 1), 100),
-  head(subset(lifem, hndlnk == 0), 20)
-)
-
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
-
+# Fit the model
 fit <- glmMixBayes(
-  X = x,
-  y = y,
-  family = "gaussian",
-  control = list(
-    iterations = 200,
-    burnin.iterations = 100,
-    seed = 123
-  )
+  X = X, y = y, family = "poisson",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 603)
 )
 
-vcov(fit)
+# Extract the empirical posterior covariance matrix for component 1 (Correct Links)
+vcov_mat <- vcov(fit)
+print(vcov_mat)
 }
 
 }
