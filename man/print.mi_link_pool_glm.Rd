@@ -21,28 +21,38 @@ The input \code{x}, invisibly.
 Print pooled regression results
 }
 \examples{
-\donttest{
-# Simulate data
-set.seed(607)
-n <- 100
-linked_data <- data.frame(x1 = rnorm(n), y = rnorm(n))
-X <- model.matrix(~ x1, data = linked_data)
+\dontrun{
+data(lifem)
 
-# Fit the mixture model
-fit <- glmMixBayes(
-  X = X, y = linked_data$y, family = "gaussian",
-  control = list(iterations = 150, burnin.iterations = 50, seed = 607)
+# lifem data preprocessing
+# For computational efficiency in the example, we work with a subset of the lifem data.
+lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+lifem_small <- rbind(
+  head(subset(lifem, hndlnk == 1), 100),
+  head(subset(lifem, hndlnk == 0), 20)
 )
 
-# Pool regression fits across posterior draws
+x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
+y <- lifem_small$age_at_death
+
+fit <- glmMixBayes(
+  X = x,
+  y = y,
+  family = "gaussian",
+  control = list(
+    iterations = 200,
+    burnin.iterations = 100,
+    seed = 123
+  )
+)
+
 pooled_fit <- mi_with(
   object = fit,
-  data = linked_data,
-  formula = y ~ x1,
+  data = lifem_small,
+  formula = age_at_death ~ poly(unit_yob, 3, raw = TRUE),
   family = gaussian()
 )
 
-# Explicitly test the print method
 print(pooled_fit, digits = 4)
 }
 
