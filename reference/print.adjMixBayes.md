@@ -35,20 +35,14 @@ used.
 ## Examples
 
 ``` r
-data(lifem)
-
-# lifem data preprocessing
-# For computational efficiency in the example, we work with a subset of the lifem data.
-lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
-lifem_small <- rbind(
-  head(subset(lifem, hndlnk == 1), 100),
-  head(subset(lifem, hndlnk == 0), 20)
+set.seed(42)
+n <- 100
+linked_df <- data.frame(
+  x = rnorm(n),
+  y = rnorm(n), # In practice, y would contain mismatch errors
+  match_score = runif(n, 0.7, 1.0)
 )
-
-adj_obj <- adjMixBayes(
-  linked.data = lifem_small,
-  priors = list(theta = "beta(2, 2)")
-)
+adj_obj <- adjMixBayes(linked.data = linked_df)
 
 # Implicitly calls print.adjMixBayes()
 adj_obj
@@ -56,11 +50,9 @@ adj_obj
 #> --- Adjustment Object: Bayesian Mixture (Gutman et al., 2016) ---
 #> 
 #> * Linked Data:
-#>     Observations: 120
+#>     Observations: 100
 #> * Priors:
-#>     User-specified overrides:
-#>       theta      : beta(2, 2)
-#>     (Unspecified parameters will use defaults below)
+#>     Status:       None specified. Using symmetric defaults.
 #>     Defaults applied during fitting:
 #>       GLM:        beta ~ normal(0,5) [binomial: normal(0,2.5)]
 #>       Survival:   beta ~ normal(0,5) [weibull: normal(0,2)]

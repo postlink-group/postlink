@@ -77,20 +77,14 @@ priors or outlines the defaults that will be used.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">lifem</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># lifem data preprocessing</span></span></span>
-<span class="r-in"><span><span class="co"># For computational efficiency in the example, we work with a subset of the lifem data.</span></span></span>
-<span class="r-in"><span><span class="va">lifem</span> <span class="op">&lt;-</span> <span class="va">lifem</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="op">(</span><span class="va">lifem</span><span class="op">$</span><span class="va">commf</span> <span class="op">+</span> <span class="va">lifem</span><span class="op">$</span><span class="va">comml</span><span class="op">)</span><span class="op">)</span>, <span class="op">]</span></span></span>
-<span class="r-in"><span><span class="va">lifem_small</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">lifem</span>, <span class="va">hndlnk</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>, <span class="fl">100</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">lifem</span>, <span class="va">hndlnk</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span>, <span class="fl">20</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span></span></span>
+<span class="r-in"><span><span class="va">linked_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span>, <span class="co"># In practice, y would contain mismatch errors</span></span></span>
+<span class="r-in"><span>  match_score <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0.7</span>, <span class="fl">1.0</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">adj_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="adjMixBayes.html">adjMixBayes</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  linked.data <span class="op">=</span> <span class="va">lifem_small</span>,</span></span>
-<span class="r-in"><span>  priors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>theta <span class="op">=</span> <span class="st">"beta(2, 2)"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">adj_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="adjMixBayes.html">adjMixBayes</a></span><span class="op">(</span>linked.data <span class="op">=</span> <span class="va">linked_df</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Implicitly calls print.adjMixBayes()</span></span></span>
 <span class="r-in"><span><span class="va">adj_obj</span></span></span>
@@ -98,11 +92,9 @@ priors or outlines the defaults that will be used.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> --- Adjustment Object: Bayesian Mixture (Gutman et al., 2016) ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> * Linked Data:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Observations: 120</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Observations: 100</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> * Priors:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     User-specified overrides:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       theta      : beta(2, 2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     (Unspecified parameters will use defaults below)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Status:       None specified. Using symmetric defaults.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Defaults applied during fitting:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       GLM:        beta ~ normal(0,5) [binomial: normal(0,2.5)]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       Survival:   beta ~ normal(0,5) [weibull: normal(0,2)]</span>

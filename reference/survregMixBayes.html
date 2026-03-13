@@ -181,7 +181,7 @@ which can lead to label switching in MCMC output. To ensure
 interpretable posterior summaries, this function applies a
 post-processing step that aligns component labels across
 posterior draws.</p>
-<p>First, an optional global swap of labels (1 and 2) is performed
+<p>First, an optional global swap of labels (1 ↔ 2) is performed
 if component 2 is more frequent overall. Then, labels are
 aligned across draws using the <code>ECR-ITERATIVE-1</code>
 relabeling algorithm.</p>
@@ -242,8 +242,8 @@ problem in MCMC outputs.
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Gradient evaluation took 9.7e-05 seconds</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.97 seconds.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Gradient evaluation took 0.000114 seconds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.14 seconds.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Adjust your expectations accordingly!</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
@@ -268,9 +268,9 @@ problem in MCMC outputs.
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:  Elapsed Time: 0.513 seconds (Warm-up)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                0.502 seconds (Sampling)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                1.015 seconds (Total)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:  Elapsed Time: 0.547 seconds (Warm-up)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                0.534 seconds (Sampling)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                1.081 seconds (Total)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> Running the chains for more iterations may help. See</span>
@@ -282,7 +282,7 @@ problem in MCMC outputs.
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ......................................................................................</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     . Method                         Time (sec)           Status                         . </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ......................................................................................</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     . ECR-ITERATIVE-1                0.101                Converged (2 iterations)       . </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     . ECR-ITERATIVE-1                0.094                Converged (2 iterations)       . </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ......................................................................................</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!</span>

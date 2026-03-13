@@ -161,7 +161,7 @@ which can lead to label switching in MCMC output. To ensure
 interpretable posterior summaries, this function applies a
 post-processing step that aligns component labels across
 posterior draws.</p>
-<p>First, an optional global swap of labels (1 and 2) is performed
+<p>First, an optional global swap of labels (1 ↔ 2) is performed
 if component 2 is more frequent overall. Then, labels are
 aligned across draws using the <code>ECR-ITERATIVE-1</code>
 relabeling algorithm.</p>
@@ -187,31 +187,104 @@ problem in MCMC outputs.
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">lifem</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="co"># 1. Simulate data from a two-component Gaussian mixture</span></span></span>
+<span class="r-in"><span><span class="co"># Component 2: Correct links (strong signal/relationship)</span></span></span>
+<span class="r-in"><span><span class="co"># Component 1: False links (noise/null relationship)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">501</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">150</span></span></span>
+<span class="r-in"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Intercept"</span>, <span class="st">"x1"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">X</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="co"># Set intercept</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># lifem data preprocessing</span></span></span>
-<span class="r-in"><span><span class="co"># For computational efficiency in the example, we work with a subset of the lifem data.</span></span></span>
-<span class="r-in"><span><span class="va">lifem</span> <span class="op">&lt;-</span> <span class="va">lifem</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="op">(</span><span class="va">lifem</span><span class="op">$</span><span class="va">commf</span> <span class="op">+</span> <span class="va">lifem</span><span class="op">$</span><span class="va">comml</span><span class="op">)</span><span class="op">)</span>, <span class="op">]</span></span></span>
-<span class="r-in"><span><span class="va">lifem_small</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">lifem</span>, <span class="va">hndlnk</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>, <span class="fl">100</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">lifem</span>, <span class="va">hndlnk</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span>, <span class="fl">20</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Latent match status: 70% correct links (Z=2), 30% mismatches (Z=1)</span></span></span>
+<span class="r-in"><span><span class="va">Z_true</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/stats/poly.html" class="external-link">poly</a></span><span class="op">(</span><span class="va">lifem_small</span><span class="op">$</span><span class="va">unit_yob</span>, <span class="fl">3</span>, raw <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">lifem_small</span><span class="op">$</span><span class="va">age_at_death</span></span></span>
+<span class="r-in"><span><span class="co"># Generate responses based on latent status</span></span></span>
+<span class="r-in"><span><span class="va">y1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>     <span class="co"># Noise (mismatches)</span></span></span>
+<span class="r-in"><span><span class="va">y2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1.5</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="co"># Signal (correct links)</span></span></span>
+<span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">Z_true</span> <span class="op">==</span> <span class="fl">2</span>, <span class="va">y2</span>, <span class="va">y1</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># 2. Fit the Bayesian Two-Component Mixture GLM</span></span></span>
+<span class="r-in"><span><span class="co"># Note: Iterations are set artificially low for check speed.</span></span></span>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">glmMixBayes</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  X <span class="op">=</span> <span class="va">x</span>,</span></span>
+<span class="r-in"><span>  X <span class="op">=</span> <span class="va">X</span>,</span></span>
 <span class="r-in"><span>  y <span class="op">=</span> <span class="va">y</span>,</span></span>
 <span class="r-in"><span>  family <span class="op">=</span> <span class="st">"gaussian"</span>,</span></span>
-<span class="r-in"><span>  control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    iterations <span class="op">=</span> <span class="fl">200</span>,</span></span>
-<span class="r-in"><span>    burnin.iterations <span class="op">=</span> <span class="fl">100</span>,</span></span>
-<span class="r-in"><span>    seed <span class="op">=</span> <span class="fl">123</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span>  control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>iterations <span class="op">=</span> <span class="fl">200</span>, burnin.iterations <span class="op">=</span> <span class="fl">100</span>, seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Gradient evaluation took 7.4e-05 seconds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.74 seconds.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Adjust your expectations accordingly!</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: WARNING: There aren't enough warmup iterations to fit the</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:          three stages of adaptation as currently configured.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:          Reducing each adaptation stage to 15%/75%/10% of</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:          the given number of warmup iterations:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:            init_buffer = 15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:            adapt_window = 75</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:            term_buffer = 10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration:   1 / 200 [  0%]  (Warmup)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration:  20 / 200 [ 10%]  (Warmup)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration:  40 / 200 [ 20%]  (Warmup)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration:  60 / 200 [ 30%]  (Warmup)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration:  80 / 200 [ 40%]  (Warmup)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 100 / 200 [ 50%]  (Warmup)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 101 / 200 [ 50%]  (Sampling)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 120 / 200 [ 60%]  (Sampling)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 140 / 200 [ 70%]  (Sampling)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 160 / 200 [ 80%]  (Sampling)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:  Elapsed Time: 0.089 seconds (Warm-up)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                0.069 seconds (Sampling)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                0.158 seconds (Total)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>The largest R-hat is NA, indicating chains have not mixed.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> Running the chains for more iterations may help. See</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> https://mc-stan.org/misc/warnings.html#r-hat</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> Running the chains for more iterations may help. See</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> https://mc-stan.org/misc/warnings.html#bulk-ess</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> Running the chains for more iterations may help. See</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> https://mc-stan.org/misc/warnings.html#tail-ess</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Global label swap performed: label 2 dominates label 1.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ......................................................................................</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     . Method                         Time (sec)           Status                         . </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ......................................................................................</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     . ECR-ITERATIVE-1                0.086                Converged (2 iterations)       . </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ......................................................................................</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Retrieve the 1 permutation arrays by typing:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         [...]$permutations$"ECR-ITERATIVE-1"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Retrieve the 1 best clusterings: [...]$clusters</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Retrieve the 1 CPU times: [...]$timings</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Retrieve the 1 X 1 similarity matrix: [...]$similarity</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Label switching finished. Total time: 0.1 seconds. </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># 3. Inspect the aligned posterior estimates</span></span></span>
+<span class="r-in"><span><span class="co"># (Label switching is handled automatically via ECR-ITERATIVE-1)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Component 2 (Correct Links) Coefficients:\n"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Component 2 (Correct Links) Coefficients:</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">estimates</span><span class="op">$</span><span class="va">m.coefficients</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Intercept         x1 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.3403996 -1.2393847 </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Component 1 (Mismatches) Coefficients:\n"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Component 1 (Mismatches) Coefficients:</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">estimates</span><span class="op">$</span><span class="va">coefficients</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Intercept        x1 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1.049480  1.566094 </span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

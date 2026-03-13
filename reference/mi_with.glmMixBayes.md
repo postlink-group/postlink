@@ -75,38 +75,97 @@ related summary information.
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
-data(lifem)
-
-# lifem data preprocessing
-# For computational efficiency in the example, we work with a subset of the lifem data.
-lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
-lifem_small <- rbind(
-  head(subset(lifem, hndlnk == 1), 100),
-  head(subset(lifem, hndlnk == 0), 20)
+# \donttest{
+# 1. Simulate data linked with errors
+set.seed(606)
+n <- 100
+linked_data <- data.frame(
+  x1 = rnorm(n),
+  y = rnorm(n)
 )
+X <- model.matrix(~ x1, data = linked_data)
 
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
-
+# 2. Fit the GLM mixture model
 fit <- glmMixBayes(
-  X = x,
-  y = y,
-  family = "gaussian",
-  control = list(
-    iterations = 200,
-    burnin.iterations = 100,
-    seed = 123
-  )
+  X = X, y = linked_data$y, family = "gaussian",
+  control = list(iterations = 150, burnin.iterations = 50, seed = 606)
 )
+#> 
+#> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
+#> Chain 1: 
+#> Chain 1: Gradient evaluation took 4e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.4 seconds.
+#> Chain 1: Adjust your expectations accordingly!
+#> Chain 1: 
+#> Chain 1: 
+#> Chain 1: WARNING: There aren't enough warmup iterations to fit the
+#> Chain 1:          three stages of adaptation as currently configured.
+#> Chain 1:          Reducing each adaptation stage to 15%/75%/10% of
+#> Chain 1:          the given number of warmup iterations:
+#> Chain 1:            init_buffer = 7
+#> Chain 1:            adapt_window = 38
+#> Chain 1:            term_buffer = 5
+#> Chain 1: 
+#> Chain 1: Iteration:   1 / 150 [  0%]  (Warmup)
+#> Chain 1: Iteration:  15 / 150 [ 10%]  (Warmup)
+#> Chain 1: Iteration:  30 / 150 [ 20%]  (Warmup)
+#> Chain 1: Iteration:  45 / 150 [ 30%]  (Warmup)
+#> Chain 1: Iteration:  51 / 150 [ 34%]  (Sampling)
+#> Chain 1: Iteration:  65 / 150 [ 43%]  (Sampling)
+#> Chain 1: Iteration:  80 / 150 [ 53%]  (Sampling)
+#> Chain 1: Iteration:  95 / 150 [ 63%]  (Sampling)
+#> Chain 1: Iteration: 110 / 150 [ 73%]  (Sampling)
+#> Chain 1: Iteration: 125 / 150 [ 83%]  (Sampling)
+#> Chain 1: Iteration: 140 / 150 [ 93%]  (Sampling)
+#> Chain 1: Iteration: 150 / 150 [100%]  (Sampling)
+#> Chain 1: 
+#> Chain 1:  Elapsed Time: 0.066 seconds (Warm-up)
+#> Chain 1:                0.211 seconds (Sampling)
+#> Chain 1:                0.277 seconds (Total)
+#> Chain 1: 
+#> Warning: The largest R-hat is 1.15, indicating chains have not mixed.
+#> Running the chains for more iterations may help. See
+#> https://mc-stan.org/misc/warnings.html#r-hat
+#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+#> Running the chains for more iterations may help. See
+#> https://mc-stan.org/misc/warnings.html#bulk-ess
+#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
+#> Running the chains for more iterations may help. See
+#> https://mc-stan.org/misc/warnings.html#tail-ess
+#> Global label swap performed: label 2 dominates label 1.
+#> 
+#>     ......................................................................................
+#>     . Method                         Time (sec)           Status                         . 
+#>     ......................................................................................
+#>     . ECR-ITERATIVE-1                0.069                Converged (2 iterations)       . 
+#>     ......................................................................................
+#> 
+#>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
+#>     Retrieve the 1 permutation arrays by typing:
+#>         [...]$permutations$"ECR-ITERATIVE-1"
+#>     Retrieve the 1 best clusterings: [...]$clusters
+#>     Retrieve the 1 CPU times: [...]$timings
+#>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
+#>     Label switching finished. Total time: 0.1 seconds. 
 
+# 3. Multiple Imputation Pooling
+# For each retained posterior draw, the function identifies the records
+# treated as correct matches, refits the requested model on that subset,
+# and then pools the estimates across draws.
 pooled_fit <- mi_with(
   object = fit,
-  data = lifem_small,
-  formula = age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+  data = linked_data,
+  formula = y ~ x1,
   family = gaussian()
 )
 
+# 4. View pooled results
 print(pooled_fit)
-} # }
+#> Pooled regression results across posterior match classifications:
+#>   Retained imputations (m): 100 
+#> 
+#>             Estimate Std.Error   CI.lwr  CI.upr       df
+#> (Intercept)  0.16500   0.18639 -0.20212 0.53213 245.6075
+#> x1           0.03584   0.15630 -0.27159 0.34328 340.6614
+# }
 ```
