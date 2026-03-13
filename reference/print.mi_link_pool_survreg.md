@@ -46,8 +46,8 @@ fit <- survregMixBayes(
 #> 
 #> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 7e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.7 seconds.
+#> Chain 1: Gradient evaluation took 6.6e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.66 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -72,9 +72,9 @@ fit <- survregMixBayes(
 #> Chain 1: Iteration: 90 / 100 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 100 / 100 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.238 seconds (Warm-up)
-#> Chain 1:                0.108 seconds (Sampling)
-#> Chain 1:                0.346 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.224 seconds (Warm-up)
+#> Chain 1:                0.102 seconds (Sampling)
+#> Chain 1:                0.326 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -89,7 +89,7 @@ fit <- survregMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.044                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.051                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -98,15 +98,14 @@ fit <- survregMixBayes(
 #>     Retrieve the 1 best clusterings: [...]$clusters
 #>     Retrieve the 1 CPU times: [...]$timings
 #>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
-#>     Label switching finished. Total time: 0 seconds. 
+#>     Label switching finished. Total time: 0.1 seconds. 
 
 # Create the pooled object via mi_with
 pooled_obj <- mi_with(fit)
+#> Error: Formula not found: please provide it explicitly or ensure object$call$formula exists.
 
 # Print the pooled posterior classification summary
 print(pooled_obj)
-#> Posterior classification summary (component 1 = correct-match):
-#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>  0.4800  0.7000  0.7400  0.7358  0.7800  0.8800 
+#> Error: object 'pooled_obj' not found
 # }
 ```
