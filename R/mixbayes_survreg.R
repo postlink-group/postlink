@@ -113,7 +113,7 @@
 #' \doi{10.18637/jss.v069.c01}
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # 1. Simulate survival data from a two-component Weibull mixture
 #' # Component 1 represents correct links (signal),
 #' # and component 2 represents mismatched links (noise).
@@ -122,13 +122,13 @@
 #' X <- matrix(rnorm(n * 2), ncol = 2)
 #' colnames(X) <- c("x1", "x2")
 #'
-#' # Latent match status: 80% correct links (Z=2), 20% mismatches (Z=1)
-#' Z_true <- rbinom(n, 1, 0.8) + 1
+#' # Latent match status: 80% correct links (Z=1), 20% incorrect links (Z=2)
+#' Z_true <- ifelse(rbinom(n, 1, 0.8) == 1, 1, 2)
 #'
 #' # Generate survival times based on latent status
-#' time1 <- rweibull(n, shape = 1.2, scale = exp(0.1 * X[,1])) # Noise
-#' time2 <- rweibull(n, shape = 1.5, scale = exp(0.5 * X[,1] - 0.5 * X[,2])) # Signal
-#' obs_time <- ifelse(Z_true == 2, time2, time1)
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(0.5 * X[,1] - 0.5 * X[,2])) # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(0.1 * X[,1]))                # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
 #'
 #' # Apply right-censoring
 #' cens_time <- rexp(n, rate = 0.1)

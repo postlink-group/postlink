@@ -55,10 +55,15 @@ mi_with <- function(object, ...) {
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
@@ -105,10 +110,15 @@ print.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L),...)
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
@@ -230,10 +240,15 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
@@ -282,10 +297,15 @@ vcov.glmMixBayes <- function(object, ...) {
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
@@ -339,10 +359,15 @@ confint.glmMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
@@ -471,10 +496,15 @@ predict.glmMixBayes <- function(object, newx,
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
@@ -650,10 +680,15 @@ mi_with.glmMixBayes <- function(object, data, formula,
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,

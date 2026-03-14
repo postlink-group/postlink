@@ -24,21 +24,34 @@ NULL
 #' @return The input \code{x}, invisibly.
 #'
 #' @examples
-#' \donttest{
-#' # 1. Simulate fast toy data
-#' set.seed(401)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-#' y <- cbind(time = rweibull(n, shape = 1.5, scale = exp(0.5 * X[, 1])),
-#'            event = rbinom(n, 1, 0.8))
+#' \dontrun{
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
 #'
-#' # 2. Fit the model with artificially low iterations for speed
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 401)
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
+#'
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
+#'
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
-#' # 3. Print the model object
 #' print(fit)
 #' }
 #'
@@ -81,21 +94,34 @@ print.survMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ..
 #'   correct-match component and component 2 to the incorrect-match component.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate data
-#' set.seed(402)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
-#'            event = rbinom(n, 1, 0.8))
+#' \dontrun{
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Fit the model
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 402)
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
+#'
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
+#'
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
-#' # Generate and print posterior summaries
 #' fit_summary <- summary(fit, probs = c(0.025, 0.5, 0.975))
 #' print(fit_summary)
 #' }
@@ -182,25 +208,32 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
 #'   corresponding scalar parameters.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate simple Weibull survival data
-#' set.seed(403)
-#' n <- 100
+#' \dontrun{
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
 #'
-#' x1 <- rnorm(n)
-#' x2 <- rnorm(n)
-#' X <- cbind(x1 = x1, x2 = x2)
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
 #'
-#' # Observed survival response: time and event indicator
-#' y <- cbind(
-#'   time = rweibull(n, shape = 1.2, scale = exp(x1)),
-#'   event = rbinom(n, 1, 0.8)
-#' )
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
 #'
-#' # Fit the model
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 403)
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
 #' # Calculate 95% credible intervals for all parameters
@@ -251,18 +284,32 @@ confint.survMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
 #'   component 1, interpreted as the correct-match component.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate data
-#' set.seed(404)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
-#'            event = rbinom(n, 1, 0.8))
+#' \dontrun{
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Fit the model
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 404)
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
+#'
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
+#'
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
 #' # Extract the empirical posterior covariance matrix for component 1
@@ -293,22 +340,36 @@ vcov.survMixBayes <- function(object, ...) {
 #'   for the incorrect-match component.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate data
-#' set.seed(405)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
-#'            event = rbinom(n, 1, 0.8))
+#' \dontrun{
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Fit the model
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 405)
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
+#'
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
+#'
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
 #' # Create a new design matrix for prediction
-#' X_new <- matrix(c(0, 1, -1, 0.5), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+#' X_new <- stats::model.matrix(~ trt, data = data.frame(trt = c(0, 1)))
 #'
 #' # Predict posterior mean linear predictors for each latent component
 #' preds <- predict(fit, newdata = X_new)
@@ -366,28 +427,43 @@ predict.survMixBayes <- function(object, newdata = NULL, ...) {
 #'
 #' @examples
 #' \dontrun{
-#' library(survival)
-#' set.seed(406)
-#' n <- 100
-#' x1 <- rnorm(n)
-#' x2 <- rnorm(n)
-#' X <- cbind(x1, x2)
-#' y <- cbind(
-#'   time = rweibull(n, shape = 1.2, scale = exp(x1)),
-#'   event = rbinom(n, 1, 0.8)
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
+#'
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
+#'
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
+#'
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 406)
-#' )
-#'
-#' dat <- data.frame(time = y[, "time"], event = y[, "event"], x1 = x1, x2 = x2)
+#' dat <- data.frame(
+#'  time = y[, "time"],
+#'  event = y[, "event"],
+#'  X
+#'  )
 #'
 #' pooled_obj <- mi_with(
 #'   object = fit,
-#'   data = dat,
-#'   formula = survival::Surv(time, event) ~ x1 + x2
+#'   data = linked_df,
+#'   formula = survival::Surv(time, status) ~ trt
 #' )
 #'
 #' print(pooled_obj)
@@ -545,28 +621,43 @@ mi_with.survMixBayes <- function(object, data, formula,
 #'
 #' @examples
 #' \dontrun{
-#' library(survival)
-#' set.seed(407)
-#' n <- 100
-#' x1 <- rnorm(n)
-#' x2 <- rnorm(n)
-#' X <- cbind(x1, x2)
-#' y <- cbind(
-#'   time = rweibull(n, shape = 1.2, scale = exp(x1)),
-#'   event = rbinom(n, 1, 0.8)
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
+#'
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
+#'
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
+#'
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 407)
-#' )
-#'
-#' dat <- data.frame(time = y[, "time"], event = y[, "event"], x1 = x1, x2 = x2)
+#' dat <- data.frame(
+#'  time = y[, "time"],
+#'  event = y[, "event"],
+#'  X
+#'  )
 #'
 #' pooled_obj <- mi_with(
 #'   object = fit,
-#'   data = dat,
-#'   formula = survival::Surv(time, event) ~ x1 + x2
+#'   data = linked_df,
+#'   formula = survival::Surv(time, status) ~ trt
 #' )
 #'
 #' print(pooled_obj, digits = 4)

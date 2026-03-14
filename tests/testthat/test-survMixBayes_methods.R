@@ -187,7 +187,9 @@ test_that("survMixBayes confint() returns the expected list structure", {
  }
 })
 
-test_that("survMixBayes predict() works and mi_with() methods exist + run", {
+test_that("survMixBayes predict() works and mi_with() refits Cox model + pooling", {
+ skip_if_not_installed("survival")
+
  fit <- fit_once()
  d <- generate_bayessurv_mixture_data(family = "gamma", seed = 321, N = 100)
  X <- d$X
@@ -205,14 +207,51 @@ test_that("survMixBayes predict() works and mi_with() methods exist + run", {
  wm <- getS3method("mi_with", "survMixBayes", optional = TRUE)
  expect_true(is.function(wm))
 
- pool <- mi_with(fit)
+ # build survival data for Cox refit
+ dat <- data.frame(
+  time = d$dat$y,
+  event = d$dat$status,
+  X
+ )
+
+ rhs <- paste(colnames(X), collapse = " + ")
+ fml <- stats::as.formula(
+  paste0("survival::Surv(time, event) ~ ", rhs)
+ )
+
+ pool <- mi_with(
+  object = fit,
+  data = dat,
+  formula = fml
+ )
 
  expect_s3_class(pool, "mi_link_pool_survreg")
- expect_true(is.numeric(pool$p_component1))
- expect_equal(length(pool$p_component1), nrow(X))
 
- # posterior allocation probabilities should be in [0, 1]
- expect_true(all(pool$p_component1 >= 0 & pool$p_component1 <= 1, na.rm = TRUE))
+ # pooled Rubin results
+ expect_true(is.numeric(pool$coef))
+ expect_true(is.matrix(pool$vcov))
+ expect_true(is.numeric(pool$se))
+ expect_true(is.matrix(pool$ci95))
+ expect_true(is.numeric(pool$df))
+ expect_true(is.numeric(pool$lambda))
+
+ p <- ncol(X)
+
+ expect_equal(length(pool$coef), p)
+ expect_equal(length(pool$se), p)
+ expect_equal(nrow(pool$vcov), p)
+ expect_equal(ncol(pool$vcov), p)
+ expect_equal(nrow(pool$ci95), p)
+ expect_equal(ncol(pool$ci95), 2)
+ expect_equal(length(pool$df), p)
+ expect_equal(length(pool$lambda), p)
+
+ expect_true(is.numeric(pool$m))
+ expect_true(pool$m >= 1)
+ expect_true(is.numeric(pool$kept_draws))
+ expect_true(all(pool$kept_draws >= 1))
+
+ expect_identical(pool$refit, "coxph")
 
  # pooled object should be printable
  out3 <- utils::capture.output(print(pool))
