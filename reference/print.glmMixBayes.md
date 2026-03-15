@@ -46,8 +46,8 @@ fit <- glmMixBayes(
 #> 
 #> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 3.8e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.38 seconds.
+#> Chain 1: Gradient evaluation took 3.9e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.39 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -72,9 +72,9 @@ fit <- glmMixBayes(
 #> Chain 1: Iteration: 90 / 100 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 100 / 100 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.057 seconds (Warm-up)
-#> Chain 1:                0.101 seconds (Sampling)
-#> Chain 1:                0.158 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.058 seconds (Warm-up)
+#> Chain 1:                0.103 seconds (Sampling)
+#> Chain 1:                0.161 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is 2.45, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -90,7 +90,7 @@ fit <- glmMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.047                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.048                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!

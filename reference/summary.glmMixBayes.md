@@ -95,7 +95,7 @@ fit <- glmMixBayes(
 #>     Retrieve the 1 best clusterings: [...]$clusters
 #>     Retrieve the 1 CPU times: [...]$timings
 #>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
-#>     Label switching finished. Total time: 0 seconds. 
+#>     Label switching finished. Total time: 0.1 seconds. 
 
 # Generate and print the comprehensive summary
 fit_summary <- summary(fit)

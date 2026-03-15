@@ -230,8 +230,8 @@ fit <- survregMixBayes(
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
 #> Chain 1:  Elapsed Time: 0.509 seconds (Warm-up)
-#> Chain 1:                0.496 seconds (Sampling)
-#> Chain 1:                1.005 seconds (Total)
+#> Chain 1:                0.497 seconds (Sampling)
+#> Chain 1:                1.006 seconds (Total)
 #> Chain 1: 
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
 #> Running the chains for more iterations may help. See
@@ -243,7 +243,7 @@ fit <- survregMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.089                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.087                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
