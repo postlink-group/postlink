@@ -3,9 +3,8 @@
 #' @description
 #' S3 methods for objects returned by \code{survregMixBayes()}, including
 #' printing, summarizing fitted models, computing credible intervals and
-#' posterior covariance matrices, generating predictions, and pooling results
-#' across posterior component classifications, where component 1 is interpreted
-#' as the correct-match component and component 2 as the non-match component.
+#' posterior covariance matrices, generating predictions, and pooling Cox
+#' regression fits across posterior match classifications.
 #'
 #' @name mixture_bayessurvreg_methods
 #' @keywords internal
@@ -16,7 +15,7 @@ NULL
 #' Prints the model call and posterior mean regression coefficients for the
 #' first mixture component of the fitted survival model. In this package,
 #' component 1 is interpreted as the correct-match component and component 2
-#' as the non-match component.
+#' as the incorrect-match component.
 #'
 #' @param x An object of class \code{survMixBayes}.
 #' @param digits Minimum number of significant digits to show.
@@ -25,21 +24,34 @@ NULL
 #' @return The input \code{x}, invisibly.
 #'
 #' @examples
-#' \donttest{
-#' # 1. Simulate fast toy data
-#' set.seed(401)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-#' y <- cbind(time = rweibull(n, shape = 1.5, scale = exp(0.5 * X[, 1])),
-#'            event = rbinom(n, 1, 0.8))
+#' \dontrun{
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
 #'
-#' # 2. Fit the model with artificially low iterations for speed
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 401)
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
+#'
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
+#'
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
-#' # 3. Print the model object
 #' print(fit)
 #' }
 #'
@@ -66,7 +78,7 @@ print.survMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ..
 #' Computes posterior summaries for the regression coefficients, mixing weight,
 #' and component-specific distribution parameters in a fitted
 #' \code{survMixBayes} model. Throughout, component 1 is interpreted as the
-#' correct-match component and component 2 as the non-match component.
+#' correct-match component and component 2 as the incorrect-match component.
 #'
 #' @param object An object of class \code{survMixBayes}.
 #' @param probs Numeric vector of probabilities used to compute posterior
@@ -79,24 +91,37 @@ print.survMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ..
 #'   quantile summaries for the regression coefficients in both mixture
 #'   components, the mixing weight, and any family-specific distribution
 #'   parameters included in the fitted model. Component 1 corresponds to the
-#'   correct-match component and component 2 to the non-match component.
+#'   correct-match component and component 2 to the incorrect-match component.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate data
-#' set.seed(402)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
-#'            event = rbinom(n, 1, 0.8))
+#' \dontrun{
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Fit the model
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 402)
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
+#'
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
+#'
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
-#' # Generate and print posterior summaries
 #' fit_summary <- summary(fit, probs = c(0.025, 0.5, 0.975))
 #' print(fit_summary)
 #' }
@@ -143,15 +168,15 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
   }
 
   fmt(x$coef1, "Coefficients (component 1 = correct-match)")
-  fmt(x$coef2, "Coefficients (component 2 = non-match)")
+  fmt(x$coef2, "Coefficients (component 2 = incorrect-match)")
 
   cat("\nTheta (mix weight for component 1 = correct-match):\n")
   print(round(x$theta, digits = digits))
 
   fmt(x$shape1, "Shape (component 1 = correct-match)")
-  fmt(x$shape2, "Shape (component 2 = non-match)")
+  fmt(x$shape2, "Shape (component 2 = incorrect-match)")
   fmt(x$scale1, "Scale (component 1 = correct-match)")
-  fmt(x$scale2, "Scale (component 2 = non-match)")
+  fmt(x$scale2, "Scale (component 2 = incorrect-match)")
 
   invisible(x)
 }
@@ -162,7 +187,7 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
 #' mixing weight, and family-specific distribution parameters from a fitted
 #' \code{survMixBayes} model. The returned intervals are organized by mixture
 #' component and parameter type. Component 1 corresponds to the correct-match
-#' component and component 2 to the non-match component.
+#' component and component 2 to the incorrect-match component.
 #'
 #' @param object An object of class \code{survMixBayes}.
 #' @param parm Optional character vector selecting which interval blocks to
@@ -177,31 +202,38 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
 #'   \code{coef2} are matrices with one row per regression coefficient and two
 #'   columns giving the lower and upper interval bounds for components 1 and 2,
 #'   respectively, where component 1 is the correct-match component and
-#'   component 2 is the non-match component. Elements such as \code{theta}, \code{shape1},
+#'   component 2 is the incorrect-match component. Elements such as \code{theta}, \code{shape1},
 #'   \code{shape2}, \code{scale1}, and \code{scale2} are numeric vectors of
 #'   length 2 containing the lower and upper credible interval bounds for the
 #'   corresponding scalar parameters.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate simple Weibull survival data
-#' set.seed(403)
-#' n <- 100
+#' \dontrun{
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
 #'
-#' x1 <- rnorm(n)
-#' x2 <- rnorm(n)
-#' X <- cbind(x1 = x1, x2 = x2)
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
 #'
-#' # Observed survival response: time and event indicator
-#' y <- cbind(
-#'   time = rweibull(n, shape = 1.2, scale = exp(x1)),
-#'   event = rbinom(n, 1, 0.8)
-#' )
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
 #'
-#' # Fit the model
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 403)
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
 #' # Calculate 95% credible intervals for all parameters
@@ -252,18 +284,32 @@ confint.survMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
 #'   component 1, interpreted as the correct-match component.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate data
-#' set.seed(404)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
-#'            event = rbinom(n, 1, 0.8))
+#' \dontrun{
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Fit the model
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 404)
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
+#'
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
+#'
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
 #' # Extract the empirical posterior covariance matrix for component 1
@@ -282,7 +328,7 @@ vcov.survMixBayes <- function(object, ...) {
 #' Predict for survMixBayes
 #'
 #' Returns posterior mean linear predictors for each component. Component 1 is
-#' interpreted as the correct-match component and component 2 as the non-match
+#' interpreted as the correct-match component and component 2 as the incorrect-match
 #' component.
 #'
 #' @param object An object of class \code{survMixBayes}.
@@ -291,25 +337,39 @@ vcov.survMixBayes <- function(object, ...) {
 #'
 #' @return A list with posterior mean linear predictors for each component:
 #'   \code{component1} for the correct-match component and \code{component2}
-#'   for the non-match component.
+#'   for the incorrect-match component.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate data
-#' set.seed(405)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
-#'            event = rbinom(n, 1, 0.8))
+#' \dontrun{
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Fit the model
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 405)
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
+#'
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
+#'
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
 #' # Create a new design matrix for prediction
-#' X_new <- matrix(c(0, 1, -1, 0.5), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
+#' X_new <- stats::model.matrix(~ trt, data = data.frame(trt = c(0, 1)))
 #'
 #' # Predict posterior mean linear predictors for each latent component
 #' preds <- predict(fit, newdata = X_new)
@@ -334,104 +394,293 @@ predict.survMixBayes <- function(object, newdata = NULL, ...) {
   list(component1 = mu1, component2 = mu2)
 }
 
-#' Pool posterior component classifications from a survMixBayes fit
+#' Pool regression fits across posterior draws of correct-match classifications
 #'
-#' Summarizes posterior component classifications from a fitted
-#' \code{survMixBayes} model by computing, for each observation, the posterior
-#' probability of belonging to component 1. In this package, component 1 is
-#' interpreted as the correct-match component.
+#' @description
+#' Use posterior draws of the latent match indicators from \code{survregMixBayes()}
+#' to repeatedly identify which records are treated as correct matches, refit a
+#' Cox proportional hazards model on those records, and pool the resulting
+#' estimates using multiple-imputation pooling rules.
 #'
-#' @param object An object of class \code{survMixBayes}.
-#' @param ... Further arguments (unused).
+#' Each retained posterior draw defines one subset of records classified as
+#' correct matches. The function fits the specified \code{survival::coxph()}
+#' model to that subset, extracts the estimated coefficients and covariance
+#' matrix, and combines the results across draws using Rubin's rules.
 #'
-#' @return An object of class
-#'   \code{c("mi_link_pool_survreg", "mi_link_pool")} containing the fitted
-#'   model call, survival distribution, posterior probabilities of belonging to
-#'   component 1 for each observation, where component 1 is interpreted as the
-#'   correct-match component, and the stored posterior draws from the original
-#'   fitted model.
+#' @param object A \code{survMixBayes} model object containing posterior draws of
+#'   the latent match indicators.
+#' @param data A data.frame with all candidate records in the same row order as used in the model.
+#' @param formula Model formula for refitting on each draw (required), typically
+#'   of the form \code{survival::Surv(time, event) ~ ...}.
+#' @param min_n Minimum number of records required to fit the model for a given
+#'   posterior draw. The default is \code{p + 2}, where \code{p} is the number
+#'   of non-intercept columns in the model matrix.
+#' @param quietly If \code{TRUE}, draws that lead to fitting errors are skipped
+#'   without printing the full error message.
+#' @param ties Method for handling tied event times in \code{survival::coxph()}.
+#'   Default is \code{"efron"}.
+#' @param ... Additional arguments passed to \code{survival::coxph()}.
 #'
-#' @examples
-#' \donttest{
-#' # Simulate data
-#' set.seed(406)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
-#'            event = rbinom(n, 1, 0.8))
-#'
-#' # Fit the model
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 406)
-#' )
-#'
-#' # Summarize posterior component classifications
-#' pooled_obj <- mi_with(fit)
-#'
-#' # View the posterior probabilities of belonging to component 1
-#' summary(pooled_obj$p_component1)
-#' }
-#'
-#' @export
-#' @method mi_with survMixBayes
-mi_with.survMixBayes <- function(object, ...) {
-
- z <- object$m_samples
- if (!is.matrix(z)) stop("Expected `m_samples` as a matrix (S x N).")
-
- # Posterior probability of being in component 1 (correct-match component)
- p1 <- colMeans(z == 1L, na.rm = TRUE)
-
- pooled <- list(
-  call = object$call,
-  dist = object$dist,
-  p_component1 = p1,
-  estimates = object$estimates
- )
- class(pooled) <- c("mi_link_pool_survreg", "mi_link_pool")
- pooled
-}
-
-#' Print pooled posterior component-classification results
-#'
-#' Prints a summary of the posterior probabilities of belonging to component 1,
-#' interpreted here as the correct-match component,
-#' from an object returned by \code{mi_with()} for a
-#' \code{survMixBayes} model.
-#'
-#' @param x An object of class \code{mi_link_pool_survreg}.
-#' @param ... Further arguments (unused).
-#'
-#' @return The input \code{x}, invisibly.
+#' @return An object of class \code{c("mi_link_pool_survreg", "mi_link_pool")}
+#'   containing pooled coefficient estimates, standard errors, confidence
+#'   intervals, and related summary information.
 #'
 #' @examples
-#' \donttest{
-#' # Simulate data
-#' set.seed(407)
-#' n <- 100
-#' X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-#' y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
-#'            event = rbinom(n, 1, 0.8))
+#' \dontrun{
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Fit the model
-#' fit <- survregMixBayes(
-#'   X = X, y = y, dist = "weibull",
-#'   control = list(iterations = 100, burnin.iterations = 50, seed = 407)
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
+#'
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
+#'
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
 #'
-#' # Create the pooled object via mi_with
-#' pooled_obj <- mi_with(fit)
+#' dat <- data.frame(
+#'  time = y[, "time"],
+#'  event = y[, "event"],
+#'  X
+#'  )
 #'
-#' # Print the pooled posterior classification summary
+#' pooled_obj <- mi_with(
+#'   object = fit,
+#'   data = linked_df,
+#'   formula = survival::Surv(time, status) ~ trt
+#' )
+#'
 #' print(pooled_obj)
 #' }
 #'
 #' @export
-#' @method print mi_link_pool_survreg
-print.mi_link_pool_survreg <- function(x, ...) {
+#' @method mi_with survMixBayes
+#' @importFrom stats coef vcov cov qt model.frame model.matrix
+#' @importFrom survival coxph Surv
+mi_with.survMixBayes <- function(object, data, formula,
+                                 min_n = NULL, quietly = TRUE,
+                                 ties = "efron", ...) {
 
- cat("Posterior classification summary (component 1 = correct-match):\n")
- print(summary(x$p_component1))
+ if (missing(formula) || is.null(formula)) {
+  if (!is.null(object$call$formula)) {
+   formula <- eval(object$call$formula, envir = parent.frame())
+  } else {
+   stop(
+    "Formula not found: please provide it explicitly or ensure object$call$formula exists.",
+    call. = FALSE
+   )
+  }
+ }
+
+ if (!inherits(formula, "formula")) {
+  stop("`formula` must be a valid formula object.", call. = FALSE)
+ }
+
+ if (missing(data) || is.null(data) || !is.data.frame(data)) {
+  stop("`data` must be provided as a data.frame.", call. = FALSE)
+ }
+
+ z_samples <- object$m_samples
+
+ collapse_z_g <- function(z_samples, g) {
+  if (is.list(z_samples)) {
+   parts <- lapply(z_samples, function(Z) {
+    if (is.null(dim(Z))) {
+     stop("Each list element of `z_samples` must be a matrix-like object.", call. = FALSE)
+    }
+    Z[g, ]
+   })
+   as.integer(do.call(c, parts))
+  } else {
+   if (is.null(dim(z_samples)) || length(dim(z_samples)) != 2L) {
+    stop("`z_samples` must be an S x N matrix, or a list of such matrices.", call. = FALSE)
+   }
+   as.integer(z_samples[g, ])
+  }
+ }
+
+ fit_once <- function(df) {
+  fit <- survival::coxph(formula = formula, data = df, ties = ties, ...)
+  list(coef = stats::coef(fit), vcov = stats::vcov(fit))
+ }
+
+ mf <- stats::model.frame(formula, data = data)
+ Xtmp <- stats::model.matrix(formula, mf)
+ if ("(Intercept)" %in% colnames(Xtmp)) {
+  Xtmp <- Xtmp[, colnames(Xtmp) != "(Intercept)", drop = FALSE]
+ }
+ p <- ncol(Xtmp)
+ if (is.null(min_n)) min_n <- p + 2L
+
+ S <- if (is.list(z_samples)) nrow(z_samples[[1]]) else nrow(z_samples)
+ if (length(S) == 0L || is.null(S) || !is.finite(S)) {
+  stop("Unable to infer the number of posterior draws (S).", call. = FALSE)
+ }
+
+ coefs_list <- list()
+ vcovs_list <- list()
+ kept <- logical(S)
+
+ for (s in seq_len(S)) {
+  zs <- collapse_z_g(z_samples, s)
+
+  if (!all(zs %in% c(1L, 2L))) {
+   stop("`m_samples` must contain only 1/2 indicators.", call. = FALSE)
+  }
+
+  idx <- which(zs == 1L)
+  if (length(idx) < min_n) next
+
+  dat_s <- data[idx, , drop = FALSE]
+
+  res <- try(fit_once(dat_s), silent = quietly)
+  if (!inherits(res, "try-error") &&
+      is.numeric(res$coef) &&
+      is.matrix(res$vcov) &&
+      length(res$coef) > 0L) {
+   coefs_list[[length(coefs_list) + 1L]] <- res$coef
+   vcovs_list[[length(vcovs_list) + 1L]] <- res$vcov
+   kept[s] <- TRUE
+  }
+ }
+
+ m <- length(coefs_list)
+ if (m == 0L) {
+  stop(
+   "No valid imputations: all draws failed or had too few component-1 records.",
+   call. = FALSE
+  )
+ }
+
+ parnames <- names(coefs_list[[1L]])
+ coefs_mat <- do.call(rbind, lapply(coefs_list, function(b) b[parnames]))
+
+ Ubar <- Reduce("+", vcovs_list) / m
+ B <- stats::cov(coefs_mat)
+ Tmat <- Ubar + (1 + 1 / m) * B
+
+ qbar <- colMeans(coefs_mat)
+ se <- sqrt(diag(Tmat))
+ lambda <- diag((1 + 1 / m) * B) / diag(Tmat)
+
+ r <- diag((1 + 1 / m) * B) / diag(Ubar)
+ r[!is.finite(r)] <- 0
+ dfold <- (m - 1) * (1 + 1 / pmax(r, .Machine$double.eps))^2
+ df <- pmax(dfold, 3)
+
+ tcrit <- stats::qt(0.975, df = df)
+ lwr <- qbar - tcrit * se
+ upr <- qbar + tcrit * se
+ ci95 <- cbind(lwr = lwr, upr = upr)
+ rownames(ci95) <- names(qbar)
+
+ out <- list(
+  m          = m,
+  coef       = qbar,
+  vcov       = Tmat,
+  se         = se,
+  ci95       = ci95,
+  Ubar       = Ubar,
+  B          = B,
+  lambda     = lambda,
+  df         = df,
+  kept_draws = which(kept),
+  dist       = object$dist,
+  refit      = "coxph",
+  call       = object$call
+ )
+
+ class(out) <- c("mi_link_pool_survreg", "mi_link_pool")
+ out
+}
+
+#' Print pooled Cox regression results
+#'
+#' @param x An object of class \code{mi_link_pool_survreg}, typically returned by
+#'   \code{mi_with()} for a \code{survMixBayes} fit.
+#' @param digits the number of significant digits to print.
+#' @param ... further arguments (unused).
+#'
+#' @return The input \code{x}, invisibly.
+#'
+#' @examples
+#' \dontrun{
+#' set.seed(301)
+#' n <- 150
+#' trt <- rbinom(n, 1, 0.5)
+#'
+#' # Component 1 represents correct links (signal),
+#' # and component 2 represents incorrect links (noise).
+#' Z_true <- 2 - rbinom(n, 1, 0.8)
+#'
+#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+#' obs_time <- ifelse(Z_true == 1, time1, time2)
+#'
+#' cens_time <- rexp(n, rate = 0.1)
+#' status <- as.integer(obs_time <= cens_time)
+#' obs_time <- pmin(obs_time, cens_time)
+#'
+#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#'
+#' adj <- adjMixBayes(linked.data = linked_df)
+#'
+#' fit <- plsurvreg(
+#'   survival::Surv(time, status) ~ trt,
+#'   dist = "weibull",
+#'   adjustment = adj,
+#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
+#' )
+#'
+#' dat <- data.frame(
+#'  time = y[, "time"],
+#'  event = y[, "event"],
+#'  X
+#'  )
+#'
+#' pooled_obj <- mi_with(
+#'   object = fit,
+#'   data = linked_df,
+#'   formula = survival::Surv(time, status) ~ trt
+#' )
+#'
+#' print(pooled_obj, digits = 4)
+#' }
+#'
+#' @export
+#' @method print mi_link_pool_survreg
+print.mi_link_pool_survreg <- function(x,
+                                       digits = max(3L, getOption("digits") - 2L),
+                                       ...) {
+ cat("Pooled Cox regression results across posterior match classifications:\n")
+ cat("  Retained imputations (m):", x$m, "\n")
+ cat("  Mixture model distribution:", x$dist, "\n")
+ cat("  Refit model: coxph\n\n")
+
+ tab <- cbind(
+  Estimate  = x$coef,
+  Std.Error = x$se,
+  CI.lwr    = x$ci95[, "lwr"],
+  CI.upr    = x$ci95[, "upr"],
+  df        = x$df
+ )
+
+ print(round(tab, digits))
  invisible(x)
 }

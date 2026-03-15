@@ -20,31 +20,21 @@ The input \code{x}, invisibly.
 Print a glmMixBayes model object
 }
 \examples{
-\dontrun{
-data(lifem)
+\donttest{
+# 1. Simulate fast toy data (Gaussian mixture)
+set.seed(601)
+n <- 100
+X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+X[, 1] <- 1
+y <- rnorm(n, mean = X \%*\% c(1, 2), sd = 1.5)
 
-# lifem data preprocessing
-# For computational efficiency in the example, we work with a subset of the lifem data.
-lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
-lifem_small <- rbind(
-  head(subset(lifem, hndlnk == 1), 100),
-  head(subset(lifem, hndlnk == 0), 20)
-)
-
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
-
+# 2. Fit the model with artificially low iterations for speed
 fit <- glmMixBayes(
-  X = x,
-  y = y,
-  family = "gaussian",
-  control = list(
-    iterations = 200,
-    burnin.iterations = 100,
-    seed = 123
-  )
+  X = X, y = y, family = "gaussian",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 601)
 )
 
+# 3. Print the model object
 print(fit)
 }
 

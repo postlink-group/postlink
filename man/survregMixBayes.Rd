@@ -107,7 +107,7 @@ interpretable posterior summaries, this function applies a
 post-processing step that aligns component labels across
 posterior draws.
 
-First, an optional global swap of labels (1 and 2) is performed
+First, an optional global swap of labels (1 ↔ 2) is performed
 if component 2 is more frequent overall. Then, labels are
 aligned across draws using the \code{ECR-ITERATIVE-1}
 relabeling algorithm.

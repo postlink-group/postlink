@@ -13,13 +13,13 @@ NULL
 #' Pool parameter estimates across posterior draws
 #'
 #' Generic function for pooling parameter estimates from Bayesian mixture
-#' models using posterior draws of the latent match classifications.
+#' models using posterior draws of the latent component indicators.
 #'
 #' @param object A fitted Bayesian mixture model object.
 #' @param ... Additional arguments passed to methods.
 #'
 #' @return A pooled model object combining parameter estimates across
-#' posterior component allocations.
+#' posterior component-indicator draws.
 #'
 #' @examples
 #' \dontrun{
@@ -55,10 +55,15 @@ mi_with <- function(object, ...) {
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
@@ -105,10 +110,15 @@ print.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L),...)
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
@@ -179,7 +189,7 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
   cat(" ", sep="\n")
   cat("Family:", x$family, " ", sep="\n")
 
-  cat("(For Correct Matches):", sep="\n")
+  cat("(Component 1 = Correct-match):", sep = "\n")
 
   cat("Outcome Model Coefficients:", sep="\n")
   stats::printCoefmat(x$coefficients,quote=F, digits = digits,
@@ -192,7 +202,7 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
     cat("\n")
   }
 
-  cat("(For Mismatches):", sep="\n")
+  cat("(Component 2 = Incorrect-match):", sep = "\n")
 
   cat("Outcome Model Coefficients:", sep="\n")
   stats::printCoefmat(x$m.coefficients,quote=F, digits = digits,
@@ -212,8 +222,8 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
 #'
 #' @param object A \code{glmMixBayes} model object.
 #' @param ... Not used.
-#' @return Posterior covariance matrix of the regression coefficients for the
-#' primary (correct-match) component.
+#' @return Posterior covariance matrix of the regression coefficients for
+#' component 1 (the correct-match component).
 #'
 #' @examples
 #' \dontrun{
@@ -230,10 +240,15 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
@@ -253,7 +268,7 @@ vcov.glmMixBayes <- function(object, ...) {
 #'
 #' Computes posterior credible intervals for the regression coefficients in a
 #' fitted \code{glmMixBayes} model. By default, intervals are returned for all
-#' coefficients in the primary component of the mixture model. A subset of
+#' coefficients in component 1 of the mixture model. A subset of
 #' coefficients can be selected using \code{parm}.
 #'
 #' @param object A \code{glmMixBayes} model object.
@@ -282,10 +297,15 @@ vcov.glmMixBayes <- function(object, ...) {
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
@@ -339,10 +359,15 @@ confint.glmMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
@@ -471,10 +496,15 @@ predict.glmMixBayes <- function(object, newx,
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
@@ -650,10 +680,15 @@ mi_with.glmMixBayes <- function(object, data, formula,
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
 #' y <- lifem_small$age_at_death
 #'
-#' fit <- glmMixBayes(
-#'   X = x,
-#'   y = y,
+#' adj <- adjMixBayes(
+#'   linked.data = lifem_small,
+#'   priors = list(theta = "beta(2, 2)")
+#' )
+#'
+#' fit <- plglm(
+#'   age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 #'   family = "gaussian",
+#'   adjustment = adj,
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,

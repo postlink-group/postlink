@@ -29,32 +29,26 @@ coefficients in the primary component of the mixture model. A subset of
 coefficients can be selected using \code{parm}.
 }
 \examples{
-\dontrun{
-data(lifem)
+# Simulate simple Gaussian regression data
+set.seed(604)
+n <- 100
 
-# lifem data preprocessing
-# For computational efficiency in the example, we work with a subset of the lifem data.
-lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
-lifem_small <- rbind(
-  head(subset(lifem, hndlnk == 1), 100),
-  head(subset(lifem, hndlnk == 0), 20)
-)
+x1 <- rnorm(n)
+X <- cbind(Intercept = 1, x1 = x1)
 
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
+# True model: y = 1 + 2*x1 + error
+y <- 1 + 2 * x1 + rnorm(n, sd = 1.5)
 
+# Fit the model
 fit <- glmMixBayes(
-  X = x,
-  y = y,
-  family = "gaussian",
-  control = list(
-    iterations = 200,
-    burnin.iterations = 100,
-    seed = 123
-  )
+  X = X, y = y, family = "gaussian",
+  control = list(iterations = 100, burnin.iterations = 50, seed = 604)
 )
 
-confint(fit)
-}
+# Calculate 95\% credible intervals for all coefficients
+confint(fit, level = 0.95)
+
+# Extract the credible interval for the x1 coefficient
+confint(fit, parm = "x1", level = 0.90)
 
 }
