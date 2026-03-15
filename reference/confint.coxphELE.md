@@ -37,6 +37,7 @@ parameter.
 ## Examples
 
 ``` r
+library(survival)
 set.seed(104)
 n <- 200
 
@@ -66,11 +67,13 @@ linked_data <- data.frame(time = time, status = status,
 # 4. Fit the adjusted Cox PH model
 adj <- adjELE(linked.data = linked_data, m.rate = 0.15)
 fit <- plcoxph(Surv(time, status) ~ age + treatment, adjustment = adj)
-#> Error in Surv(time, status): could not find function "Surv"
 
 # 5. Compute confidence intervals
 confint(fit) # 95% CI for all coefficients
-#> Error: object 'fit' not found
+#>                2.5 %     97.5 %
+#> age       -0.0853233 0.06064571
+#> treatment -0.6688953 0.89980482
 confint(fit, parm = "treatment", level = 0.90) # 90% CI for a specific parameter
-#> Error: object 'fit' not found
+#>                  5 %      95 %
+#> treatment -0.5427925 0.7737021
 ```

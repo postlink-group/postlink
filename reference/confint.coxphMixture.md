@@ -45,6 +45,7 @@ using the standard normal approximation: `Estimate +/- z_crit * SE`.
 ## Examples
 
 ``` r
+library(survival)
 set.seed(202)
 n <- 200
 
@@ -80,11 +81,15 @@ linked_data <- data.frame(time = time, status = status,
 adj <- adjMixture(linked.data = linked_data, m.formula = ~ match_score)
 fit <- plcoxph(Surv(time, status) ~ age + treatment, adjustment = adj,
                control = list(max.iter = 15))
-#> Error in Surv(time, status): could not find function "Surv"
 
 # 4. Extract Confidence Intervals
 confint(fit)
-#> Error: object 'fit' not found
+#>                   2.5 %      97.5 %
+#> age         -0.02919245  0.11861452
+#> treatment   -1.57865485 -0.07102464
+#> (Intercept)          NA          NA
+#> match_score          NA          NA
 confint(fit, parm = "treatment", level = 0.90)
-#> Error: object 'fit' not found
+#>                 5 %       95 %
+#> treatment -1.457461 -0.1922182
 ```

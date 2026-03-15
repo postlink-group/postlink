@@ -85,7 +85,8 @@ by <code><a href="vcov.coxphMixture.html">vcov.coxphMixture</a></code>, using th
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">202</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival" class="external-link">survival</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">202</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">200</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 1. Simulate covariates</span></span></span>
@@ -118,15 +119,19 @@ by <code><a href="vcov.coxphMixture.html">vcov.coxphMixture</a></code>, using th
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 3. Fit the Cox PH Mixture Model</span></span></span>
 <span class="r-in"><span><span class="va">adj</span> <span class="op">&lt;-</span> <span class="fu"><a href="adjMixture.html">adjMixture</a></span><span class="op">(</span>linked.data <span class="op">=</span> <span class="va">linked_data</span>, m.formula <span class="op">=</span> <span class="op">~</span> <span class="va">match_score</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="plcoxph.html">plcoxph</a></span><span class="op">(</span><span class="fu">Surv</span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">treatment</span>, adjustment <span class="op">=</span> <span class="va">adj</span>,</span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="plcoxph.html">plcoxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">treatment</span>, adjustment <span class="op">=</span> <span class="va">adj</span>,</span></span>
 <span class="r-in"><span>               control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>max.iter <span class="op">=</span> <span class="fl">15</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in Surv(time, status):</span> could not find function "Surv"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 4. Extract Confidence Intervals</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'fit' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   2.5 %      97.5 %</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> age         -0.02919245  0.11861452</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> treatment   -1.57865485 -0.07102464</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)          NA          NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> match_score          NA          NA</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span>, parm <span class="op">=</span> <span class="st">"treatment"</span>, level <span class="op">=</span> <span class="fl">0.90</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'fit' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 5 %       95 %</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> treatment -1.457461 -0.1922182</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

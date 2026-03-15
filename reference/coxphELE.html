@@ -165,10 +165,10 @@ Statistics in Medicine, 43(2), 296-314.<br></p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 4. Fit the model directly</span></span></span>
 <span class="r-in"><span><span class="co"># cens = 1 for censored, 0 for event</span></span></span>
-<span class="r-in"><span><span class="va">fit_ele</span> <span class="op">&lt;-</span> <span class="fu">coxphELE</span><span class="op">(</span>X <span class="op">=</span> <span class="va">X_mat</span>, y <span class="op">=</span> <span class="va">obs_time</span>, cens <span class="op">=</span> <span class="va">cens_ele</span>, m.rate <span class="op">=</span> <span class="fl">0.15</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in coxphELE(X = X_mat, y = obs_time, cens = cens_ele, m.rate = 0.15):</span> argument "x" is missing, with no default</span>
+<span class="r-in"><span><span class="va">fit_ele</span> <span class="op">&lt;-</span> <span class="fu">coxphELE</span><span class="op">(</span>x <span class="op">=</span> <span class="va">X_mat</span>, y <span class="op">=</span> <span class="va">obs_time</span>, cens <span class="op">=</span> <span class="va">cens_ele</span>, m.rate <span class="op">=</span> <span class="fl">0.15</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit_ele</span><span class="op">$</span><span class="va">coefficients</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'fit_ele' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          age    treatment </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.017052210 -0.001040659 </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

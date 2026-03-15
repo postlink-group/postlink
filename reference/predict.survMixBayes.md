@@ -51,8 +51,8 @@ fit <- survregMixBayes(
 #> 
 #> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 5.8e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.58 seconds.
+#> Chain 1: Gradient evaluation took 6.5e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.65 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -77,9 +77,9 @@ fit <- survregMixBayes(
 #> Chain 1: Iteration: 90 / 100 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 100 / 100 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.058 seconds (Warm-up)
-#> Chain 1:                0.082 seconds (Sampling)
-#> Chain 1:                0.14 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.088 seconds (Warm-up)
+#> Chain 1:                0.126 seconds (Sampling)
+#> Chain 1:                0.214 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is 1.66, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -94,7 +94,7 @@ fit <- survregMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.037                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.048                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -103,7 +103,7 @@ fit <- survregMixBayes(
 #>     Retrieve the 1 best clusterings: [...]$clusters
 #>     Retrieve the 1 CPU times: [...]$timings
 #>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
-#>     Label switching finished. Total time: 0 seconds. 
+#>     Label switching finished. Total time: 0.1 seconds. 
 
 # Create a new design matrix for prediction
 X_new <- matrix(c(0, 1, -1, 0.5), ncol = 2, dimnames = list(NULL, c("x1", "x2")))

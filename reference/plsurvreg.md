@@ -85,6 +85,7 @@ method provided:
 
 ``` r
 if (FALSE) { # \dontrun{
+library(survival)
 set.seed(202)
 n <- 200
 
