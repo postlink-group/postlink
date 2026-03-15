@@ -74,6 +74,10 @@ adj_object <- adjELE(linked.data = brfss,
 Chambers, R. (2009). Regression analysis of probability-linked data.
 \emph{Official Statistics Research Series}, 4, 1-15.
 
+Chambers, R. L., Fabrizi, E., Ranalli, M. G., Salvati, N., & Wang, S. (2023).
+Robust regression using probabilistically linked data. \emph{Wiley Interdisciplinary
+Reviews: Computational Statistics}, 15(2), e1596. \doi{10.1002/wics.1596}
+
 Vo, T. H., Garès, V., Zhang, L. C., Happe, A., Oger, E.,
 Paquelet, S., & Chauvet, G. (2024). Cox regression with linked data.
 \emph{Statistics in Medicine}, 43(2), 296-314. \doi{10.1002/sim.9960}
