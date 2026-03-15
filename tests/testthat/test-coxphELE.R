@@ -55,7 +55,7 @@ test_that("coxphELE engine runs and produces valid output", {
  fit <- coxphELE(
   x = as.matrix(sim$data[, c("x1", "x2")]),
   y = sim$data$time,
-  cens = 1 - sim$data$status, # Engine uses 1 = censored
+  cens = 1 - sim$data$status, # Routine uses 1 = censored
   m.rate = 0.1,
   blocks = sim$data$blocks
  )
@@ -154,7 +154,7 @@ test_that("fitcoxph.adjELE correctly subsets and aligns data", {
  expect_equal(length(fit_sub$linear.predictors), 150)
 })
 
-test_that("Engine throws appropriate errors for bad inputs", {
+test_that("Routine throws appropriate errors for bad inputs", {
  sim <- generate_ele_cox_data(n = 50)
 
  # Mismatch in m.rate and blocks
@@ -168,4 +168,157 @@ test_that("Engine throws appropriate errors for bad inputs", {
  expect_error(
   fitcoxph.adjELE(x = as.matrix(sim$data[,3:4]), y = sim$data$time, adjustment = adj)
  )
+})
+
+test_that("coxphELE handles missing blocks, explicit init.beta, and missing var_names", {
+ sim <- generate_ele_cox_data(n = 50)
+
+ # Strip column names to trigger: if (is.null(var_names)) var_names <- paste0("V", 1:p)
+ x_no_names <- as.matrix(sim$data[, c("x1", "x2")])
+ colnames(x_no_names) <- NULL
+
+ # Omit blocks to trigger: blocks <- rep(1, n) ...
+ # Provide init.beta to trigger: init.beta <- control$init.beta
+ fit <- coxphELE(
+  x = x_no_names,
+  y = sim$data$time,
+  cens = 1 - sim$data$status,
+  m.rate = 0.1,
+  control = list(init.beta = c(0.1, 0.1))
+ )
+
+ expect_equal(names(fit$coefficients), c("V1", "V2"))
+ expect_equal(fit$n, 50)
+})
+
+test_that("coxphELE handles nleqslv non-convergence and singular Jacobian", {
+ sim <- generate_ele_cox_data(n = 50)
+
+ # Create a perfectly collinear matrix to guarantee a singular Jacobian
+ x_bad <- cbind(sim$data$x1, sim$data$x1)
+
+ # Expect two warnings
+ expect_warning(
+  expect_warning(
+   fit_bad <- coxphELE(
+    x = x_bad,
+    y = sim$data$time,
+    cens = 1 - sim$data$status,
+    m.rate = 0.1,
+    blocks = sim$data$blocks,
+    control = list(init.beta = c(0, 0))
+    # Prevent survival::coxph from assigning NA
+   ),
+   "algorithm may not have fully converged"
+  ),
+  "Jacobian is singular"
+ )
+
+ # Verify the resulting Variance matrix is populated with NAs
+ expect_true(all(is.na(fit_bad$var)))
+})
+
+test_that("fitcoxph.adjELE correctly handles missing data and row mismatch errors", {
+ sim <- generate_ele_cox_data(n = 50)
+
+ # Trigger: "The 'adjustment' object does not contain linked data..."
+ adj_nodata <- list(data_ref = list(data = NULL))
+ expect_error(
+  fitcoxph.adjELE(x = matrix(1), y = Surv(1, 1), adjustment = adj_nodata, control = list(init.beta = NULL)),
+  "does not contain linked data"
+ )
+
+ # Trigger: "Row mismatch: Model matrix 'x' has no row names and its length..."
+ x_no_rownames <- matrix(1:10, nrow = 5, ncol = 2)
+ mock_full_data <- data.frame(id = 1:10)
+ rownames(mock_full_data) <- 1:10
+ adj_mismatch_len <- list(data_ref = list(data = mock_full_data), blocks = rep(1, 10), m.rate = 0.1)
+ expect_error(
+  fitcoxph.adjELE(x = x_no_rownames, y = Surv(1:5, rep(1, 5)), adjustment = adj_mismatch_len, control = list(init.beta = NULL)),
+  "occurred without row names"
+ )
+
+ # Trigger: "Row mismatch: Some observations in the model matrix could not be matched..."
+ x_wrong_rownames <- matrix(1:20, nrow = 10, ncol = 2)
+ rownames(x_wrong_rownames) <- 11:20
+ expect_error(
+  fitcoxph.adjELE(x = x_wrong_rownames, y = Surv(1:10, rep(1, 10)), adjustment = adj_mismatch_len, control = list(init.beta = NULL)),
+  "could not be matched"
+ )
+})
+
+test_that("fitcoxph.adjELE properly processes varied lengths of m.rate and audit.size", {
+ sim <- generate_ele_cox_data(n = 60, num_blocks = 2)
+ full_dat <- sim$data
+ rownames(full_dat) <- 1:nrow(full_dat)
+ x_mat <- as.matrix(full_dat[, c("x1", "x2")])
+ rownames(x_mat) <- rownames(full_dat)
+ y_surv <- Surv(full_dat$time, full_dat$status)
+
+ n_full <- nrow(full_dat)
+ n_unique_full <- length(unique(full_dat$blocks))
+
+ # Trigger: if (length(m_rate_in) == n_full) & if (length(audit_in) == n_full)
+ adj_nfull <- list(
+  data_ref = list(data = full_dat),
+  blocks = full_dat$blocks,
+  m.rate = rep(0.1, n_full),
+  audit.size = rep(10, n_full)
+ )
+ fit_nfull <- fitcoxph.adjELE(x = x_mat, y = y_surv, adjustment = adj_nfull, control = list(init.beta = NULL))
+ expect_s3_class(fit_nfull, "coxphELE")
+
+ # Trigger: if (length(m_rate_in) == n_unique_full) &
+ # if (length(audit_in) == n_unique_full)
+ adj_nunique <- list(
+  data_ref = list(data = full_dat),
+  blocks = full_dat$blocks,
+  m.rate = c(0.1, 0.15),
+  audit.size = c(10, 15)
+ )
+ fit_nunique <- fitcoxph.adjELE(x = x_mat, y = y_surv, adjustment = adj_nunique, control = list(init.beta = NULL))
+ expect_s3_class(fit_nunique, "coxphELE")
+
+ # Trigger: audit.size length == 1 logic
+ adj_audit_1 <- list(
+  data_ref = list(data = full_dat),
+  blocks = full_dat$blocks,
+  m.rate = 0.1,
+  audit.size = 10
+ )
+ fit_audit_1 <- fitcoxph.adjELE(x = x_mat, y = y_surv, adjustment = adj_audit_1, control = list(init.beta = NULL))
+ expect_s3_class(fit_audit_1, "coxphELE")
+
+ # Trigger error: Dimensions of 'm.rate'
+ adj_badm <- list(
+  data_ref = list(data = full_dat),
+  blocks = full_dat$blocks,
+  m.rate = c(0.1, 0.15, 0.2)
+ )
+ expect_error(
+  fitcoxph.adjELE(x = x_mat, y = y_surv, adjustment = adj_badm, control = list(init.beta = NULL)),
+  "inconsistent with data dimensions"
+ )
+})
+
+test_that("fitcoxph.adjELE correctly handles edge cases in Surv objects and coefficient names", {
+ sim <- generate_ele_cox_data(n = 50)
+ rownames(sim$data) <- 1:50
+ x_mat <- as.matrix(sim$data[, c("x1", "x2")])
+ rownames(x_mat) <- rownames(sim$data)
+
+ adj <- list(data_ref = list(data = sim$data), blocks = sim$data$blocks, m.rate = 0.1)
+
+ # Trigger warning: "The current implementation of 'coxphELE' assumes right-censored data..."
+ y_left <- Surv(sim$data$time, sim$data$status, type = "left")
+ expect_warning(
+  fitcoxph.adjELE(x = x_mat, y = y_left, adjustment = adj, control = list(init.beta = NULL)),
+  "assumes right-censored data"
+ )
+
+ # Trigger: if (is.null(type)) type <- "right"
+ y_notype <- Surv(sim$data$time, sim$data$status)
+ attr(y_notype, "type") <- NULL
+ fit_notype <- fitcoxph.adjELE(x = x_mat, y = y_notype, adjustment = adj, control = list(init.beta = NULL))
+ expect_s3_class(fit_notype, "coxphELE")
 })
