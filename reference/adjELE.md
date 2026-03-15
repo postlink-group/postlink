@@ -81,6 +81,11 @@ validity of the implementation.
 Chambers, R. (2009). Regression analysis of probability-linked data.
 *Official Statistics Research Series*, 4, 1-15.
 
+Chambers, R. L., Fabrizi, E., Ranalli, M. G., Salvati, N., & Wang, S.
+(2023). Robust regression using probabilistically linked data. *Wiley
+Interdisciplinary Reviews: Computational Statistics*, 15(2), e1596.
+[doi:10.1002/wics.1596](https://doi.org/10.1002/wics.1596)
+
 Vo, T. H., Garès, V., Zhang, L. C., Happe, A., Oger, E., Paquelet, S., &
 Chauvet, G. (2024). Cox regression with linked data. *Statistics in
 Medicine*, 43(2), 296-314.
