@@ -4,7 +4,7 @@
 #' The \code{postlink} package provides a unified suite of statistical tools
 #' designed to rigorously account for record linkage errors in downstream modeling.
 #'
-#' Record linkage is rarely perfect. When datasets are merged using noisy or non-unique
+#' Record linkage is often error-prone. When datasets are merged using noisy or non-unique
 #' identifiers, mismatches (false links) are inadvertently introduced. Ignoring these errors
 #' acts as a contaminant in regression analysis, typically leading to significantly attenuated
 #' estimates and biased statistical inference. \code{postlink} equips researchers with
