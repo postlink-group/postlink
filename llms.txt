@@ -2,17 +2,17 @@
 
 The `postlink` package is dedicated to providing a unified suite of
 statistical tools designed to rigorously account for record linkage
-errors in downstream modeling (“post-linkage data analysis”).
+errors in post-linkage data analysis.
 
 Record linkage is often error-prone, particularly when identifiers used
 for matching records are noisy or non-unique. Mismatches (false matches)
 act as a contaminant in the linked data, typically leading to attenuated
 estimates in downstream analysis. The `postlink` R package currently
 supports three statistical frameworks to account for potential mismatch
-errors during regression modeling:
+errors during downstream regression modeling:
 
-- **Weighting**: Corrects bias by solving adjusted estimating equations
-  using block-specific proportions of correct links. It assumes an
+- **Weighting**: Solves adjusted estimating equations using
+  block-specific proportions of correct links. It assumes an
   Exchangeable Linkage Error (ELE) model (Chambers, 2009; Chambers et
   al., 2023; Vo et al., 2024).
 - **Mixture Modeling**: Uses an Expectation-Maximization (EM) algorithm
@@ -29,8 +29,8 @@ accessible. For the primary analysis setting, when individual files are
 accessible, methods that perform record linkage and analysis jointly
 with direct propagation of uncertainty would be more suitable.
 
-The long-term goal of `postlink` is to gradually extend support for a
-wide array of linkage and post-linkage analysis scenarios.
+The long-term goal of `postlink` is to extend support for a wide array
+of linkage and post-linkage analysis scenarios.
 
 ## **Package Design**
 

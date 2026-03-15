@@ -68,18 +68,18 @@
 </div>
 <!-- badges: start -->
 
-<p>The <code>postlink</code> package is dedicated to providing a unified suite of statistical tools designed to rigorously account for record linkage errors in downstream modeling (“post-linkage data analysis”).</p>
-<p>Record linkage is often error-prone, particularly when identifiers used for matching records are noisy or non-unique. Mismatches (false matches) act as a contaminant in the linked data, typically leading to attenuated estimates in downstream analysis. The <code>postlink</code> R package currently supports three statistical frameworks to account for potential mismatch errors during regression modeling:</p>
+<p>The <code>postlink</code> package is dedicated to providing a unified suite of statistical tools designed to rigorously account for record linkage errors in post-linkage data analysis.</p>
+<p>Record linkage is often error-prone, particularly when identifiers used for matching records are noisy or non-unique. Mismatches (false matches) act as a contaminant in the linked data, typically leading to attenuated estimates in downstream analysis. The <code>postlink</code> R package currently supports three statistical frameworks to account for potential mismatch errors during downstream regression modeling:</p>
 <ul>
 <li>
-<strong>Weighting</strong>: Corrects bias by solving adjusted estimating equations using block-specific proportions of correct links. It assumes an Exchangeable Linkage Error (ELE) model (Chambers, 2009; Chambers et al., 2023; Vo et al., 2024).</li>
+<strong>Weighting</strong>: Solves adjusted estimating equations using block-specific proportions of correct links. It assumes an Exchangeable Linkage Error (ELE) model (Chambers, 2009; Chambers et al., 2023; Vo et al., 2024).</li>
 <li>
 <strong>Mixture Modeling</strong>: Uses an Expectation-Maximization (EM) algorithm and infers the latent correct match status using a two-component mixture model (Slawski et al., 2025).</li>
 <li>
 <strong>Bayesian Mixture Modeling</strong>: Performs posterior inference via data augmentation, alternating between imputing the latent match status and updating model parameters to propagate linkage uncertainty (Gutman et al., 2016).</li>
 </ul>
 <p>The <code>postlink</code> package currently focuses on methods for secondary analysis, where the individual files that were linked are not accessible. For the primary analysis setting, when individual files are accessible, methods that perform record linkage and analysis jointly with direct propagation of uncertainty would be more suitable.</p>
-<p>The long-term goal of <code>postlink</code> is to gradually extend support for a wide array of linkage and post-linkage analysis scenarios.</p>
+<p>The long-term goal of <code>postlink</code> is to extend support for a wide array of linkage and post-linkage analysis scenarios.</p>
 <div class="section level2">
 <h2 id="package-design">
 <strong>Package Design</strong><a class="anchor" aria-label="anchor" href="#package-design"></a>
