@@ -2,49 +2,97 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{mi_with.survMixBayes}
 \alias{mi_with.survMixBayes}
-\title{Pool posterior component classifications from a survMixBayes fit}
+\title{Pool regression fits across posterior draws of correct-match classifications}
 \usage{
-\method{mi_with}{survMixBayes}(object, ...)
+\method{mi_with}{survMixBayes}(
+  object,
+  data,
+  formula,
+  min_n = NULL,
+  quietly = TRUE,
+  ties = "efron",
+  ...
+)
 }
 \arguments{
-\item{object}{An object of class \code{survMixBayes}.}
+\item{object}{A \code{survMixBayes} model object containing posterior draws of
+the latent match indicators.}
 
-\item{...}{Further arguments (unused).}
+\item{data}{A data.frame with all candidate records in the same row order as used in the model.}
+
+\item{formula}{Model formula for refitting on each draw (required), typically
+of the form \code{survival::Surv(time, event) ~ ...}.}
+
+\item{min_n}{Minimum number of records required to fit the model for a given
+posterior draw. The default is \code{p + 2}, where \code{p} is the number
+of non-intercept columns in the model matrix.}
+
+\item{quietly}{If \code{TRUE}, draws that lead to fitting errors are skipped
+without printing the full error message.}
+
+\item{ties}{Method for handling tied event times in \code{survival::coxph()}.
+Default is \code{"efron"}.}
+
+\item{...}{Additional arguments passed to \code{survival::coxph()}.}
 }
 \value{
-An object of class
-\code{c("mi_link_pool_survreg", "mi_link_pool")} containing the fitted
-model call, survival distribution, posterior probabilities of belonging to
-component 1 for each observation, where component 1 is interpreted as the
-correct-match component, and the stored posterior draws from the original
-fitted model.
+An object of class \code{c("mi_link_pool_survreg", "mi_link_pool")}
+containing pooled coefficient estimates, standard errors, confidence
+intervals, and related summary information.
 }
 \description{
-Summarizes posterior component classifications from a fitted
-\code{survMixBayes} model by computing, for each observation, the posterior
-probability of belonging to component 1. In this package, component 1 is
-interpreted as the correct-match component.
+Use posterior draws of the latent match indicators from \code{survregMixBayes()}
+to repeatedly identify which records are treated as correct matches, refit a
+Cox proportional hazards model on those records, and pool the resulting
+estimates using multiple-imputation pooling rules.
+
+Each retained posterior draw defines one subset of records classified as
+correct matches. The function fits the specified \code{survival::coxph()}
+model to that subset, extracts the estimated coefficients and covariance
+matrix, and combines the results across draws using Rubin's rules.
 }
 \examples{
-\donttest{
-# Simulate data
-set.seed(406)
-n <- 100
-X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
-           event = rbinom(n, 1, 0.8))
+\dontrun{
+set.seed(301)
+n <- 150
+trt <- rbinom(n, 1, 0.5)
 
-# Fit the model
-fit <- survregMixBayes(
-  X = X, y = y, dist = "weibull",
-  control = list(iterations = 100, burnin.iterations = 50, seed = 406)
+# Component 1 represents correct links (signal),
+# and component 2 represents incorrect links (noise).
+Z_true <- 2 - rbinom(n, 1, 0.8)
+
+time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+obs_time <- ifelse(Z_true == 1, time1, time2)
+
+cens_time <- rexp(n, rate = 0.1)
+status <- as.integer(obs_time <= cens_time)
+obs_time <- pmin(obs_time, cens_time)
+
+linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+
+adj <- adjMixBayes(linked.data = linked_df)
+
+fit <- plsurvreg(
+  survival::Surv(time, status) ~ trt,
+  dist = "weibull",
+  adjustment = adj,
+  control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 )
 
-# Summarize posterior component classifications
-pooled_obj <- mi_with(fit)
+dat <- data.frame(
+ time = y[, "time"],
+ event = y[, "event"],
+ X
+ )
 
-# View the posterior probabilities of belonging to component 1
-summary(pooled_obj$p_component1)
+pooled_obj <- mi_with(
+  object = fit,
+  data = linked_df,
+  formula = survival::Surv(time, status) ~ trt
+)
+
+print(pooled_obj)
 }
 
 }

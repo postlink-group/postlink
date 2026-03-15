@@ -24,7 +24,7 @@ A named list of credible intervals. Elements \code{coef1} and
 \code{coef2} are matrices with one row per regression coefficient and two
 columns giving the lower and upper interval bounds for components 1 and 2,
 respectively, where component 1 is the correct-match component and
-component 2 is the non-match component. Elements such as \code{theta}, \code{shape1},
+component 2 is the incorrect-match component. Elements such as \code{theta}, \code{shape1},
 \code{shape2}, \code{scale1}, and \code{scale2} are numeric vectors of
 length 2 containing the lower and upper credible interval bounds for the
 corresponding scalar parameters.
@@ -34,28 +34,35 @@ Computes posterior credible intervals for the regression coefficients,
 mixing weight, and family-specific distribution parameters from a fitted
 \code{survMixBayes} model. The returned intervals are organized by mixture
 component and parameter type. Component 1 corresponds to the correct-match
-component and component 2 to the non-match component.
+component and component 2 to the incorrect-match component.
 }
 \examples{
-\donttest{
-# Simulate simple Weibull survival data
-set.seed(403)
-n <- 100
+\dontrun{
+set.seed(301)
+n <- 150
+trt <- rbinom(n, 1, 0.5)
 
-x1 <- rnorm(n)
-x2 <- rnorm(n)
-X <- cbind(x1 = x1, x2 = x2)
+# Component 1 represents correct links (signal),
+# and component 2 represents incorrect links (noise).
+Z_true <- 2 - rbinom(n, 1, 0.8)
 
-# Observed survival response: time and event indicator
-y <- cbind(
-  time = rweibull(n, shape = 1.2, scale = exp(x1)),
-  event = rbinom(n, 1, 0.8)
-)
+time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+obs_time <- ifelse(Z_true == 1, time1, time2)
 
-# Fit the model
-fit <- survregMixBayes(
-  X = X, y = y, dist = "weibull",
-  control = list(iterations = 100, burnin.iterations = 50, seed = 403)
+cens_time <- rexp(n, rate = 0.1)
+status <- as.integer(obs_time <= cens_time)
+obs_time <- pmin(obs_time, cens_time)
+
+linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+
+adj <- adjMixBayes(linked.data = linked_df)
+
+fit <- plsurvreg(
+  survival::Surv(time, status) ~ trt,
+  dist = "weibull",
+  adjustment = adj,
+  control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 )
 
 # Calculate 95\% credible intervals for all parameters

@@ -25,30 +25,41 @@ upper credible interval bounds. Row names correspond to coefficient names.
 \description{
 Computes posterior credible intervals for the regression coefficients in a
 fitted \code{glmMixBayes} model. By default, intervals are returned for all
-coefficients in the primary component of the mixture model. A subset of
+coefficients in component 1 of the mixture model. A subset of
 coefficients can be selected using \code{parm}.
 }
 \examples{
-# Simulate simple Gaussian regression data
-set.seed(604)
-n <- 100
+\dontrun{
+data(lifem)
 
-x1 <- rnorm(n)
-X <- cbind(Intercept = 1, x1 = x1)
-
-# True model: y = 1 + 2*x1 + error
-y <- 1 + 2 * x1 + rnorm(n, sd = 1.5)
-
-# Fit the model
-fit <- glmMixBayes(
-  X = X, y = y, family = "gaussian",
-  control = list(iterations = 100, burnin.iterations = 50, seed = 604)
+# lifem data preprocessing
+# For computational efficiency in the example, we work with a subset of the lifem data.
+lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+lifem_small <- rbind(
+  head(subset(lifem, hndlnk == 1), 100),
+  head(subset(lifem, hndlnk == 0), 20)
 )
 
-# Calculate 95\% credible intervals for all coefficients
-confint(fit, level = 0.95)
+x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
+y <- lifem_small$age_at_death
 
-# Extract the credible interval for the x1 coefficient
-confint(fit, parm = "x1", level = 0.90)
+adj <- adjMixBayes(
+  linked.data = lifem_small,
+  priors = list(theta = "beta(2, 2)")
+)
+
+fit <- plglm(
+  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+  family = "gaussian",
+  adjustment = adj,
+  control = list(
+    iterations = 200,
+    burnin.iterations = 100,
+    seed = 123
+  )
+)
+
+confint(fit)
+}
 
 }

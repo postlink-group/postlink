@@ -39,28 +39,38 @@ credible interval bounds.
 Predictions from a glmMixBayes model
 }
 \examples{
-\donttest{
-# Simulate data
-set.seed(605)
-n <- 100
-X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
-X[, 1] <- 1
-y <- rpois(n, lambda = exp(X \%*\% c(0.5, 0.8)))
+\dontrun{
+data(lifem)
 
-# Fit the Poisson mixture model
-fit <- glmMixBayes(
-  X = X, y = y, family = "poisson",
-  control = list(iterations = 100, burnin.iterations = 50, seed = 605)
+# lifem data preprocessing
+# For computational efficiency in the example, we work with a subset of the lifem data.
+lifem <- lifem[order(-(lifem$commf + lifem$comml)), ]
+lifem_small <- rbind(
+  head(subset(lifem, hndlnk == 1), 100),
+  head(subset(lifem, hndlnk == 0), 20)
 )
 
-# Create a new design matrix for prediction
-X_new <- matrix(c(1, 1,   # Intercepts
-                  0, 1.5), # x1 values
-                ncol = 2, dimnames = list(NULL, c("Intercept", "x1")))
+x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
+y <- lifem_small$age_at_death
 
-# Predict expected counts (type = "response") with 95\% credible intervals
-preds <- predict(fit, newx = X_new, type = "response", interval = "credible")
-print(preds)
+adj <- adjMixBayes(
+  linked.data = lifem_small,
+  priors = list(theta = "beta(2, 2)")
+)
+
+fit <- plglm(
+  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+  family = "gaussian",
+  adjustment = adj,
+  control = list(
+    iterations = 200,
+    burnin.iterations = 100,
+    seed = 123
+  )
+)
+
+newx <- cbind(1, poly(c(0.2, 0.5, 0.8), 3, raw = TRUE))
+predict(fit, newx = newx, type = "response")
 }
 
 }

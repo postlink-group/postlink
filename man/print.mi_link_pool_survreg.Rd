@@ -2,44 +2,66 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{print.mi_link_pool_survreg}
 \alias{print.mi_link_pool_survreg}
-\title{Print pooled posterior component-classification results}
+\title{Print pooled Cox regression results}
 \usage{
-\method{print}{mi_link_pool_survreg}(x, ...)
+\method{print}{mi_link_pool_survreg}(x, digits = max(3L, getOption("digits") - 2L), ...)
 }
 \arguments{
-\item{x}{An object of class \code{mi_link_pool_survreg}.}
+\item{x}{An object of class \code{mi_link_pool_survreg}, typically returned by
+\code{mi_with()} for a \code{survMixBayes} fit.}
 
-\item{...}{Further arguments (unused).}
+\item{digits}{the number of significant digits to print.}
+
+\item{...}{further arguments (unused).}
 }
 \value{
 The input \code{x}, invisibly.
 }
 \description{
-Prints a summary of the posterior probabilities of belonging to component 1,
-interpreted here as the correct-match component,
-from an object returned by \code{mi_with()} for a
-\code{survMixBayes} model.
+Print pooled Cox regression results
 }
 \examples{
-\donttest{
-# Simulate data
-set.seed(407)
-n <- 100
-X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-y <- cbind(time = rweibull(n, shape = 1.2, scale = exp(X[, 1])),
-           event = rbinom(n, 1, 0.8))
+\dontrun{
+set.seed(301)
+n <- 150
+trt <- rbinom(n, 1, 0.5)
 
-# Fit the model
-fit <- survregMixBayes(
-  X = X, y = y, dist = "weibull",
-  control = list(iterations = 100, burnin.iterations = 50, seed = 407)
+# Component 1 represents correct links (signal),
+# and component 2 represents incorrect links (noise).
+Z_true <- 2 - rbinom(n, 1, 0.8)
+
+time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+obs_time <- ifelse(Z_true == 1, time1, time2)
+
+cens_time <- rexp(n, rate = 0.1)
+status <- as.integer(obs_time <= cens_time)
+obs_time <- pmin(obs_time, cens_time)
+
+linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+
+adj <- adjMixBayes(linked.data = linked_df)
+
+fit <- plsurvreg(
+  survival::Surv(time, status) ~ trt,
+  dist = "weibull",
+  adjustment = adj,
+  control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 )
 
-# Create the pooled object via mi_with
-pooled_obj <- mi_with(fit)
+dat <- data.frame(
+ time = y[, "time"],
+ event = y[, "event"],
+ X
+ )
 
-# Print the pooled posterior classification summary
-print(pooled_obj)
+pooled_obj <- mi_with(
+  object = fit,
+  data = linked_df,
+  formula = survival::Surv(time, status) ~ trt
+)
+
+print(pooled_obj, digits = 4)
 }
 
 }

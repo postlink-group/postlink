@@ -20,24 +20,37 @@ The input \code{x}, invisibly.
 Prints the model call and posterior mean regression coefficients for the
 first mixture component of the fitted survival model. In this package,
 component 1 is interpreted as the correct-match component and component 2
-as the non-match component.
+as the incorrect-match component.
 }
 \examples{
-\donttest{
-# 1. Simulate fast toy data
-set.seed(401)
-n <- 100
-X <- matrix(rnorm(n * 2), ncol = 2, dimnames = list(NULL, c("x1", "x2")))
-y <- cbind(time = rweibull(n, shape = 1.5, scale = exp(0.5 * X[, 1])),
-           event = rbinom(n, 1, 0.8))
+\dontrun{
+set.seed(301)
+n <- 150
+trt <- rbinom(n, 1, 0.5)
 
-# 2. Fit the model with artificially low iterations for speed
-fit <- survregMixBayes(
-  X = X, y = y, dist = "weibull",
-  control = list(iterations = 100, burnin.iterations = 50, seed = 401)
+# Component 1 represents correct links (signal),
+# and component 2 represents incorrect links (noise).
+Z_true <- 2 - rbinom(n, 1, 0.8)
+
+time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
+time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
+obs_time <- ifelse(Z_true == 1, time1, time2)
+
+cens_time <- rexp(n, rate = 0.1)
+status <- as.integer(obs_time <= cens_time)
+obs_time <- pmin(obs_time, cens_time)
+
+linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+
+adj <- adjMixBayes(linked.data = linked_df)
+
+fit <- plsurvreg(
+  survival::Surv(time, status) ~ trt,
+  dist = "weibull",
+  adjustment = adj,
+  control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 )
 
-# 3. Print the model object
 print(fit)
 }
 
