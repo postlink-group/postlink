@@ -10,14 +10,14 @@ coverage](https://codecov.io/gh/postlink-group/postlink/graph/badge.svg)](https:
 
 The `postlink` package is dedicated to providing a unified suite of
 statistical tools designed to rigorously account for record linkage
-errors in downstream modeling (“post-linkage data analysis”).
+errors in post-linkage data analysis.
 
 Record linkage is often error-prone, particularly when identifiers used
 for matching records are noisy or non-unique. Mismatches (false matches)
 act as a contaminant in the linked data, typically leading to attenuated
 estimates in downstream analysis. The `postlink` R package currently
 supports three statistical frameworks to account for potential mismatch
-errors during regression modeling:
+errors during downstream regression modeling:
 
 - **Weighting**: Corrects bias by solving adjusted estimating equations
   using block-specific proportions of correct links. It assumes an
