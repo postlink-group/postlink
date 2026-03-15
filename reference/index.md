@@ -67,7 +67,8 @@
   classifications
 
 - [`mi_with(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/mi_with.survMixBayes.md)
-  : Pool posterior component classifications from a survMixBayes fit
+  : Pool regression fits across posterior draws of correct-match
+  classifications
 
 - [`plcoxph()`](https://postlink-group.github.io/postlink/reference/plcoxph.md)
   : Fit Cox Proportional Hazards Models with Linkage Error Adjustment
@@ -144,7 +145,7 @@
   : Print pooled regression results
 
 - [`print(`*`<mi_link_pool_survreg>`*`)`](https://postlink-group.github.io/postlink/reference/print.mi_link_pool_survreg.md)
-  : Print pooled posterior component-classification results
+  : Print pooled Cox regression results
 
 - [`print(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/print.survMixBayes.md)
   : Print a survMixBayes model object

@@ -143,7 +143,7 @@ can lead to label switching in MCMC output. To ensure interpretable
 posterior summaries, this function applies a post-processing step that
 aligns component labels across posterior draws.
 
-First, an optional global swap of labels (1 ↔ 2) is performed if
+First, an optional global swap of labels (1 and 2) is performed if
 component 2 is more frequent overall. Then, labels are aligned across
 draws using the `ECR-ITERATIVE-1` relabeling algorithm.
 
@@ -168,22 +168,22 @@ Statistical Software*, 69(1), 1–24.
 ## Examples
 
 ``` r
-# \donttest{
+if (FALSE) { # \dontrun{
 # 1. Simulate survival data from a two-component Weibull mixture
-# Component 2 represents correct links (strong signal),
-# and Component 1 represents mismatched links (noise).
+# Component 1 represents correct links (signal),
+# and component 2 represents mismatched links (noise).
 set.seed(301)
 n <- 150
 X <- matrix(rnorm(n * 2), ncol = 2)
 colnames(X) <- c("x1", "x2")
 
-# Latent match status: 80% correct links (Z=2), 20% mismatches (Z=1)
-Z_true <- rbinom(n, 1, 0.8) + 1
+# Latent match status: 80% correct links (Z=1), 20% incorrect links (Z=2)
+Z_true <- ifelse(rbinom(n, 1, 0.8) == 1, 1, 2)
 
 # Generate survival times based on latent status
-time1 <- rweibull(n, shape = 1.2, scale = exp(0.1 * X[,1])) # Noise
-time2 <- rweibull(n, shape = 1.5, scale = exp(0.5 * X[,1] - 0.5 * X[,2])) # Signal
-obs_time <- ifelse(Z_true == 2, time2, time1)
+time1 <- rweibull(n, shape = 1.5, scale = exp(0.5 * X[,1] - 0.5 * X[,2])) # Correct links
+time2 <- rweibull(n, shape = 1.2, scale = exp(0.1 * X[,1]))                # Incorrect links
+obs_time <- ifelse(Z_true == 1, time1, time2)
 
 # Apply right-censoring
 cens_time <- rexp(n, rate = 0.1)
@@ -200,75 +200,16 @@ fit <- survregMixBayes(
   dist = "weibull",
   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 )
-#> 
-#> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
-#> Chain 1: 
-#> Chain 1: Gradient evaluation took 9.4e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.94 seconds.
-#> Chain 1: Adjust your expectations accordingly!
-#> Chain 1: 
-#> Chain 1: 
-#> Chain 1: WARNING: There aren't enough warmup iterations to fit the
-#> Chain 1:          three stages of adaptation as currently configured.
-#> Chain 1:          Reducing each adaptation stage to 15%/75%/10% of
-#> Chain 1:          the given number of warmup iterations:
-#> Chain 1:            init_buffer = 15
-#> Chain 1:            adapt_window = 75
-#> Chain 1:            term_buffer = 10
-#> Chain 1: 
-#> Chain 1: Iteration:   1 / 200 [  0%]  (Warmup)
-#> Chain 1: Iteration:  20 / 200 [ 10%]  (Warmup)
-#> Chain 1: Iteration:  40 / 200 [ 20%]  (Warmup)
-#> Chain 1: Iteration:  60 / 200 [ 30%]  (Warmup)
-#> Chain 1: Iteration:  80 / 200 [ 40%]  (Warmup)
-#> Chain 1: Iteration: 100 / 200 [ 50%]  (Warmup)
-#> Chain 1: Iteration: 101 / 200 [ 50%]  (Sampling)
-#> Chain 1: Iteration: 120 / 200 [ 60%]  (Sampling)
-#> Chain 1: Iteration: 140 / 200 [ 70%]  (Sampling)
-#> Chain 1: Iteration: 160 / 200 [ 80%]  (Sampling)
-#> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
-#> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
-#> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.509 seconds (Warm-up)
-#> Chain 1:                0.497 seconds (Sampling)
-#> Chain 1:                1.006 seconds (Total)
-#> Chain 1: 
-#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
-#> Running the chains for more iterations may help. See
-#> https://mc-stan.org/misc/warnings.html#bulk-ess
-#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-#> Running the chains for more iterations may help. See
-#> https://mc-stan.org/misc/warnings.html#tail-ess
-#> 
-#>     ......................................................................................
-#>     . Method                         Time (sec)           Status                         . 
-#>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.087                Converged (2 iterations)       . 
-#>     ......................................................................................
-#> 
-#>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
-#>     Retrieve the 1 permutation arrays by typing:
-#>         [...]$permutations$"ECR-ITERATIVE-1"
-#>     Retrieve the 1 best clusterings: [...]$clusters
-#>     Retrieve the 1 CPU times: [...]$timings
-#>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
-#>     Label switching finished. Total time: 0.1 seconds. 
 
 # 3. Inspect the aligned posterior estimates
 # (Label switching is handled automatically via ECR-ITERATIVE-1)
-cat("Component 2 (Correct Links) Coefficients:\n")
-#> Component 2 (Correct Links) Coefficients:
+cat("Component 1 (Correct Links) Coefficients:\n")
 print(colMeans(fit$estimates$m.coefficients))
-#> [1] -0.5524656  0.6254333
 
-cat("Component 1 (Mismatches) Coefficients:\n")
-#> Component 1 (Mismatches) Coefficients:
+cat("Component 2 (Incorrect Links) Coefficients:\n")
 print(colMeans(fit$estimates$coefficients))
-#> [1]  0.2361357 -0.3872336
 
-cat("Estimated mixing weight (Mismatch proportion):\n")
-#> Estimated mixing weight (Mismatch proportion):
+cat("Estimated mixing weight (Correct-link proportion):\n")
 print(mean(fit$estimates$theta))
-#> [1] 0.96202
-# }
+} # }
 ```
