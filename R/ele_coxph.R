@@ -66,7 +66,7 @@
 #'
 #' # 4. Fit the model directly
 #' # cens = 1 for censored, 0 for event
-#' fit_ele <- coxphELE(X = X_mat, y = obs_time, cens = cens_ele, m.rate = 0.15)
+#' fit_ele <- coxphELE(x = X_mat, y = obs_time, cens = cens_ele, m.rate = 0.15)
 #' print(fit_ele$coefficients)
 #'
 #' @references Vo, T. H., Garès, V., Zhang, L. C., Happe, A., Oger, E.,
@@ -386,12 +386,6 @@ fitcoxph.adjELE <- function(x, y, adjustment, control, ...) {
     control = control,
     ...
   )
-
-  # Post-Processing
-  # Ensure coefficients have names if not already set
-  if (is.null(names(fit$coefficients))) {
-    names(fit$coefficients) <- colnames(x)
-  }
 
   return(fit)
 }

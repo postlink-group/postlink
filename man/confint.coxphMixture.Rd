@@ -29,6 +29,7 @@ by \code{\link{vcov.coxphMixture}}, using the standard normal approximation:
 \code{Estimate +/- z_crit * SE}.
 }
 \examples{
+library(survival)
 set.seed(202)
 n <- 200
 

@@ -84,6 +84,7 @@ vcov.coxphMixture <- function(object, ...) {
 #' @return A matrix (or vector) with lower and upper confidence limits for each parameter.
 #'
 #' @examples
+#' library(survival)
 #' set.seed(202)
 #' n <- 200
 #'

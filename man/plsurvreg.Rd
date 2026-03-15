@@ -55,6 +55,7 @@ to linked data. It serves as a wrapper for the internal engines, compatible with
 }
 \examples{
 \dontrun{
+library(survival)
 set.seed(202)
 n <- 200
 

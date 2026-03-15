@@ -269,6 +269,7 @@ print.summary.coxphELE <- function(x,
 #' limits for each parameter.
 #'
 #' @examples
+#' library(survival)
 #' set.seed(104)
 #' n <- 200
 #'

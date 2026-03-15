@@ -83,7 +83,7 @@ X_mat <- cbind(age = linked_age, treatment = linked_treatment)
 
 # 4. Fit the model directly
 # cens = 1 for censored, 0 for event
-fit_ele <- coxphELE(X = X_mat, y = obs_time, cens = cens_ele, m.rate = 0.15)
+fit_ele <- coxphELE(x = X_mat, y = obs_time, cens = cens_ele, m.rate = 0.15)
 print(fit_ele$coefficients)
 
 }

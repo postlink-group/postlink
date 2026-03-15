@@ -24,6 +24,7 @@ limits for each parameter.
 Computes Wald confidence intervals for the model coefficients.
 }
 \examples{
+library(survival)
 set.seed(104)
 n <- 200
 
