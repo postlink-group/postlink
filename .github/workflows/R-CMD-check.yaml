@@ -13,7 +13,9 @@ permissions: read-all
 jobs:
   R-CMD-check:
     # Only run if the commit message (for pushes) or the PR title/body contains '[run checks]'
+    # Or if manual dispatch
     if: >
+      github.event_name == 'workflow_dispatch' ||
       contains(github.event.head_commit.message, '[run checks]') ||
       contains(github.event.pull_request.title, '[run checks]') ||
       contains(github.event.pull_request.body, '[run checks]')
