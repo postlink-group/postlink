@@ -13,18 +13,28 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Fast simulation of linked data
-#' set.seed(123)
-#' linked_df <- data.frame(
-#'   exposure = sample(c("low", "high"), 300, replace = TRUE),
-#'   disease = sample(c("yes", "no"), 300, replace = TRUE)
-#' )
+#' set.seed(125)
+#' n <- 300
 #'
-#' # Specify adjustment and fit the model
+#' # 1. Simulate true categorical data with dependency
+#' exposure <- sample(c("low", "high"), n, replace = TRUE)
+#'
+#' # Induce dependency - High exposure -> higher disease probability
+#' prob_disease <- ifelse(exposure == "high", 0.7, 0.3)
+#' true_disease <- ifelse(runif(n) < prob_disease, "yes", "no")
+#'
+#' # 2. Induce 15% linkage error
+#' mis_idx <- sample(1:n, size = floor(0.15 * n))
+#' obs_disease <- true_disease
+#' obs_disease[mis_idx] <- sample(obs_disease[mis_idx])
+#'
+#' linked_df <- data.frame(exposure = exposure, disease = obs_disease)
+#'
+#' # 3. Fit the adjusted contingency table model
 #' adj <- adjMixture(linked.data = linked_df, m.rate = 0.15)
 #' fit <- plctable(~ exposure + disease, adjustment = adj)
 #'
-#' # Explicitly call the print method
+#' # 4. Explicitly call the print method
 #' print(fit)
 #' }
 #'
@@ -66,16 +76,28 @@ print.ctableMixture <- function(x, digits = 3, ...) {
 #'
 #' @examples
 #' \dontrun{
-#' set.seed(124)
-#' linked_df <- data.frame(
-#'   exposure = sample(c("low", "high"), 300, replace = TRUE),
-#'   disease = sample(c("yes", "no"), 300, replace = TRUE)
-#' )
+#' set.seed(125)
+#' n <- 300
 #'
+#' # 1. Simulate true categorical data with dependency
+#' exposure <- sample(c("low", "high"), n, replace = TRUE)
+#'
+#' # Induce dependency - High exposure -> higher disease probability
+#' prob_disease <- ifelse(exposure == "high", 0.7, 0.3)
+#' true_disease <- ifelse(runif(n) < prob_disease, "yes", "no")
+#'
+#' # 2. Induce 15% linkage error
+#' mis_idx <- sample(1:n, size = floor(0.15 * n))
+#' obs_disease <- true_disease
+#' obs_disease[mis_idx] <- sample(obs_disease[mis_idx])
+#'
+#' linked_df <- data.frame(exposure = exposure, disease = obs_disease)
+#'
+#' # 3. Fit the adjusted contingency table model
 #' adj <- adjMixture(linked.data = linked_df, m.rate = 0.15)
 #' fit <- plctable(~ exposure + disease, adjustment = adj)
 #'
-#' # Extract the variance-covariance matrix of the cell probabilities
+#' # 4. Extract the variance-covariance matrix of the cell probabilities
 #' vmat <- vcov(fit)
 #' print(vmat)
 #' }
@@ -106,7 +128,6 @@ vcov.ctableMixture <- function(object, ...) {
 #'
 #' @examples
 #' \dontrun{
-#' ## Not run:
 #' set.seed(125)
 #' n <- 300
 #'
@@ -120,10 +141,7 @@ vcov.ctableMixture <- function(object, ...) {
 #' # 2. Induce 15% linkage error
 #' mis_idx <- sample(1:n, size = floor(0.15 * n))
 #' obs_disease <- true_disease
-#'
-#' if(length(mis_idx) > 1){
-#'  obs_disease[mis_idx] <- sample(obs_disease[mis_idx])
-#' }
+#' obs_disease[mis_idx] <- sample(obs_disease[mis_idx])
 #'
 #' linked_df <- data.frame(exposure = exposure, disease = obs_disease)
 #'
@@ -137,7 +155,6 @@ vcov.ctableMixture <- function(object, ...) {
 #'
 #' # 90% CI for specific cells by name
 #' confint(fit, parm = c("(low, yes)", "(high, no)"), level = 0.90)
-#' ## End(Not run)
 #' }
 #'
 #' @export
@@ -200,19 +217,31 @@ confint.ctableMixture <- function(object, parm, level = 0.95, ...) {
 #'
 #' @examples
 #' \dontrun{
-#' set.seed(126)
-#' linked_df <- data.frame(
-#'   exposure = sample(c("low", "high"), 300, replace = TRUE),
-#'   disease = sample(c("yes", "no"), 300, replace = TRUE)
-#' )
+#' set.seed(125)
+#' n <- 300
 #'
+#' # 1. Simulate true categorical data with dependency
+#' exposure <- sample(c("low", "high"), n, replace = TRUE)
+#'
+#' # Induce dependency - High exposure -> higher disease probability
+#' prob_disease <- ifelse(exposure == "high", 0.7, 0.3)
+#' true_disease <- ifelse(runif(n) < prob_disease, "yes", "no")
+#'
+#' # 2. Induce 15% linkage error
+#' mis_idx <- sample(1:n, size = floor(0.15 * n))
+#' obs_disease <- true_disease
+#' obs_disease[mis_idx] <- sample(obs_disease[mis_idx])
+#'
+#' linked_df <- data.frame(exposure = exposure, disease = obs_disease)
+#'
+#' # 3. Fit the adjusted contingency table model
 #' adj <- adjMixture(linked.data = linked_df, m.rate = 0.15)
 #' fit <- plctable(~ exposure + disease, adjustment = adj)
 #'
-#' # Generate the detailed summary object
+#' # 4. Generate the detailed summary object
 #' sum_fit <- summary(fit)
 #'
-#' # Access specific components of the summary
+#' # 5. Access specific components of the summary
 #' print(sum_fit$coefficients)
 #' print(sum_fit$chisq)
 #' }

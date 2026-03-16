@@ -26,19 +26,19 @@ mixture model.
 library(survival)
 set.seed(201)
 
-# 1. Simulate survival data (N = 200)
+# Simulate survival data (N = 200)
 n <- 200
 x1 <- rnorm(n)
 x2 <- rbinom(n, 1, 0.5)
 true_time <- rexp(n, rate = exp(0.5 * x1 - 0.5 * x2))
 cens_time <- rexp(n, rate = 0.5)
 
-# 2. Simulate auxiliary match scores and linkage errors
+# Simulate auxiliary match scores and linkage errors
 # Lower match scores correspond to a higher probability of mismatch
 match_score <- runif(n, 0.5, 1.0)
 is_mismatch <- rbinom(n, 1, prob = 1 - match_score)
 
-# 3. Induce linkage errors by shuffling covariates of mismatched records
+# Induce linkage errors by shuffling covariates of mismatched records
 linked_x1 <- x1
 linked_x2 <- x2
 mis_idx <- which(is_mismatch == 1)
@@ -53,13 +53,13 @@ linked_data <- data.frame(
   match_score = match_score
 )
 
-# 4. Fit the Cox PH Mixture Model (Slawski et al., 2023)
+# Fit the Cox PH Mixture Model (Slawski et al., 2023)
 adj <- adjMixture(linked.data = linked_data, m.formula = ~ match_score)
 fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj,
                control = list(max.iter = 15))
 
-# 5. Extract the Louis (1982) variance-covariance matrix
-# Note: Covers both outcome coefficients (beta) and mismatch coefficients (gamma)
+# Extract the variance-covariance matrix
+# Note: For outcome coefficients (beta) and mismatch coefficients (gamma)
 vmat <- vcov(fit)
 print(vmat)
 

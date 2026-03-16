@@ -20,35 +20,37 @@ from a fitted \code{coxphELE} model.
 }
 \examples{
 library(survival)
-set.seed(101)
-
-# 1. Simulate data based on Vo et al. (2024) Section 3.1
+set.seed(104)
 n <- 200
-x1 <- rnorm(n, 0, 1)
-x2 <- rbinom(n, 1, 0.7)
-true_hazard <- exp(0.5 * x1 - 0.5 * x2)
-true_time <- rexp(n, rate = true_hazard)
-cens_time <- rexp(n, rate = 0.5)
-obs_time <- pmin(true_time, cens_time)
-obs_status <- as.numeric(true_time <= cens_time)
 
-# 2. Induce 15\% non-informative linkage error (ELE model)
-m_rate <- 0.15
-mis_idx <- sample(1:n, size = round(m_rate * n))
-linked_x1 <- x1
-linked_x2 <- x2
-shuff_idx <- sample(mis_idx)
-linked_x1[mis_idx] <- x1[shuff_idx]
-linked_x2[mis_idx] <- x2[shuff_idx]
+# 1. Simulate covariates
+age_centered <- rnorm(n, 0, 5)
+treatment <- rbinom(n, 1, 0.5)
 
-linked_data <- data.frame(time = obs_time, status = obs_status,
-                          x1 = linked_x1, x2 = linked_x2)
+# 2. Simulate true survival times
+true_time <- rexp(n, rate = exp(0.05 * age_centered - 0.6 * treatment))
+cens_time <- rexp(n, rate = 0.2)
+time <- pmin(true_time, cens_time)
+status <- as.numeric(true_time <= cens_time)
 
-# 3. Create adjustment object and fit the model
-adj <- adjELE(linked.data = linked_data, m.rate = m_rate)
-fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj)
+# 3. Induce 15\% Exchangeable Linkage Error (ELE)
+mis_idx <- sample(1:n, size = floor(0.15 * n))
+linked_age <- age_centered
+linked_trt <- treatment
 
-# 4. Extract the sandwich variance-covariance matrix
+ # False links drawn uniformly from the target population
+ false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
+ linked_age[mis_idx] <- age_centered[false_link_idx]
+ linked_trt[mis_idx] <- treatment[false_link_idx]
+
+linked_data <- data.frame(time = time, status = status,
+                          age = linked_age, treatment = linked_trt)
+
+# 4. Fit the adjusted Cox PH model
+adj <- adjELE(linked.data = linked_data, m.rate = 0.15)
+fit <- plcoxph(Surv(time, status) ~ age + treatment, adjustment = adj)
+
+# 5. Extract the sandwich variance-covariance matrix
 vmat <- vcov(fit)
 print(vmat)
 

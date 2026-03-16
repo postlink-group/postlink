@@ -22,19 +22,19 @@
 #' library(survival)
 #' set.seed(201)
 #'
-#' # 1. Simulate survival data (N = 200)
+#' # Simulate survival data (N = 200)
 #' n <- 200
 #' x1 <- rnorm(n)
 #' x2 <- rbinom(n, 1, 0.5)
 #' true_time <- rexp(n, rate = exp(0.5 * x1 - 0.5 * x2))
 #' cens_time <- rexp(n, rate = 0.5)
 #'
-#' # 2. Simulate auxiliary match scores and linkage errors
+#' # Simulate auxiliary match scores and linkage errors
 #' # Lower match scores correspond to a higher probability of mismatch
 #' match_score <- runif(n, 0.5, 1.0)
 #' is_mismatch <- rbinom(n, 1, prob = 1 - match_score)
 #'
-#' # 3. Induce linkage errors by shuffling covariates of mismatched records
+#' # Induce linkage errors by shuffling covariates of mismatched records
 #' linked_x1 <- x1
 #' linked_x2 <- x2
 #' mis_idx <- which(is_mismatch == 1)
@@ -49,13 +49,13 @@
 #'   match_score = match_score
 #' )
 #'
-#' # 4. Fit the Cox PH Mixture Model (Slawski et al., 2023)
+#' # Fit the Cox PH Mixture Model (Slawski et al., 2023)
 #' adj <- adjMixture(linked.data = linked_data, m.formula = ~ match_score)
 #' fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj,
 #'                control = list(max.iter = 15))
 #'
-#' # 5. Extract the Louis (1982) variance-covariance matrix
-#' # Note: Covers both outcome coefficients (beta) and mismatch coefficients (gamma)
+#' # Extract the variance-covariance matrix
+#' # Note: For outcome coefficients (beta) and mismatch coefficients (gamma)
 #' vmat <- vcov(fit)
 #' print(vmat)
 #'
@@ -85,43 +85,41 @@ vcov.coxphMixture <- function(object, ...) {
 #'
 #' @examples
 #' library(survival)
-#' set.seed(202)
+#' set.seed(201)
+#'
+#' # Simulate survival data (N = 200)
 #' n <- 200
+#' x1 <- rnorm(n)
+#' x2 <- rbinom(n, 1, 0.5)
+#' true_time <- rexp(n, rate = exp(0.5 * x1 - 0.5 * x2))
+#' cens_time <- rexp(n, rate = 0.5)
 #'
-#' # 1. Simulate covariates
-#' age_centered <- rnorm(n, 0, 5)
-#' treatment <- rbinom(n, 1, 0.5)
-#'
-#' true_time <- rexp(n, rate = exp(0.05 * age_centered - 0.5 * treatment))
-#' cens_time <- rexp(n, rate = 0.2)
-#' time <- pmin(true_time, cens_time)
-#' status <- as.numeric(true_time <= cens_time)
-#'
-#' # 2. Simulate mismatch errors based on a matching score
+#' # Simulate auxiliary match scores and linkage errors
 #' # Lower match scores correspond to a higher probability of mismatch
 #' match_score <- runif(n, 0.5, 1.0)
 #' is_mismatch <- rbinom(n, 1, prob = 1 - match_score)
+#'
+#' # Induce linkage errors by shuffling covariates of mismatched records
+#' linked_x1 <- x1
+#' linked_x2 <- x2
 #' mis_idx <- which(is_mismatch == 1)
+#' shuffled_idx <- sample(mis_idx)
+#' linked_x1[mis_idx] <- x1[shuffled_idx]
+#' linked_x2[mis_idx] <- x2[shuffled_idx]
 #'
-#' linked_age <- age_centered
-#' linked_trt <- treatment
+#' linked_data <- data.frame(
+#'   time = pmin(true_time, cens_time),
+#'   status = as.numeric(true_time <= cens_time),
+#'   x1 = linked_x1, x2 = linked_x2,
+#'   match_score = match_score
+#' )
 #'
-#' if(length(mis_idx) > 1){
-#'  shuffled <- sample(mis_idx)
-#'  linked_age[mis_idx] <- age_centered[shuffled]
-#'  linked_trt[mis_idx] <- treatment[shuffled]
-#' }
-#'
-#' linked_data <- data.frame(time = time, status = status,
-#'                           age = linked_age, treatment = linked_trt,
-#'                           match_score = match_score)
-#'
-#' # 3. Fit the Cox PH Mixture Model
+#' # Fit the Cox PH Mixture Model (Slawski et al., 2023)
 #' adj <- adjMixture(linked.data = linked_data, m.formula = ~ match_score)
-#' fit <- plcoxph(Surv(time, status) ~ age + treatment, adjustment = adj,
+#' fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj,
 #'                control = list(max.iter = 15))
 #'
-#' # 4. Extract Confidence Intervals
+#' # Extract Confidence Intervals
 #' confint(fit)
 #' confint(fit, parm = "treatment", level = 0.90)
 #'
@@ -188,34 +186,41 @@ confint.coxphMixture <- function(object, parm, level = 0.95, ...) {
 #'
 #' @examples
 #' library(survival)
-#' set.seed(203)
+#' set.seed(201)
 #'
-#' # Simulate linked data with mismatch errors
-#' # Lower match scores correspond to a higher probability of mismatch
+#' # Simulate survival data (N = 200)
 #' n <- 200
 #' x1 <- rnorm(n)
 #' x2 <- rbinom(n, 1, 0.5)
 #' true_time <- rexp(n, rate = exp(0.5 * x1 - 0.5 * x2))
 #' cens_time <- rexp(n, rate = 0.5)
+#'
+#' # Simulate auxiliary match scores and linkage errors
+#' # Lower match scores correspond to a higher probability of mismatch
 #' match_score <- runif(n, 0.5, 1.0)
+#' is_mismatch <- rbinom(n, 1, prob = 1 - match_score)
+#'
+#' # Induce linkage errors by shuffling covariates of mismatched records
+#' linked_x1 <- x1
+#' linked_x2 <- x2
+#' mis_idx <- which(is_mismatch == 1)
+#' shuffled_idx <- sample(mis_idx)
+#' linked_x1[mis_idx] <- x1[shuffled_idx]
+#' linked_x2[mis_idx] <- x2[shuffled_idx]
 #'
 #' linked_data <- data.frame(
 #'   time = pmin(true_time, cens_time),
 #'   status = as.numeric(true_time <= cens_time),
-#'   x1 = x1, x2 = x2, match_score = match_score
+#'   x1 = linked_x1, x2 = linked_x2,
+#'   match_score = match_score
 #' )
 #'
-#' mis_idx <- which(rbinom(n, 1, prob = 1 - match_score) == 1)
-#' linked_data$x1[mis_idx] <- linked_data$x1[sample(mis_idx)]
-#' linked_data$x2[mis_idx] <- linked_data$x2[sample(mis_idx)]
-#'
-#' # Fit the Cox PH Mixture Model
+#' # Fit the Cox PH Mixture Model (Slawski et al., 2023)
 #' adj <- adjMixture(linked.data = linked_data, m.formula = ~ match_score)
 #' fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj,
 #'                control = list(max.iter = 15))
 #'
 #' # Print detailed statistical summary
-#' # Includes coefficients, hazard ratios, and the estimated average correct match rate
 #' sum_fit <- summary(fit)
 #' print(sum_fit)
 #'
@@ -324,27 +329,36 @@ print.summary.coxphMixture <- function(x,
 #'
 #' @examples
 #' library(survival)
-#' set.seed(204)
+#' set.seed(201)
 #'
-#' # Simulate auxiliary match scores and linkage errors
-#' # Lower match scores correspond to a higher probability of mismatch
+#' # Simulate survival data (N = 200)
 #' n <- 200
 #' x1 <- rnorm(n)
 #' x2 <- rbinom(n, 1, 0.5)
 #' true_time <- rexp(n, rate = exp(0.5 * x1 - 0.5 * x2))
 #' cens_time <- rexp(n, rate = 0.5)
+#'
+#' # Simulate auxiliary match scores and linkage errors
+#' # Lower match scores correspond to a higher probability of mismatch
 #' match_score <- runif(n, 0.5, 1.0)
+#' is_mismatch <- rbinom(n, 1, prob = 1 - match_score)
+#'
+#' # Induce linkage errors by shuffling covariates of mismatched records
+#' linked_x1 <- x1
+#' linked_x2 <- x2
+#' mis_idx <- which(is_mismatch == 1)
+#' shuffled_idx <- sample(mis_idx)
+#' linked_x1[mis_idx] <- x1[shuffled_idx]
+#' linked_x2[mis_idx] <- x2[shuffled_idx]
 #'
 #' linked_data <- data.frame(
 #'   time = pmin(true_time, cens_time),
 #'   status = as.numeric(true_time <= cens_time),
-#'   x1 = x1, x2 = x2, match_score = match_score
+#'   x1 = linked_x1, x2 = linked_x2,
+#'   match_score = match_score
 #' )
 #'
-#' mis_idx <- which(rbinom(n, 1, prob = 1 - match_score) == 1)
-#' linked_data$x1[mis_idx] <- linked_data$x1[sample(mis_idx)]
-#'
-#' # Fit the Cox PH Mixture Model
+#' # Fit the Cox PH Mixture Model (Slawski et al., 2023)
 #' adj <- adjMixture(linked.data = linked_data, m.formula = ~ match_score)
 #' fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj,
 #'                control = list(max.iter = 15))
@@ -416,15 +430,15 @@ print.coxphMixture <- function(x, digits = max(3L, getOption("digits") - 3L), ..
 #' cens_time <- rexp(n, rate = 0.5)
 #' match_score <- runif(n, 0.5, 1.0)
 #'
+#' mis_idx <- which(rbinom(n, 1, prob = 1 - match_score) == 1)
+#' x1[mis_idx] <- x1[sample(mis_idx)]
+#' x2[mis_idx] <- x2[sample(mis_idx)]
+#'
 #' linked_data <- data.frame(
 #'   time = pmin(true_time, cens_time),
 #'   status = as.numeric(true_time <= cens_time),
 #'   x1 = x1, x2 = x2, match_score = match_score
 #' )
-#'
-#' mis_idx <- which(rbinom(n, 1, prob = 1 - match_score) == 1)
-#' linked_data$x1[mis_idx] <- linked_data$x1[sample(mis_idx)]
-#' linked_data$x2[mis_idx] <- linked_data$x2[sample(mis_idx)]
 #'
 #' # Fit the Cox PH Mixture Model
 #' # Note: We set `y = TRUE` to store the response for baseline hazard reconstruction
@@ -432,7 +446,7 @@ print.coxphMixture <- function(x, digits = max(3L, getOption("digits") - 3L), ..
 #' fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj,
 #'                y = TRUE, control = list(max.iter = 15))
 #'
-#' # 1. Extract linear predictors for the training data
+#' # 1. Extract linear predictors for the original data
 #' lp_train <- predict(fit, type = "lp")
 #' head(lp_train)
 #'
