@@ -86,52 +86,50 @@ by <code><a href="vcov.coxphMixture.html">vcov.coxphMixture</a></code>, using th
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival" class="external-link">survival</a></span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">202</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">201</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Simulate survival data (N = 200)</span></span></span>
 <span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">200</span></span></span>
+<span class="r-in"><span><span class="va">x1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">true_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n</span>, rate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fl">0.5</span> <span class="op">*</span> <span class="va">x1</span> <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="va">x2</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">cens_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n</span>, rate <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># 1. Simulate covariates</span></span></span>
-<span class="r-in"><span><span class="va">age_centered</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="fl">5</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">treatment</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">true_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n</span>, rate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fl">0.05</span> <span class="op">*</span> <span class="va">age_centered</span> <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="va">treatment</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">cens_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n</span>, rate <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmin</a></span><span class="op">(</span><span class="va">true_time</span>, <span class="va">cens_time</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">status</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">true_time</span> <span class="op">&lt;=</span> <span class="va">cens_time</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># 2. Simulate mismatch errors based on a matching score</span></span></span>
+<span class="r-in"><span><span class="co"># Simulate auxiliary match scores and linkage errors</span></span></span>
 <span class="r-in"><span><span class="co"># Lower match scores correspond to a higher probability of mismatch</span></span></span>
 <span class="r-in"><span><span class="va">match_score</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0.5</span>, <span class="fl">1.0</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">is_mismatch</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, prob <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> <span class="va">match_score</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Induce linkage errors by shuffling covariates of mismatched records</span></span></span>
+<span class="r-in"><span><span class="va">linked_x1</span> <span class="op">&lt;-</span> <span class="va">x1</span></span></span>
+<span class="r-in"><span><span class="va">linked_x2</span> <span class="op">&lt;-</span> <span class="va">x2</span></span></span>
 <span class="r-in"><span><span class="va">mis_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">is_mismatch</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">shuffled_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">mis_idx</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">linked_x1</span><span class="op">[</span><span class="va">mis_idx</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">x1</span><span class="op">[</span><span class="va">shuffled_idx</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">linked_x2</span><span class="op">[</span><span class="va">mis_idx</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">x2</span><span class="op">[</span><span class="va">shuffled_idx</span><span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">linked_age</span> <span class="op">&lt;-</span> <span class="va">age_centered</span></span></span>
-<span class="r-in"><span><span class="va">linked_trt</span> <span class="op">&lt;-</span> <span class="va">treatment</span></span></span>
+<span class="r-in"><span><span class="va">linked_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmin</a></span><span class="op">(</span><span class="va">true_time</span>, <span class="va">cens_time</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  status <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">true_time</span> <span class="op">&lt;=</span> <span class="va">cens_time</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  x1 <span class="op">=</span> <span class="va">linked_x1</span>, x2 <span class="op">=</span> <span class="va">linked_x2</span>,</span></span>
+<span class="r-in"><span>  match_score <span class="op">=</span> <span class="va">match_score</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">mis_idx</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span><span class="op">{</span></span></span>
-<span class="r-in"><span> <span class="va">shuffled</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">mis_idx</span><span class="op">)</span></span></span>
-<span class="r-in"><span> <span class="va">linked_age</span><span class="op">[</span><span class="va">mis_idx</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">age_centered</span><span class="op">[</span><span class="va">shuffled</span><span class="op">]</span></span></span>
-<span class="r-in"><span> <span class="va">linked_trt</span><span class="op">[</span><span class="va">mis_idx</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">treatment</span><span class="op">[</span><span class="va">shuffled</span><span class="op">]</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">linked_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>time <span class="op">=</span> <span class="va">time</span>, status <span class="op">=</span> <span class="va">status</span>,</span></span>
-<span class="r-in"><span>                          age <span class="op">=</span> <span class="va">linked_age</span>, treatment <span class="op">=</span> <span class="va">linked_trt</span>,</span></span>
-<span class="r-in"><span>                          match_score <span class="op">=</span> <span class="va">match_score</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># 3. Fit the Cox PH Mixture Model</span></span></span>
+<span class="r-in"><span><span class="co"># Fit the Cox PH Mixture Model (Slawski et al., 2023)</span></span></span>
 <span class="r-in"><span><span class="va">adj</span> <span class="op">&lt;-</span> <span class="fu"><a href="adjMixture.html">adjMixture</a></span><span class="op">(</span>linked.data <span class="op">=</span> <span class="va">linked_data</span>, m.formula <span class="op">=</span> <span class="op">~</span> <span class="va">match_score</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="plcoxph.html">plcoxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">treatment</span>, adjustment <span class="op">=</span> <span class="va">adj</span>,</span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="plcoxph.html">plcoxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>, adjustment <span class="op">=</span> <span class="va">adj</span>,</span></span>
 <span class="r-in"><span>               control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>max.iter <span class="op">=</span> <span class="fl">15</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># 4. Extract Confidence Intervals</span></span></span>
+<span class="r-in"><span><span class="co"># Extract Confidence Intervals</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                   2.5 %      97.5 %</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> age         -0.02919245  0.11861452</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> treatment   -1.57865485 -0.07102464</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)          NA          NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> match_score          NA          NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  2.5 %     97.5 %</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1           0.6710011  1.6021040</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x2          -2.1429623 -0.4823973</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)         NA         NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> match_score         NA         NA</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span>, parm <span class="op">=</span> <span class="st">"treatment"</span>, level <span class="op">=</span> <span class="fl">0.90</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                 5 %       95 %</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> treatment -1.457461 -0.1922182</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           5 % 95 %</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> treatment  NA   NA</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

@@ -91,15 +91,15 @@ true_time <- rexp(n, rate = exp(0.5 * x1 - 0.5 * x2))
 cens_time <- rexp(n, rate = 0.5)
 match_score <- runif(n, 0.5, 1.0)
 
+mis_idx <- which(rbinom(n, 1, prob = 1 - match_score) == 1)
+x1[mis_idx] <- x1[sample(mis_idx)]
+x2[mis_idx] <- x2[sample(mis_idx)]
+
 linked_data <- data.frame(
   time = pmin(true_time, cens_time),
   status = as.numeric(true_time <= cens_time),
   x1 = x1, x2 = x2, match_score = match_score
 )
-
-mis_idx <- which(rbinom(n, 1, prob = 1 - match_score) == 1)
-linked_data$x1[mis_idx] <- linked_data$x1[sample(mis_idx)]
-linked_data$x2[mis_idx] <- linked_data$x2[sample(mis_idx)]
 
 # Fit the Cox PH Mixture Model
 # Note: We set `y = TRUE` to store the response for baseline hazard reconstruction
@@ -107,7 +107,7 @@ adj <- adjMixture(linked.data = linked_data, m.formula = ~ match_score)
 fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj,
                y = TRUE, control = list(max.iter = 15))
 
-# 1. Extract linear predictors for the training data
+# 1. Extract linear predictors for the original data
 lp_train <- predict(fit, type = "lp")
 head(lp_train)
 #> [1]  2.2995675 -1.3674625 -0.9769177 -3.3279029  1.2543794 -2.4888121

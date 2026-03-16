@@ -46,7 +46,6 @@ ensure valid probability estimates.
 
 ``` r
 if (FALSE) { # \dontrun{
-## Not run:
 set.seed(125)
 n <- 300
 
@@ -60,10 +59,7 @@ true_disease <- ifelse(runif(n) < prob_disease, "yes", "no")
 # 2. Induce 15% linkage error
 mis_idx <- sample(1:n, size = floor(0.15 * n))
 obs_disease <- true_disease
-
-if(length(mis_idx) > 1){
- obs_disease[mis_idx] <- sample(obs_disease[mis_idx])
-}
+obs_disease[mis_idx] <- sample(obs_disease[mis_idx])
 
 linked_df <- data.frame(exposure = exposure, disease = obs_disease)
 
@@ -77,6 +73,5 @@ confint(fit)
 
 # 90% CI for specific cells by name
 confint(fit, parm = c("(low, yes)", "(high, no)"), level = 0.90)
-## End(Not run)
 } # }
 ```

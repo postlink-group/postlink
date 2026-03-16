@@ -32,16 +32,28 @@ in row-major order (e.g., "(Row1, Col1)", "(Row1, Col2)", ...).
 
 ``` r
 if (FALSE) { # \dontrun{
-set.seed(124)
-linked_df <- data.frame(
-  exposure = sample(c("low", "high"), 300, replace = TRUE),
-  disease = sample(c("yes", "no"), 300, replace = TRUE)
-)
+set.seed(125)
+n <- 300
 
+# 1. Simulate true categorical data with dependency
+exposure <- sample(c("low", "high"), n, replace = TRUE)
+
+# Induce dependency - High exposure -> higher disease probability
+prob_disease <- ifelse(exposure == "high", 0.7, 0.3)
+true_disease <- ifelse(runif(n) < prob_disease, "yes", "no")
+
+# 2. Induce 15% linkage error
+mis_idx <- sample(1:n, size = floor(0.15 * n))
+obs_disease <- true_disease
+obs_disease[mis_idx] <- sample(obs_disease[mis_idx])
+
+linked_df <- data.frame(exposure = exposure, disease = obs_disease)
+
+# 3. Fit the adjusted contingency table model
 adj <- adjMixture(linked.data = linked_df, m.rate = 0.15)
 fit <- plctable(~ exposure + disease, adjustment = adj)
 
-# Extract the variance-covariance matrix of the cell probabilities
+# 4. Extract the variance-covariance matrix of the cell probabilities
 vmat <- vcov(fit)
 print(vmat)
 } # }
