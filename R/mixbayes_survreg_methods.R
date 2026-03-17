@@ -29,20 +29,25 @@ NULL
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Component 1 represents correct links (signal),
-#' # and component 2 represents incorrect links (noise).
-#' Z_true <- 2 - rbinom(n, 1, 0.8)
-#'
-#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
-#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
-#' obs_time <- ifelse(Z_true == 1, time1, time2)
-#'
+#' # Simulate Weibull AFT data
+#' true_time <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))
 #' cens_time <- rexp(n, rate = 0.1)
-#' status <- as.integer(obs_time <= cens_time)
-#' obs_time <- pmin(obs_time, cens_time)
+#' true_obs_time <- pmin(true_time, cens_time)
+#' true_status <- as.integer(true_time <= cens_time)
 #'
-#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#' # Induce linkage mismatch errors in approximately 20% of records
+#' is_mismatch <- rbinom(n, 1, 0.2)
+#' obs_time <- true_obs_time
+#' obs_status <- true_status
+#' mismatch_idx <- which(is_mismatch == 1)
 #'
+#' if (length(mismatch_idx) > 1) {
+#'   shuffled <- sample(mismatch_idx)
+#'   obs_time[mismatch_idx] <- obs_time[shuffled]
+#'   obs_status[mismatch_idx] <- obs_status[shuffled]
+#' }
+#'
+#' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #' adj <- adjMixBayes(linked.data = linked_df)
 #'
 #' fit <- plsurvreg(
@@ -99,20 +104,25 @@ print.survMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ..
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Component 1 represents correct links (signal),
-#' # and component 2 represents incorrect links (noise).
-#' Z_true <- 2 - rbinom(n, 1, 0.8)
-#'
-#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
-#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
-#' obs_time <- ifelse(Z_true == 1, time1, time2)
-#'
+#' # Simulate Weibull AFT data
+#' true_time <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))
 #' cens_time <- rexp(n, rate = 0.1)
-#' status <- as.integer(obs_time <= cens_time)
-#' obs_time <- pmin(obs_time, cens_time)
+#' true_obs_time <- pmin(true_time, cens_time)
+#' true_status <- as.integer(true_time <= cens_time)
 #'
-#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#' # Induce linkage mismatch errors in approximately 20% of records
+#' is_mismatch <- rbinom(n, 1, 0.2)
+#' obs_time <- true_obs_time
+#' obs_status <- true_status
+#' mismatch_idx <- which(is_mismatch == 1)
 #'
+#' if (length(mismatch_idx) > 1) {
+#'   shuffled <- sample(mismatch_idx)
+#'   obs_time[mismatch_idx] <- obs_time[shuffled]
+#'   obs_status[mismatch_idx] <- obs_status[shuffled]
+#' }
+#'
+#' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #' adj <- adjMixBayes(linked.data = linked_df)
 #'
 #' fit <- plsurvreg(
@@ -213,19 +223,25 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Component 1 represents correct links (signal),
-#' # and component 2 represents incorrect links (noise).
-#' Z_true <- 2 - rbinom(n, 1, 0.8)
-#'
-#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
-#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
-#' obs_time <- ifelse(Z_true == 1, time1, time2)
-#'
+#' # Simulate Weibull AFT data
+#' true_time <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))
 #' cens_time <- rexp(n, rate = 0.1)
-#' status <- as.integer(obs_time <= cens_time)
-#' obs_time <- pmin(obs_time, cens_time)
+#' true_obs_time <- pmin(true_time, cens_time)
+#' true_status <- as.integer(true_time <= cens_time)
 #'
-#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#' # Induce linkage mismatch errors in approximately 20% of records
+#' is_mismatch <- rbinom(n, 1, 0.2)
+#' obs_time <- true_obs_time
+#' obs_status <- true_status
+#' mismatch_idx <- which(is_mismatch == 1)
+#'
+#' if (length(mismatch_idx) > 1) {
+#'   shuffled <- sample(mismatch_idx)
+#'   obs_time[mismatch_idx] <- obs_time[shuffled]
+#'   obs_status[mismatch_idx] <- obs_status[shuffled]
+#' }
+#'
+#' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #'
 #' adj <- adjMixBayes(linked.data = linked_df)
 #'
@@ -289,19 +305,25 @@ confint.survMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Component 1 represents correct links (signal),
-#' # and component 2 represents incorrect links (noise).
-#' Z_true <- 2 - rbinom(n, 1, 0.8)
-#'
-#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
-#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
-#' obs_time <- ifelse(Z_true == 1, time1, time2)
-#'
+#' # Simulate Weibull AFT data
+#' true_time <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))
 #' cens_time <- rexp(n, rate = 0.1)
-#' status <- as.integer(obs_time <= cens_time)
-#' obs_time <- pmin(obs_time, cens_time)
+#' true_obs_time <- pmin(true_time, cens_time)
+#' true_status <- as.integer(true_time <= cens_time)
 #'
-#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#' # Induce linkage mismatch errors in approximately 20% of records
+#' is_mismatch <- rbinom(n, 1, 0.2)
+#' obs_time <- true_obs_time
+#' obs_status <- true_status
+#' mismatch_idx <- which(is_mismatch == 1)
+#'
+#' if (length(mismatch_idx) > 1) {
+#'   shuffled <- sample(mismatch_idx)
+#'   obs_time[mismatch_idx] <- obs_time[shuffled]
+#'   obs_status[mismatch_idx] <- obs_status[shuffled]
+#' }
+#'
+#' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #'
 #' adj <- adjMixBayes(linked.data = linked_df)
 #'
@@ -325,19 +347,32 @@ vcov.survMixBayes <- function(object, ...) {
   stats::cov(b)
 }
 
-#' Predict for survMixBayes
+#' Predictions from a survMixBayes model
 #'
-#' Returns posterior mean linear predictors for each component. Component 1 is
-#' interpreted as the correct-match component and component 2 as the incorrect-match
-#' component.
+#' Computes posterior predictions for each latent component of a
+#' \code{survMixBayes} model. By default, predictions are returned on the
+#' linear predictor scale for both components.
 #'
-#' @param object An object of class \code{survMixBayes}.
-#' @param newdata Optional design matrix for prediction. If \code{NULL}, uses \code{object$X} if present.
-#' @param ... Additional arguments (unused).
+#' Component 1 is interpreted as the correct-match component and
+#' component 2 as the incorrect-match component (after label-switching
+#' correction).
 #'
-#' @return A list with posterior mean linear predictors for each component:
-#'   \code{component1} for the correct-match component and \code{component2}
-#'   for the incorrect-match component.
+#' @param object A \code{survMixBayes} model object.
+#' @param newdata A numeric matrix of new observations (\eqn{n_{new} \times K})
+#'   with columns aligned to the design matrix used for fitting.
+#'   If \code{NULL}, the fitted design matrix stored in \code{object$X} is used.
+#' @param se.fit Logical; if \code{TRUE}, also return posterior SD of predictions.
+#' @param interval Either \code{"none"} or \code{"credible"}, indicating whether
+#'   to compute credible intervals.
+#' @param level Probability level for the credible interval (default 0.95).
+#' @param ... Not used.
+#'
+#' @return A list with two components, \code{component1} and \code{component2},
+#'   corresponding to the two latent mixture components.
+#'   If \code{se.fit = FALSE} and \code{interval = "none"}, each element is a
+#'   numeric vector of posterior mean linear predictors.
+#'   Otherwise, each element is a matrix containing the fitted values and,
+#'   optionally, posterior SDs and credible interval bounds.
 #'
 #' @examples
 #' \dontrun{
@@ -345,53 +380,144 @@ vcov.survMixBayes <- function(object, ...) {
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Component 1 represents correct links (signal),
-#' # and component 2 represents incorrect links (noise).
-#' Z_true <- 2 - rbinom(n, 1, 0.8)
-#'
-#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
-#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
-#' obs_time <- ifelse(Z_true == 1, time1, time2)
-#'
+#' # Simulate Weibull AFT data
+#' true_time <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))
 #' cens_time <- rexp(n, rate = 0.1)
-#' status <- as.integer(obs_time <= cens_time)
-#' obs_time <- pmin(obs_time, cens_time)
+#' true_obs_time <- pmin(true_time, cens_time)
+#' true_status <- as.integer(true_time <= cens_time)
 #'
-#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#' # Induce linkage mismatch errors in approximately 20% of records
+#' is_mismatch <- rbinom(n, 1, 0.2)
+#' obs_time <- true_obs_time
+#' obs_status <- true_status
+#' mismatch_idx <- which(is_mismatch == 1)
 #'
+#' if (length(mismatch_idx) > 1) {
+#'   shuffled <- sample(mismatch_idx)
+#'   obs_time[mismatch_idx] <- obs_time[shuffled]
+#'   obs_status[mismatch_idx] <- obs_status[shuffled]
+#' }
+#'
+#' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #' adj <- adjMixBayes(linked.data = linked_df)
 #'
 #' fit <- plsurvreg(
 #'   survival::Surv(time, status) ~ trt,
 #'   dist = "weibull",
 #'   adjustment = adj,
-#'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
+#'   control = list(
+#'     iterations = 200,
+#'     burnin.iterations = 100,
+#'     seed = 123
+#'   )
 #' )
 #'
-#' # Create a new design matrix for prediction
-#' X_new <- stats::model.matrix(~ trt, data = data.frame(trt = c(0, 1)))
+#' # Create a design matrix for new covariate values
+#' newdata <- stats::model.matrix(~ trt, data = data.frame(trt = c(0, 1)))
 #'
 #' # Predict posterior mean linear predictors for each latent component
-#' preds <- predict(fit, newdata = X_new)
+#' preds <- predict(fit, newdata = newdata, se.fit = TRUE, interval = "credible")
 #' print(preds$component1)
 #' print(preds$component2)
 #' }
 #'
 #' @export
 #' @method predict survMixBayes
-predict.survMixBayes <- function(object, newdata = NULL, ...) {
-  X <- newdata
-  if (is.null(X)) {
-    if (!is.null(object$X)) X <- object$X
-  }
-  if (is.null(X)) stop("`newdata` must be provided (object does not store X).", call. = FALSE)
-  if (!is.matrix(X) || !is.numeric(X)) stop("`newdata` must be a numeric matrix.", call. = FALSE)
+predict.survMixBayes <- function(object, newdata = NULL,
+                                 se.fit = FALSE,
+                                 interval = c("none", "credible"),
+                                 level = 0.95,
+                                 ...) {
+ interval <- match.arg(interval)
 
-  b1 <- object$estimates$coefficients
-  b2 <- object$estimates$m.coefficients
-  mu1 <- as.numeric(X %*% colMeans(b1))
-  mu2 <- as.numeric(X %*% colMeans(b2))
-  list(component1 = mu1, component2 = mu2)
+ if (!is.numeric(level) || length(level) != 1L || level <= 0 || level >= 1) {
+  stop("`level` must be a single number strictly between 0 and 1.", call. = FALSE)
+ }
+
+ X <- newdata
+ if (is.null(X)) {
+  if (!is.null(object$X)) {
+   X <- object$X
+  }
+ }
+
+ if (is.null(X)) {
+  stop("`newdata` must be provided (object does not store X).", call. = FALSE)
+ }
+
+ if (!is.matrix(X) || !is.numeric(X)) {
+  stop(
+   "`newdata` must be a numeric matrix with columns aligned to the design matrix used for fitting.",
+   call. = FALSE
+  )
+ }
+
+ b1 <- object$estimates$coefficients
+ b2 <- object$estimates$m.coefficients
+
+ if (!is.matrix(b1) || !is.matrix(b2)) {
+  stop(
+   "Posterior coefficient draws are not stored in the expected matrix format.",
+   call. = FALSE
+  )
+ }
+
+ if (ncol(X) != ncol(b1) || ncol(X) != ncol(b2)) {
+  stop(
+   "The number of columns in `newdata` does not match the fitted design matrix.",
+   call. = FALSE
+  )
+ }
+
+ pred1 <- X %*% t(b1)
+ pred2 <- X %*% t(b2)
+
+ summarize_component <- function(all_predictions, se.fit, interval, level) {
+  fit <- rowMeans(all_predictions)
+
+  if (!se.fit && interval == "none") {
+   return(as.vector(fit))
+  }
+
+  out <- cbind(fit = fit)
+
+  if (se.fit) {
+   out <- cbind(out, se.fit = apply(all_predictions, 1, stats::sd))
+  }
+
+  if (interval == "credible") {
+   alpha <- 1 - level
+   ci <- t(apply(
+    all_predictions, 1,
+    stats::quantile,
+    probs = c(alpha / 2, 1 - alpha / 2)
+   ))
+   out <- cbind(out, lower = ci[, 1], upper = ci[, 2])
+
+   if (se.fit) {
+    colnames(out) <- c(
+     "fit", "se.fit",
+     paste0(alpha / 2 * 100, " %"),
+     paste0((1 - alpha / 2) * 100, " %")
+    )
+   } else {
+    colnames(out) <- c(
+     "fit",
+     paste0(alpha / 2 * 100, " %"),
+     paste0((1 - alpha / 2) * 100, " %")
+    )
+   }
+  } else {
+   colnames(out) <- c("fit", "se.fit")
+  }
+
+  out
+ }
+
+ list(
+  component1 = summarize_component(pred1, se.fit, interval, level),
+  component2 = summarize_component(pred2, se.fit, interval, level)
+ )
 }
 
 #' Pool regression fits across posterior draws of correct-match classifications
@@ -431,20 +557,25 @@ predict.survMixBayes <- function(object, newdata = NULL, ...) {
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Component 1 represents correct links (signal),
-#' # and component 2 represents incorrect links (noise).
-#' Z_true <- 2 - rbinom(n, 1, 0.8)
-#'
-#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
-#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
-#' obs_time <- ifelse(Z_true == 1, time1, time2)
-#'
+#' # Simulate Weibull AFT data
+#' true_time <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))
 #' cens_time <- rexp(n, rate = 0.1)
-#' status <- as.integer(obs_time <= cens_time)
-#' obs_time <- pmin(obs_time, cens_time)
+#' true_obs_time <- pmin(true_time, cens_time)
+#' true_status <- as.integer(true_time <= cens_time)
 #'
-#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#' # Induce linkage mismatch errors in approximately 20% of records
+#' is_mismatch <- rbinom(n, 1, 0.2)
+#' obs_time <- true_obs_time
+#' obs_status <- true_status
+#' mismatch_idx <- which(is_mismatch == 1)
 #'
+#' if (length(mismatch_idx) > 1) {
+#'   shuffled <- sample(mismatch_idx)
+#'   obs_time[mismatch_idx] <- obs_time[shuffled]
+#'   obs_status[mismatch_idx] <- obs_status[shuffled]
+#' }
+#'
+#' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #' adj <- adjMixBayes(linked.data = linked_df)
 #'
 #' fit <- plsurvreg(
@@ -453,12 +584,6 @@ predict.survMixBayes <- function(object, newdata = NULL, ...) {
 #'   adjustment = adj,
 #'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
-#'
-#' dat <- data.frame(
-#'  time = y[, "time"],
-#'  event = y[, "event"],
-#'  X
-#'  )
 #'
 #' pooled_obj <- mi_with(
 #'   object = fit,
@@ -625,20 +750,25 @@ mi_with.survMixBayes <- function(object, data, formula,
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
 #'
-#' # Component 1 represents correct links (signal),
-#' # and component 2 represents incorrect links (noise).
-#' Z_true <- 2 - rbinom(n, 1, 0.8)
-#'
-#' time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
-#' time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
-#' obs_time <- ifelse(Z_true == 1, time1, time2)
-#'
+#' # Simulate Weibull AFT data
+#' true_time <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))
 #' cens_time <- rexp(n, rate = 0.1)
-#' status <- as.integer(obs_time <= cens_time)
-#' obs_time <- pmin(obs_time, cens_time)
+#' true_obs_time <- pmin(true_time, cens_time)
+#' true_status <- as.integer(true_time <= cens_time)
 #'
-#' linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+#' # Induce linkage mismatch errors in approximately 20% of records
+#' is_mismatch <- rbinom(n, 1, 0.2)
+#' obs_time <- true_obs_time
+#' obs_status <- true_status
+#' mismatch_idx <- which(is_mismatch == 1)
 #'
+#' if (length(mismatch_idx) > 1) {
+#'   shuffled <- sample(mismatch_idx)
+#'   obs_time[mismatch_idx] <- obs_time[shuffled]
+#'   obs_status[mismatch_idx] <- obs_status[shuffled]
+#' }
+#'
+#' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #' adj <- adjMixBayes(linked.data = linked_df)
 #'
 #' fit <- plsurvreg(
@@ -647,12 +777,6 @@ mi_with.survMixBayes <- function(object, data, formula,
 #'   adjustment = adj,
 #'   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 #' )
-#'
-#' dat <- data.frame(
-#'  time = y[, "time"],
-#'  event = y[, "event"],
-#'  X
-#'  )
 #'
 #' pooled_obj <- mi_with(
 #'   object = fit,

@@ -200,8 +200,16 @@ test_that("survMixBayes predict() works and mi_with() refits Cox model + pooling
 
  expect_true(is.list(pr))
  expect_true(all(c("component1", "component2") %in% names(pr)))
+ expect_true(is.numeric(pr$component1))
+ expect_true(is.numeric(pr$component2))
  expect_equal(length(pr$component1), nrow(newx))
  expect_equal(length(pr$component2), nrow(newx))
+
+ expect_error(
+  stats::predict(fit, newdata = data.frame(x = 1:5)),
+  "`newdata` must be a numeric matrix",
+  fixed = TRUE
+ )
 
  # mi_with.survMixBayes exists
  wm <- getS3method("mi_with", "survMixBayes", optional = TRUE)
