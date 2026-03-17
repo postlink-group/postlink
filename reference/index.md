@@ -104,7 +104,7 @@
   : Model Predictions for glmMixture Objects
 
 - [`predict(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/predict.survMixBayes.md)
-  : Predict for survMixBayes
+  : Predictions from a survMixBayes model
 
 - [`print(`*`<adjELE>`*`)`](https://postlink-group.github.io/postlink/reference/print.adjELE.md)
   :

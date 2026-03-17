@@ -302,7 +302,7 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
   : Model Predictions for glmMixture Objects
 
 - [`predict(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/predict.survMixBayes.md)
-  : Predict for survMixBayes
+  : Predictions from a survMixBayes model
 
 - [`print(`*`<adjELE>`*`)`](https://postlink-group.github.io/postlink/reference/print.adjELE.md)
   :

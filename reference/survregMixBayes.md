@@ -169,31 +169,41 @@ Statistical Software*, 69(1), 1–24.
 
 ``` r
 if (FALSE) { # \dontrun{
-# 1. Simulate survival data from a two-component Weibull mixture
-# Component 1 represents correct links (signal),
-# and component 2 represents mismatched links (noise).
+# Example: Bayesian mixture survival model fit to linked survival data
+# with induced linkage mismatch errors
+
+# 1. Simulate a linked survival dataset
 set.seed(301)
 n <- 150
 X <- matrix(rnorm(n * 2), ncol = 2)
 colnames(X) <- c("x1", "x2")
 
-# Latent match status: 80% correct links (Z=1), 20% incorrect links (Z=2)
-Z_true <- ifelse(rbinom(n, 1, 0.8) == 1, 1, 2)
-
-# Generate survival times based on latent status
-time1 <- rweibull(n, shape = 1.5, scale = exp(0.5 * X[,1] - 0.5 * X[,2])) # Correct links
-time2 <- rweibull(n, shape = 1.2, scale = exp(0.1 * X[,1]))                # Incorrect links
-obs_time <- ifelse(Z_true == 1, time1, time2)
+# Generate survival times from a Weibull AFT model
+true_time <- rweibull(
+  n,
+  shape = 1.5,
+  scale = exp(0.5 * X[, 1] - 0.5 * X[, 2])
+)
 
 # Apply right-censoring
 cens_time <- rexp(n, rate = 0.1)
-event <- as.integer(obs_time <= cens_time)
-obs_time <- pmin(obs_time, cens_time)
+event <- as.integer(true_time <= cens_time)
+obs_time <- pmin(true_time, cens_time)
+
+# Induce linkage mismatch errors in approximately 20% of records
+is_mismatch <- rbinom(n, 1, 0.2)
+mismatch_idx <- which(is_mismatch == 1)
+
+if (length(mismatch_idx) > 1) {
+  shuffled <- sample(mismatch_idx)
+  obs_time[mismatch_idx] <- obs_time[shuffled]
+  event[mismatch_idx] <- event[shuffled]
+}
 
 y <- cbind(time = obs_time, event = event)
 
-# 2. Fit the Bayesian Two-Component Mixture Survival Model
-# Note: Iterations are set artificially low for run time.
+# 2. Fit the Bayesian two-component mixture survival model
+# Note: Iterations are set artificially low for run time
 fit <- survregMixBayes(
   X = X,
   y = y,
@@ -201,15 +211,15 @@ fit <- survregMixBayes(
   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 )
 
-# 3. Inspect the aligned posterior estimates
-# (Label switching is handled automatically via ECR-ITERATIVE-1)
-cat("Component 1 (Correct Links) Coefficients:\n")
-print(colMeans(fit$estimates$m.coefficients))
-
-cat("Component 2 (Incorrect Links) Coefficients:\n")
+# 3. Inspect posterior summaries
+# (Label switching is handled automatically)
+cat("Component 1 (Correct Links):\n")
 print(colMeans(fit$estimates$coefficients))
 
-cat("Estimated mixing weight (Correct-link proportion):\n")
+cat("Component 2 (Incorrect Links):\n")
+print(colMeans(fit$estimates$m.coefficients))
+
+cat("Estimated probability of correct linkage:\n")
 print(mean(fit$estimates$theta))
 } # }
 ```

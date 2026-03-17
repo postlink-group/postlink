@@ -1,36 +1,65 @@
-# Predict for survMixBayes
+# Predictions from a survMixBayes model
 
-Returns posterior mean linear predictors for each component. Component 1
-is interpreted as the correct-match component and component 2 as the
-incorrect-match component.
+Computes posterior predictions for each latent component of a
+`survMixBayes` model. By default, predictions are returned on the linear
+predictor scale for both components.
 
 ## Usage
 
 ``` r
 # S3 method for class 'survMixBayes'
-predict(object, newdata = NULL, ...)
+predict(
+  object,
+  newdata = NULL,
+  se.fit = FALSE,
+  interval = c("none", "credible"),
+  level = 0.95,
+  ...
+)
 ```
 
 ## Arguments
 
 - object:
 
-  An object of class `survMixBayes`.
+  A `survMixBayes` model object.
 
 - newdata:
 
-  Optional design matrix for prediction. If `NULL`, uses `object$X` if
-  present.
+  A numeric matrix of new observations (\\n\_{new} \times K\\) with
+  columns aligned to the design matrix used for fitting. If `NULL`, the
+  fitted design matrix stored in `object$X` is used.
+
+- se.fit:
+
+  Logical; if `TRUE`, also return posterior SD of predictions.
+
+- interval:
+
+  Either `"none"` or `"credible"`, indicating whether to compute
+  credible intervals.
+
+- level:
+
+  Probability level for the credible interval (default 0.95).
 
 - ...:
 
-  Additional arguments (unused).
+  Not used.
 
 ## Value
 
-A list with posterior mean linear predictors for each component:
-`component1` for the correct-match component and `component2` for the
-incorrect-match component.
+A list with two components, `component1` and `component2`, corresponding
+to the two latent mixture components. If `se.fit = FALSE` and
+`interval = "none"`, each element is a numeric vector of posterior mean
+linear predictors. Otherwise, each element is a matrix containing the
+fitted values and, optionally, posterior SDs and credible interval
+bounds.
+
+## Details
+
+Component 1 is interpreted as the correct-match component and component
+2 as the incorrect-match component (after label-switching correction).
 
 ## Examples
 
@@ -40,34 +69,43 @@ set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)
 
-# Component 1 represents correct links (signal),
-# and component 2 represents incorrect links (noise).
-Z_true <- 2 - rbinom(n, 1, 0.8)
-
-time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
-time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
-obs_time <- ifelse(Z_true == 1, time1, time2)
-
+# Simulate Weibull AFT data
+true_time <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))
 cens_time <- rexp(n, rate = 0.1)
-status <- as.integer(obs_time <= cens_time)
-obs_time <- pmin(obs_time, cens_time)
+true_obs_time <- pmin(true_time, cens_time)
+true_status <- as.integer(true_time <= cens_time)
 
-linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+# Induce linkage mismatch errors in approximately 20% of records
+is_mismatch <- rbinom(n, 1, 0.2)
+obs_time <- true_obs_time
+obs_status <- true_status
+mismatch_idx <- which(is_mismatch == 1)
 
+if (length(mismatch_idx) > 1) {
+  shuffled <- sample(mismatch_idx)
+  obs_time[mismatch_idx] <- obs_time[shuffled]
+  obs_status[mismatch_idx] <- obs_status[shuffled]
+}
+
+linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 adj <- adjMixBayes(linked.data = linked_df)
 
 fit <- plsurvreg(
   survival::Surv(time, status) ~ trt,
   dist = "weibull",
   adjustment = adj,
-  control = list(iterations = 200, burnin.iterations = 100, seed = 123)
+  control = list(
+    iterations = 200,
+    burnin.iterations = 100,
+    seed = 123
+  )
 )
 
-# Create a new design matrix for prediction
-X_new <- stats::model.matrix(~ trt, data = data.frame(trt = c(0, 1)))
+# Create a design matrix for new covariate values
+newdata <- stats::model.matrix(~ trt, data = data.frame(trt = c(0, 1)))
 
 # Predict posterior mean linear predictors for each latent component
-preds <- predict(fit, newdata = X_new)
+preds <- predict(fit, newdata = newdata, se.fit = TRUE, interval = "credible")
 print(preds$component1)
 print(preds$component2)
 } # }

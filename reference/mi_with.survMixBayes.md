@@ -80,20 +80,25 @@ set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)
 
-# Component 1 represents correct links (signal),
-# and component 2 represents incorrect links (noise).
-Z_true <- 2 - rbinom(n, 1, 0.8)
-
-time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
-time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
-obs_time <- ifelse(Z_true == 1, time1, time2)
-
+# Simulate Weibull AFT data
+true_time <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))
 cens_time <- rexp(n, rate = 0.1)
-status <- as.integer(obs_time <= cens_time)
-obs_time <- pmin(obs_time, cens_time)
+true_obs_time <- pmin(true_time, cens_time)
+true_status <- as.integer(true_time <= cens_time)
 
-linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+# Induce linkage mismatch errors in approximately 20% of records
+is_mismatch <- rbinom(n, 1, 0.2)
+obs_time <- true_obs_time
+obs_status <- true_status
+mismatch_idx <- which(is_mismatch == 1)
 
+if (length(mismatch_idx) > 1) {
+  shuffled <- sample(mismatch_idx)
+  obs_time[mismatch_idx] <- obs_time[shuffled]
+  obs_status[mismatch_idx] <- obs_status[shuffled]
+}
+
+linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 adj <- adjMixBayes(linked.data = linked_df)
 
 fit <- plsurvreg(
@@ -102,12 +107,6 @@ fit <- plsurvreg(
   adjustment = adj,
   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 )
-
-dat <- data.frame(
- time = y[, "time"],
- event = y[, "event"],
- X
- )
 
 pooled_obj <- mi_with(
   object = fit,
