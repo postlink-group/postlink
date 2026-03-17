@@ -2,26 +2,50 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{predict.survMixBayes}
 \alias{predict.survMixBayes}
-\title{Predict for survMixBayes}
+\title{Predictions from a survMixBayes model}
 \usage{
-\method{predict}{survMixBayes}(object, newdata = NULL, ...)
+\method{predict}{survMixBayes}(
+  object,
+  newdata = NULL,
+  se.fit = FALSE,
+  interval = c("none", "credible"),
+  level = 0.95,
+  ...
+)
 }
 \arguments{
-\item{object}{An object of class \code{survMixBayes}.}
+\item{object}{A \code{survMixBayes} model object.}
 
-\item{newdata}{Optional design matrix for prediction. If \code{NULL}, uses \code{object$X} if present.}
+\item{newdata}{A numeric matrix of new observations (\eqn{n_{new} \times K})
+with columns aligned to the design matrix used for fitting.
+If \code{NULL}, the fitted design matrix stored in \code{object$X} is used.}
 
-\item{...}{Additional arguments (unused).}
+\item{se.fit}{Logical; if \code{TRUE}, also return posterior SD of predictions.}
+
+\item{interval}{Either \code{"none"} or \code{"credible"}, indicating whether
+to compute credible intervals.}
+
+\item{level}{Probability level for the credible interval (default 0.95).}
+
+\item{...}{Not used.}
 }
 \value{
-A list with posterior mean linear predictors for each component:
-\code{component1} for the correct-match component and \code{component2}
-for the incorrect-match component.
+A list with two components, \code{component1} and \code{component2},
+corresponding to the two latent mixture components.
+If \code{se.fit = FALSE} and \code{interval = "none"}, each element is a
+numeric vector of posterior mean linear predictors.
+Otherwise, each element is a matrix containing the fitted values and,
+optionally, posterior SDs and credible interval bounds.
 }
 \description{
-Returns posterior mean linear predictors for each component. Component 1 is
-interpreted as the correct-match component and component 2 as the incorrect-match
-component.
+Computes posterior predictions for each latent component of a
+\code{survMixBayes} model. By default, predictions are returned on the
+linear predictor scale for both components.
+}
+\details{
+Component 1 is interpreted as the correct-match component and
+component 2 as the incorrect-match component (after label-switching
+correction).
 }
 \examples{
 \dontrun{
@@ -29,34 +53,43 @@ set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)
 
-# Component 1 represents correct links (signal),
-# and component 2 represents incorrect links (noise).
-Z_true <- 2 - rbinom(n, 1, 0.8)
-
-time1 <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))  # Correct links
-time2 <- rweibull(n, shape = 1.2, scale = exp(1 + 0.2 * trt))  # Incorrect links
-obs_time <- ifelse(Z_true == 1, time1, time2)
-
+# Simulate Weibull AFT data
+true_time <- rweibull(n, shape = 1.5, scale = exp(1 + 0.8 * trt))
 cens_time <- rexp(n, rate = 0.1)
-status <- as.integer(obs_time <= cens_time)
-obs_time <- pmin(obs_time, cens_time)
+true_obs_time <- pmin(true_time, cens_time)
+true_status <- as.integer(true_time <= cens_time)
 
-linked_df <- data.frame(time = obs_time, status = status, trt = trt)
+# Induce linkage mismatch errors in approximately 20\% of records
+is_mismatch <- rbinom(n, 1, 0.2)
+obs_time <- true_obs_time
+obs_status <- true_status
+mismatch_idx <- which(is_mismatch == 1)
 
+if (length(mismatch_idx) > 1) {
+  shuffled <- sample(mismatch_idx)
+  obs_time[mismatch_idx] <- obs_time[shuffled]
+  obs_status[mismatch_idx] <- obs_status[shuffled]
+}
+
+linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 adj <- adjMixBayes(linked.data = linked_df)
 
 fit <- plsurvreg(
   survival::Surv(time, status) ~ trt,
   dist = "weibull",
   adjustment = adj,
-  control = list(iterations = 200, burnin.iterations = 100, seed = 123)
+  control = list(
+    iterations = 200,
+    burnin.iterations = 100,
+    seed = 123
+  )
 )
 
-# Create a new design matrix for prediction
-X_new <- stats::model.matrix(~ trt, data = data.frame(trt = c(0, 1)))
+# Create a design matrix for new covariate values
+newdata <- stats::model.matrix(~ trt, data = data.frame(trt = c(0, 1)))
 
 # Predict posterior mean linear predictors for each latent component
-preds <- predict(fit, newdata = X_new)
+preds <- predict(fit, newdata = newdata, se.fit = TRUE, interval = "credible")
 print(preds$component1)
 print(preds$component2)
 }
