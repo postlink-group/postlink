@@ -72,10 +72,10 @@ mis_idx <- sample(1:n, size = floor(0.15 * n))
 linked_age <- age_centered
 linked_trt <- treatment
 
- # False links drawn uniformly from the target population
- false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
- linked_age[mis_idx] <- age_centered[false_link_idx]
- linked_trt[mis_idx] <- treatment[false_link_idx]
+# False links drawn uniformly from the target population
+false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
+linked_age[mis_idx] <- age_centered[false_link_idx]
+linked_trt[mis_idx] <- treatment[false_link_idx]
 
 linked_data <- data.frame(time = time, status = status,
                           age = linked_age, treatment = linked_trt)

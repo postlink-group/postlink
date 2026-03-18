@@ -101,25 +101,27 @@ Medicine, 43(2), 296-314.
 ``` r
 set.seed(101)
 n <- 250
+
 # 1. Simulate true data
 age <- rnorm(n, 60, 8)
 treatment <- rbinom(n, 1, 0.5)
+
 # Simulate true hazard
 # Older age and lack of treatment increase hazard
 true_hazard <- exp(0.05 * (age - 60) - 0.5 * treatment)
 true_time <- rexp(n, rate = true_hazard)
 cens_time <- rexp(n, rate = 0.1)
+
 obs_time <- pmin(true_time, cens_time)
 status <- as.numeric(true_time <= cens_time) # 1 = event, 0 = censored
+
 # 2. Induce 15% exchangeable linkage errors
 mis_idx <- sample(1:n, size = floor(0.15 * n))
 linked_age <- age
 linked_treatment <- treatment
-if(length(mis_idx) > 0) {
-  false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
-  linked_age[mis_idx] <- age[false_link_idx]
-  linked_treatment[mis_idx] <- treatment[false_link_idx]
-}
+false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
+linked_age[mis_idx] <- age[false_link_idx]
+linked_treatment[mis_idx] <- treatment[false_link_idx]
 
 # 3. Prepare matrices for the internal routine
 cens_ele <- 1 - status
