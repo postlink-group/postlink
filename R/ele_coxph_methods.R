@@ -28,10 +28,10 @@
 #' linked_age <- age_centered
 #' linked_trt <- treatment
 #'
-#'  # False links drawn uniformly from the target population
-#'  false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
-#'  linked_age[mis_idx] <- age_centered[false_link_idx]
-#'  linked_trt[mis_idx] <- treatment[false_link_idx]
+#' # False links drawn uniformly from the target population
+#' false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
+#' linked_age[mis_idx] <- age_centered[false_link_idx]
+#' linked_trt[mis_idx] <- treatment[false_link_idx]
 #'
 #' linked_data <- data.frame(time = time, status = status,
 #'                           age = linked_age, treatment = linked_trt)
@@ -83,10 +83,10 @@ vcov.coxphELE <- function(object, ...) {
 #' linked_age <- age_centered
 #' linked_trt <- treatment
 #'
-#'  # False links drawn uniformly from the target population
-#'  false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
-#'  linked_age[mis_idx] <- age_centered[false_link_idx]
-#'  linked_trt[mis_idx] <- treatment[false_link_idx]
+#' # False links drawn uniformly from the target population
+#' false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
+#' linked_age[mis_idx] <- age_centered[false_link_idx]
+#' linked_trt[mis_idx] <- treatment[false_link_idx]
 #'
 #' linked_data <- data.frame(time = time, status = status,
 #'                           age = linked_age, treatment = linked_trt)
@@ -161,10 +161,10 @@ print.coxphELE <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
 #' linked_age <- age_centered
 #' linked_trt <- treatment
 #'
-#'  # False links drawn uniformly from the target population
-#'  false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
-#'  linked_age[mis_idx] <- age_centered[false_link_idx]
-#'  linked_trt[mis_idx] <- treatment[false_link_idx]
+#' # False links drawn uniformly from the target population
+#' false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
+#' linked_age[mis_idx] <- age_centered[false_link_idx]
+#' linked_trt[mis_idx] <- treatment[false_link_idx]
 #'
 #' linked_data <- data.frame(time = time, status = status,
 #'                           age = linked_age, treatment = linked_trt)
@@ -302,10 +302,10 @@ print.summary.coxphELE <- function(x,
 #' linked_age <- age_centered
 #' linked_trt <- treatment
 #'
-#'  # False links drawn uniformly from the target population
-#'  false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
-#'  linked_age[mis_idx] <- age_centered[false_link_idx]
-#'  linked_trt[mis_idx] <- treatment[false_link_idx]
+#' # False links drawn uniformly from the target population
+#' false_link_idx <- sample(1:n, size = length(mis_idx), replace = TRUE)
+#' linked_age[mis_idx] <- age_centered[false_link_idx]
+#' linked_trt[mis_idx] <- treatment[false_link_idx]
 #'
 #' linked_data <- data.frame(time = time, status = status,
 #'                           age = linked_age, treatment = linked_trt)

@@ -60,10 +60,8 @@ is_mismatch <- rbinom(n, 1, true_mismatch_rate)
 
 obs_outcome <- true_outcome
 mismatch_idx <- which(is_mismatch == 1)
-if(length(mismatch_idx) > 1) {
-  # Shuffle outcomes for the mismatched records
-  obs_outcome[mismatch_idx] <- sample(obs_outcome[mismatch_idx])
-}
+# Shuffle outcomes for the mismatched records
+obs_outcome[mismatch_idx] <- sample(obs_outcome[mismatch_idx])
 
 linked_df <- data.frame(exposure, outcome = obs_outcome)
 

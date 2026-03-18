@@ -96,18 +96,15 @@ y <- exp(drop(mu)) * rweibull(n, shape = 1/sigma)
 cens <- (y >= 1.5)
 y[cens] <- 1.5
 
-# Mismatch induction
+# Generate mismatch errors
 ps <- rbeta(n, 4.5, 0.5)
 logit_ps <- log(ps / (1 - ps))
 mp <- cbind(1, logit_ps)
 gamma_true <- c(-0.5, 1)
 m <- 1 - rbinom(n, prob = plogis(mp \%*\% gamma_true), size = 1)
-
 yperm <- y
 shuffled_ix <- sample(which(m == 1))
-if(length(shuffled_ix) > 1) {
-  yperm[shuffled_ix] <- yperm[sample(shuffled_ix)]
-}
+yperm[shuffled_ix] <- yperm[sample(shuffled_ix)]
 
 # Fit model
 fit <- coxphMixture(x = X, y = yperm, cens = as.numeric(cens),
