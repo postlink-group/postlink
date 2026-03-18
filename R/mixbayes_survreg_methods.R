@@ -41,11 +41,9 @@ NULL
 #' obs_status <- true_status
 #' mismatch_idx <- which(is_mismatch == 1)
 #'
-#' if (length(mismatch_idx) > 1) {
-#'   shuffled <- sample(mismatch_idx)
-#'   obs_time[mismatch_idx] <- obs_time[shuffled]
-#'   obs_status[mismatch_idx] <- obs_status[shuffled]
-#' }
+#' shuffled <- sample(mismatch_idx)
+#' obs_time[mismatch_idx] <- obs_time[shuffled]
+#' obs_status[mismatch_idx] <- obs_status[shuffled]
 #'
 #' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #' adj <- adjMixBayes(linked.data = linked_df)
@@ -116,11 +114,9 @@ print.survMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ..
 #' obs_status <- true_status
 #' mismatch_idx <- which(is_mismatch == 1)
 #'
-#' if (length(mismatch_idx) > 1) {
-#'   shuffled <- sample(mismatch_idx)
-#'   obs_time[mismatch_idx] <- obs_time[shuffled]
-#'   obs_status[mismatch_idx] <- obs_status[shuffled]
-#' }
+#' shuffled <- sample(mismatch_idx)
+#' obs_time[mismatch_idx] <- obs_time[shuffled]
+#' obs_status[mismatch_idx] <- obs_status[shuffled]
 #'
 #' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #' adj <- adjMixBayes(linked.data = linked_df)
@@ -235,11 +231,9 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
 #' obs_status <- true_status
 #' mismatch_idx <- which(is_mismatch == 1)
 #'
-#' if (length(mismatch_idx) > 1) {
-#'   shuffled <- sample(mismatch_idx)
-#'   obs_time[mismatch_idx] <- obs_time[shuffled]
-#'   obs_status[mismatch_idx] <- obs_status[shuffled]
-#' }
+#' shuffled <- sample(mismatch_idx)
+#' obs_time[mismatch_idx] <- obs_time[shuffled]
+#' obs_status[mismatch_idx] <- obs_status[shuffled]
 #'
 #' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #'
@@ -317,11 +311,9 @@ confint.survMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
 #' obs_status <- true_status
 #' mismatch_idx <- which(is_mismatch == 1)
 #'
-#' if (length(mismatch_idx) > 1) {
-#'   shuffled <- sample(mismatch_idx)
-#'   obs_time[mismatch_idx] <- obs_time[shuffled]
-#'   obs_status[mismatch_idx] <- obs_status[shuffled]
-#' }
+#' shuffled <- sample(mismatch_idx)
+#' obs_time[mismatch_idx] <- obs_time[shuffled]
+#' obs_status[mismatch_idx] <- obs_status[shuffled]
 #'
 #' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #'
@@ -392,11 +384,9 @@ vcov.survMixBayes <- function(object, ...) {
 #' obs_status <- true_status
 #' mismatch_idx <- which(is_mismatch == 1)
 #'
-#' if (length(mismatch_idx) > 1) {
-#'   shuffled <- sample(mismatch_idx)
-#'   obs_time[mismatch_idx] <- obs_time[shuffled]
-#'   obs_status[mismatch_idx] <- obs_status[shuffled]
-#' }
+#' shuffled <- sample(mismatch_idx)
+#' obs_time[mismatch_idx] <- obs_time[shuffled]
+#' obs_status[mismatch_idx] <- obs_status[shuffled]
 #'
 #' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #' adj <- adjMixBayes(linked.data = linked_df)
@@ -569,11 +559,9 @@ predict.survMixBayes <- function(object, newdata = NULL,
 #' obs_status <- true_status
 #' mismatch_idx <- which(is_mismatch == 1)
 #'
-#' if (length(mismatch_idx) > 1) {
-#'   shuffled <- sample(mismatch_idx)
-#'   obs_time[mismatch_idx] <- obs_time[shuffled]
-#'   obs_status[mismatch_idx] <- obs_status[shuffled]
-#' }
+#' shuffled <- sample(mismatch_idx)
+#' obs_time[mismatch_idx] <- obs_time[shuffled]
+#' obs_status[mismatch_idx] <- obs_status[shuffled]
 #'
 #' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #' adj <- adjMixBayes(linked.data = linked_df)
@@ -762,11 +750,9 @@ mi_with.survMixBayes <- function(object, data, formula,
 #' obs_status <- true_status
 #' mismatch_idx <- which(is_mismatch == 1)
 #'
-#' if (length(mismatch_idx) > 1) {
-#'   shuffled <- sample(mismatch_idx)
-#'   obs_time[mismatch_idx] <- obs_time[shuffled]
-#'   obs_status[mismatch_idx] <- obs_status[shuffled]
-#' }
+#' shuffled <- sample(mismatch_idx)
+#' obs_time[mismatch_idx] <- obs_time[shuffled]
+#' obs_status[mismatch_idx] <- obs_status[shuffled]
 #'
 #' linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 #' adj <- adjMixBayes(linked.data = linked_df)

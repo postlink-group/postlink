@@ -47,11 +47,9 @@
 #' mismatch_idx <- which(is_mismatch == 1)
 #'
 #' # Shuffle time and status together for mismatched records
-#' if(length(mismatch_idx) > 1) {
-#'   shuffled_idx <- sample(mismatch_idx)
-#'   obs_time[mismatch_idx] <- obs_time[shuffled_idx]
-#'   obs_status[mismatch_idx] <- obs_status[shuffled_idx]
-#' }
+#' shuffled_idx <- sample(mismatch_idx)
+#' obs_time[mismatch_idx] <- obs_time[shuffled_idx]
+#' obs_status[mismatch_idx] <- obs_status[shuffled_idx]
 #'
 #' linked_data <- data.frame(time = obs_time, status = obs_status, x = x, match_score)
 #'

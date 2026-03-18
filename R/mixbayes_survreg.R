@@ -139,11 +139,9 @@
 #' is_mismatch <- rbinom(n, 1, 0.2)
 #' mismatch_idx <- which(is_mismatch == 1)
 #'
-#' if (length(mismatch_idx) > 1) {
-#'   shuffled <- sample(mismatch_idx)
-#'   obs_time[mismatch_idx] <- obs_time[shuffled]
-#'   event[mismatch_idx] <- event[shuffled]
-#' }
+#' shuffled <- sample(mismatch_idx)
+#' obs_time[mismatch_idx] <- obs_time[shuffled]
+#' event[mismatch_idx] <- event[shuffled]
 #'
 #' y <- cbind(time = obs_time, event = event)
 #'
