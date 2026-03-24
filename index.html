@@ -108,7 +108,7 @@
 <code><a href="reference/plctable.html">plctable()</a></code> for contingency table analysis.</li>
 </ul>
 <p>Estimation and inference supported for each type of adjustment object vary. Please refer to the <code>adj*</code> or <code>pl*</code> documentation for models currently supported.</p>
-<p>Standard R workflows (e.g., summary(), predict(), vcov(), and confint()) can be used for display and processing of results. These methods specially are derived to consider the additional steps introduced by the linkage error adjustment.</p>
+<p>Standard R workflows (e.g., <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code>, and <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code>) can be used for display and processing of results. These methods specially are derived to consider the additional steps introduced by the linkage error adjustment.</p>
 <p><strong>Note</strong>: While the two-phase workflow is recommended for standard analyses, the package’s architecture isolates the core logic of each method into independent internal routines. If preferred, the underlying computational functions can be used directly by supplying pre-computed design matrices and response vectors (e.g., <code><a href="reference/coxphELE.html">coxphELE()</a></code>, <code><a href="reference/glmMixture.html">glmMixture()</a></code>, <code><a href="reference/survregMixBayes.html">survregMixBayes()</a></code>)</p>
 </div>
 <div class="section level2">
