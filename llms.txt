@@ -401,3 +401,12 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
 - [`vcov(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.survMixBayes.md)
   : Posterior covariance matrix for survMixBayes coefficients
 
+# Articles
+
+### All vignettes
+
+- [Longevity Analysis with LIFE-M
+  Data](https://postlink-group.github.io/postlink/articles/longevity-analysis.md):
+
+  A case study demonstrating the postlink workflow for linear
+  regression.
