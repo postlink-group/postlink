@@ -45,3 +45,4 @@ LinkingTo:
     StanHeaders (>= 2.18.0)
 SystemRequirements: GNU make
 URL: https://postlink-group.github.io/postlink/
+Config/Needs/website: rmarkdown
