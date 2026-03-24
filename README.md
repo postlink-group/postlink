@@ -81,10 +81,10 @@ Estimation and inference supported for each type of adjustment object
 vary. Please refer to the `adj*` or `pl*` documentation for models
 currently supported.
 
-Standard R workflows (e.g., summary(), predict(), vcov(), and confint())
-can be used for display and processing of results. These methods
-specially are derived to consider the additional steps introduced by the
-linkage error adjustment.
+Standard R workflows (e.g., `summary()`, `predict()`, `vcov()`, and
+`confint()`) can be used for display and processing of results. These
+methods specially are derived to consider the additional steps
+introduced by the linkage error adjustment.
 
 **Note**: While the two-phase workflow is recommended for standard
 analyses, the package’s architecture isolates the core logic of each
