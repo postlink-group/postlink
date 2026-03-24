@@ -123,6 +123,11 @@ test_that("predict.glmMixture handles newdata and types correctly", {
  dat <- simulate_mixture_data(n = 200, family = "gaussian")
  fit <- glmMixture(x = dat$x, y = dat$y, family = "gaussian", z = dat$z)
 
+ # Mock terms for test purposes (since glmMixture doesn't store them directly)
+ df <- data.frame(y = dat$y, x1 = dat$x[,2])
+ mf <- model.frame(y ~ x1, data = df)
+ fit$terms <- terms(mf)
+
  # Predict on original data
  p1 <- predict(fit)
  expect_equal(length(p1), 200)
@@ -133,17 +138,6 @@ test_that("predict.glmMixture handles newdata and types correctly", {
  expect_equal(p2, fit$fitted.values)
 
  # Predict with newdata
- # Create newdata as data.frame (mimicking typical usage, though engine handles matrix conversion)
- # The method `predict.glmMixture` relies on `terms(object)`.
- # Important: glmMixture doesn't store terms by default.
- # We manually add terms for this low-level test.
-
- # Mock terms for test purposes
- # We create a dataframe to generate terms
- df <- data.frame(y = dat$y, x1 = dat$x[,2])
- mf <- model.frame(y ~ x1, data = df)
- fit$terms <- terms(mf)
-
  newdata <- data.frame(x1 = rnorm(10))
  p_new <- predict(fit, newdata = newdata)
  expect_equal(length(p_new), 10)

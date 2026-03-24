@@ -153,6 +153,8 @@ confint.glmMixture <- function(object, parm, level = 0.95, ...) {
 #' @param type The type of prediction required. The default is on the scale of the linear predictors;
 #' the alternative "response" is on the scale of the response variable.
 #' @param se.fit Logical switch indicating if standard errors are required.
+#' @param interval Type of interval calculation ("none" or "confidence").
+#' @param level Confidence level.
 #' @param na.action Function determining what should be done with missing values in \code{newdata}.
 #' The default is to predict NA.
 #' @param ... Additional arguments (currently ignored).
@@ -197,84 +199,109 @@ confint.glmMixture <- function(object, parm, level = 0.95, ...) {
 predict.glmMixture <- function(object, newdata = NULL,
                                type = c("link", "response"),
                                se.fit = FALSE,
+                               interval = c("none", "confidence"),
+                               level = 0.95,
                                na.action = stats::na.pass,
                                ...) {
  type <- match.arg(type)
+ interval <- match.arg(interval)
+ compute_se <- se.fit || interval == "confidence"
 
- # Prediction on Original Data
+ # Extract terms
+ if (!is.null(object$terms)) {
+  tt <- object$terms
+ } else if (!is.null(object$model)) {
+  tt <- attr(object$model, "terms")
+ } else {
+  stop("Model terms not found. Please refit the model with 'model = TRUE'.")
+ }
+
+ # Setup Design Matrix (X) & Linear Predictor (eta)
  if (is.null(newdata)) {
-  pred <- switch(type,
-                 link = object$linear.predictors,
-                 response = object$fitted.values)
+  eta <- object$linear.predictors
 
-  if (!se.fit) return(pred)
-
-  # Calculate SE for original data
-  # We need the original X matrix. If plglm(x=TRUE) was not used, we might not have it.
-  # We check object$x.
-  X <- object$x
-  if (is.null(X)) {
-   # Try to reconstruct from model frame
-   if (!is.null(object$model)) {
-    X <- stats::model.matrix(object$terms, object$model)
-   } else {
-    stop("Original model matrix not found. Please refit with 'x = TRUE' or provide 'newdata'.")
+  if (compute_se) {
+   X <- object$x
+   if (is.null(X)) {
+    if (!is.null(object$model)) {
+     X <- stats::model.matrix(tt, object$model)
+    } else {
+     stop("Original model matrix not found. Please refit with 'x = TRUE' or provide 'newdata'.")
+    }
    }
   }
  } else {
-  # Prediction on New Data
-  # Ensure terms are available
-  tt <- terms(object)
-  if (is.null(tt)) stop("Model terms not found in object.")
-
-  # Remove response variable from terms
+  # Remove response variable from terms for new data
   tt <- stats::delete.response(tt)
-
-  # Create model frame and design matrix
   m <- stats::model.frame(tt, data = newdata, na.action = na.action)
   X <- stats::model.matrix(tt, m)
 
-  # Compute Linear Predictor (X * Beta)
-  # Note: object$coefficients contains only Beta (Outcome Model)
   beta <- object$coefficients
-
-  # Safety check for dimension match
-  if (ncol(X) != length(beta)) {
-   stop("Dimension mismatch: 'newdata' design matrix does not match coefficients.")
-  }
-
-  predictor <- as.vector(X %*% beta)
-
-  pred <- switch(type,
-                 link = predictor,
-                 response = object$family$linkinv(predictor))
+  if (ncol(X) != length(beta)) stop("Dimension mismatch: 'newdata' design matrix does not match coefficients.")
+  eta <- as.vector(X %*% beta)
  }
 
- # Standard Errors
- if (se.fit) {
+ # Base Predictions
+ pred <- switch(type,
+                link = eta,
+                response = object$family$linkinv(eta))
+
+ # Standard Errors & Intervals
+ if (compute_se) {
   # Extract variance submatrix for Beta only
-  # The first 'rank' rows/cols correspond to Beta in object$var
   p <- length(object$coefficients)
   cov_beta <- object$var[1:p, 1:p, drop = FALSE]
 
-  # SE = sqrt(diag(X %*% Sigma %*% t(X)))
-  # Efficient computation: sqrt(rowSums((X %*% Sigma) * X))
-  var_pred <- rowSums((X %*% cov_beta) * X)
-  se <- sqrt(var_pred)
+  # SE on the link scale: sqrt(diag(X %*% Sigma %*% t(X)))
+  se_link <- sqrt(rowSums((X %*% cov_beta) * X))
 
-  # Transform SE for response scale using delta method: SE_resp = SE_link * |d(linkinv)/d(eta)|
+  # SE on the requested output scale (using delta method if response)
   if (type == "response") {
-   # For GLMs, d(mu)/d(eta) is stored in family$mu.eta
-   mu.eta <- object$family$mu.eta
-   eta <- if (is.null(newdata)) object$linear.predictors else predictor
-   se <- se * abs(mu.eta(eta))
+   se_output <- se_link * abs(object$family$mu.eta(eta))
+  } else {
+   se_output <- se_link
   }
 
+  # Calculate Confidence Intervals
+  if (interval == "confidence") {
+   a <- (1 - level) / 2
+   if (object$family$family %in% c("gaussian", "Gamma")) {
+    crit <- stats::qt(1 - a, df = object$df.residual)
+   } else {
+    crit <- stats::qnorm(1 - a)
+   }
+
+   # Calculate intervals on the link scale first
+   lwr_link <- eta - crit * se_link
+   upr_link <- eta + crit * se_link
+
+   # Transform bounds to response scale if requested
+   if (type == "response") {
+    lwr <- object$family$linkinv(lwr_link)
+    upr <- object$family$linkinv(upr_link)
+   } else {
+    lwr <- lwr_link
+    upr <- upr_link
+   }
+
+   fit_matrix <- cbind(fit = pred, lwr = lwr, upr = upr)
+
+   if (se.fit) {
+    return(list(fit = fit_matrix,
+                se.fit = se_output,
+                residual.scale = sqrt(object$dispersion)))
+   } else {
+    return(fit_matrix)
+   }
+  }
+
+  # Return just predictions and SEs
   return(list(fit = pred,
-              se.fit = se,
+              se.fit = se_output,
               residual.scale = sqrt(object$dispersion)))
  }
 
+ # Return basic predictions
  return(pred)
 }
 
