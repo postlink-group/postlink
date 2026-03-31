@@ -69,7 +69,6 @@ method provided:
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 set.seed(102)
 n <- 400
 
@@ -101,5 +100,4 @@ fit <- plctable(
   ~ exposure + outcome,
   adjustment = adj
 )
-} # }
 ```

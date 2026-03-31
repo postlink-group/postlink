@@ -38,7 +38,6 @@ The argument `x`, invisibly.
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 set.seed(125)
 n <- 300
 
@@ -62,5 +61,17 @@ fit <- plctable(~ exposure + disease, adjustment = adj)
 
 # 4. Explicitly call the print method
 print(fit)
-} # }
+#> 
+#> Call:
+#> plctable(formula = ~exposure + disease, adjustment = adj)
+#> 
+#> --- Adjusted Contingency Table (Estimated Correct Counts) ---
+#>         disease
+#> exposure      no     yes
+#>     high  45.196  95.848
+#>     low  118.699  40.257
+#> 
+#> --- Linkage Error Adjustment ---
+#> Assumed Mismatch Rate (alpha): 0.15 
+#> Status: Converged in 1 iterations.
 ```

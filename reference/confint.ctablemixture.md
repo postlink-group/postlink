@@ -45,7 +45,6 @@ ensure valid probability estimates.
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 set.seed(125)
 n <- 300
 
@@ -70,8 +69,15 @@ fit <- plctable(~ exposure + disease, adjustment = adj)
 # 4. Compute confidence intervals
 # 95% CI for all cell probabilities
 confint(fit)
+#>                  2.5 %    97.5 %
+#> (high, no)  0.10103959 0.2002675
+#> (high, yes) 0.25829442 0.3806913
+#> (low, no)   0.33104381 0.4602805
+#> (low, yes)  0.08665511 0.1817277
 
 # 90% CI for specific cells by name
 confint(fit, parm = c("(low, yes)", "(high, no)"), level = 0.90)
-} # }
+#>                   5 %      95 %
+#> (low, yes) 0.09429769 0.1740851
+#> (high, no) 0.10901620 0.1922909
 ```

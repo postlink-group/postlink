@@ -90,7 +90,6 @@ mixture modelling. *Journal of the Royal Statistical Society Series A*.
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 # Generate Synthetic Data
 set.seed(1234)
 K <- 3; L <- 4
@@ -121,8 +120,18 @@ fit <- ctableMixture(tab = tab_obs, m.rate = alpha)
 
 # Inspect Results
 print(fit$converged)
+#> [1] TRUE
 # Compare estimated Correct Counts vs True Counts (approx)
 print(round(fit$ftable))
+#>    Y_perm
+#> X     1   2   3   4
+#>   1 196  56  28  41
+#>   2  23 130  21  19
+#>   3  97 207 137  45
 print(round(table(X, Y))) # True table without errors
-} # }
+#>    Y
+#> X     1   2   3   4
+#>   1 199  53  27  40
+#>   2  21 129  27  15
+#>   3  95 211 132  51
 ```

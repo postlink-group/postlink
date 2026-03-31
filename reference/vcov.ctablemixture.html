@@ -79,8 +79,7 @@ The row and column names correspond to the cells of the table in row-major order
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">125</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">125</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">300</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 1. Simulate true categorical data with dependency</span></span></span>
@@ -104,7 +103,11 @@ The row and column names correspond to the cells of the table in row-major order
 <span class="r-in"><span><span class="co"># 4. Extract the variance-covariance matrix of the cell probabilities</span></span></span>
 <span class="r-in"><span><span class="va">vmat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">vmat</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                (high, no)   (high, yes)     (low, no)    (low, yes)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (high, no)   0.0006407839 -0.0002332446 -0.0002921968 -0.0001153425</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (high, yes) -0.0002332446  0.0009749555 -0.0005317906 -0.0002099203</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (low, no)   -0.0002921968 -0.0005317906  0.0010869649 -0.0002629774</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (low, yes)  -0.0001153425 -0.0002099203 -0.0002629774  0.0005882403</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

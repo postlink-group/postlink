@@ -143,7 +143,6 @@ on Mixture Modelling.
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 library(survival)
 set.seed(123)
 n <- 200
@@ -178,6 +177,45 @@ fit <- coxphMixture(x = X, y = yperm, cens = as.numeric(cens),
                     control = list(max.iter = 50))
 
 print(fit)
+#> Call:
+#> NULL
+#> 
+#> Outcome Model Coefficients:
+#>  d_cov  x_cov        
+#>  7.005 -4.377 -2.899 
+#> 
+#> Mismatch Model Coefficients:
+#> [1] 0.9644
+#> 
+#> Likelihood ratio test (model=outcome) not available due to pseudo-likelihood.
+#> n= 200 , number of events= 144 
 summary(fit)
-} # }
+#> 
+#> Call:
+#> NULL
+#> 
+#> --- Outcome Model (Cox PH) ---
+#>             coef  exp(coef)   se(coef)       z Pr(>|z|)    
+#> d_cov    7.00547 1102.65118    0.66757  10.494  < 2e-16 ***
+#> x_cov   -4.37692    0.01256    0.37763 -11.590  < 2e-16 ***
+#>         -2.89911    0.05507    0.61015  -4.751 2.02e-06 ***
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#> 
+#> --- Hazard Ratios & Confidence Intervals ---
+#>       exp(coef) exp(-coef) lower .95 upper .95
+#> d_cov 1.103e+03  9.069e-04 2.980e+02 4.080e+03
+#> x_cov 1.256e-02  7.959e+01 5.994e-03 2.634e-02
+#>       5.507e-02  1.816e+01 1.666e-02 1.821e-01
+#> 
+#> --- Mismatch Indicator Model ---
+#>      Estimate Std. Error z value Pr(>|z|)    
+#> [1,]   0.9644     0.1566   6.158 7.37e-10 ***
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#> 
+#> Average Estimated Correct Match Rate: 0.8789 
+#> Events: 144  / Total: 200 
+#> Iterations: 24 
+#> 
 ```

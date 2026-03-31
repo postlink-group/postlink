@@ -83,7 +83,6 @@ method provided:
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 library(survival)
 set.seed(101)
 n <- 250
@@ -121,5 +120,4 @@ fit <- plcoxph(
   adjustment = adj,
   control = list(max.iter = 50)
 )
-} # }
 ```

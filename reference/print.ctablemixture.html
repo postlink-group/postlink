@@ -83,8 +83,7 @@ numeric values. Defaults to 3.</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">125</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">125</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">300</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 1. Simulate true categorical data with dependency</span></span></span>
@@ -107,7 +106,19 @@ numeric values. Defaults to 3.</p></dd>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 4. Explicitly call the print method</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> plctable(formula = ~exposure + disease, adjustment = adj)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Adjusted Contingency Table (Estimated Correct Counts) ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         disease</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> exposure      no     yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     high  45.196  95.848</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     low  118.699  40.257</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Linkage Error Adjustment ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Assumed Mismatch Rate (alpha): 0.15 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Status: Converged in 1 iterations.</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

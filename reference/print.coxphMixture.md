@@ -23,6 +23,10 @@ print(x, digits = max(3L, getOption("digits") - 3L), ...)
 
   Additional arguments.
 
+## Value
+
+Invisibly returns the input object `x`.
+
 ## Examples
 
 ``` r

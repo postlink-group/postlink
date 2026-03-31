@@ -58,7 +58,6 @@ An object of class `summary.ctableMixture` containing:
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 set.seed(125)
 n <- 300
 
@@ -85,6 +84,16 @@ sum_fit <- summary(fit)
 
 # 5. Access specific components of the summary
 print(sum_fit$coefficients)
+#>              Estimate Std. Error  z value     Pr(>|z|)
+#> (high, no)  0.1506535 0.02531371  5.95146 2.657602e-09
+#> (high, yes) 0.3194929 0.03122428 10.23219 0.000000e+00
+#> (low, no)   0.3956622 0.03296915 12.00098 0.000000e+00
+#> (low, yes)  0.1341914 0.02425366  5.53283 3.151040e-08
 print(sum_fit$chisq)
-} # }
+#> 
+#>  Pearson's Chi-squared test with Yates' continuity correction
+#> 
+#> data:  object$ftable
+#> X-squared = 53.089, df = 1, p-value = 3.188e-13
+#> 
 ```

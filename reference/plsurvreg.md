@@ -84,7 +84,7 @@ method provided:
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
+# \donttest{
 library(survival)
 set.seed(202)
 n <- 200
@@ -119,5 +119,47 @@ fit <- plsurvreg(
   adjustment = adj,
   control = list(iterations = 2000, burnin.iterations = 500)
 )
-} # }
+#> 
+#> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
+#> Chain 1: 
+#> Chain 1: Gradient evaluation took 0.000148 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.48 seconds.
+#> Chain 1: Adjust your expectations accordingly!
+#> Chain 1: 
+#> Chain 1: 
+#> Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)
+#> Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)
+#> Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)
+#> Chain 1: Iteration:  501 / 2000 [ 25%]  (Sampling)
+#> Chain 1: Iteration:  700 / 2000 [ 35%]  (Sampling)
+#> Chain 1: Iteration:  900 / 2000 [ 45%]  (Sampling)
+#> Chain 1: Iteration: 1100 / 2000 [ 55%]  (Sampling)
+#> Chain 1: Iteration: 1300 / 2000 [ 65%]  (Sampling)
+#> Chain 1: Iteration: 1500 / 2000 [ 75%]  (Sampling)
+#> Chain 1: Iteration: 1700 / 2000 [ 85%]  (Sampling)
+#> Chain 1: Iteration: 1900 / 2000 [ 95%]  (Sampling)
+#> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
+#> Chain 1: 
+#> Chain 1:  Elapsed Time: 4.435 seconds (Warm-up)
+#> Chain 1:                10.072 seconds (Sampling)
+#> Chain 1:                14.507 seconds (Total)
+#> Chain 1: 
+#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+#> Running the chains for more iterations may help. See
+#> https://mc-stan.org/misc/warnings.html#bulk-ess
+#> 
+#>     ......................................................................................
+#>     . Method                         Time (sec)           Status                         . 
+#>     ......................................................................................
+#>     . ECR-ITERATIVE-1                1.363                Converged (3 iterations)       . 
+#>     ......................................................................................
+#> 
+#>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
+#>     Retrieve the 1 permutation arrays by typing:
+#>         [...]$permutations$"ECR-ITERATIVE-1"
+#>     Retrieve the 1 best clusterings: [...]$clusters
+#>     Retrieve the 1 CPU times: [...]$timings
+#>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
+#>     Label switching finished. Total time: 1.4 seconds. 
+# }
 ```

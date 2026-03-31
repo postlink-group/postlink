@@ -98,8 +98,7 @@ and a Chi-squared test of independence performed on the adjusted counts.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">125</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">125</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">300</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 1. Simulate true categorical data with dependency</span></span></span>
@@ -125,8 +124,18 @@ and a Chi-squared test of independence performed on the adjusted counts.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 5. Access specific components of the summary</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">sum_fit</span><span class="op">$</span><span class="va">coefficients</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error  z value     Pr(&gt;|z|)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (high, no)  0.1506535 0.02531371  5.95146 2.657602e-09</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (high, yes) 0.3194929 0.03122428 10.23219 0.000000e+00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (low, no)   0.3956622 0.03296915 12.00098 0.000000e+00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (low, yes)  0.1341914 0.02425366  5.53283 3.151040e-08</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">sum_fit</span><span class="op">$</span><span class="va">chisq</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 	Pearson's Chi-squared test with Yates' continuity correction</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> data:  object$ftable</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> X-squared = 53.089, df = 1, p-value = 3.188e-13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

@@ -31,7 +31,6 @@ in row-major order (e.g., "(Row1, Col1)", "(Row1, Col2)", ...).
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 set.seed(125)
 n <- 300
 
@@ -56,5 +55,9 @@ fit <- plctable(~ exposure + disease, adjustment = adj)
 # 4. Extract the variance-covariance matrix of the cell probabilities
 vmat <- vcov(fit)
 print(vmat)
-} # }
+#>                (high, no)   (high, yes)     (low, no)    (low, yes)
+#> (high, no)   0.0006407839 -0.0002332446 -0.0002921968 -0.0001153425
+#> (high, yes) -0.0002332446  0.0009749555 -0.0005317906 -0.0002099203
+#> (low, no)   -0.0002921968 -0.0005317906  0.0010869649 -0.0002629774
+#> (low, yes)  -0.0001153425 -0.0002099203 -0.0002629774  0.0005882403
 ```
