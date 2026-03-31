@@ -12,7 +12,6 @@
 #' @return The argument \code{x}, invisibly.
 #'
 #' @examples
-#' \dontrun{
 #' set.seed(125)
 #' n <- 300
 #'
@@ -36,7 +35,6 @@
 #'
 #' # 4. Explicitly call the print method
 #' print(fit)
-#' }
 #'
 #' @seealso \code{\link{plctable}}, \code{\link{ctableMixture}}
 #' @export
@@ -75,7 +73,6 @@ print.ctableMixture <- function(x, digits = 3, ...) {
 #' (e.g., "(Row1, Col1)", "(Row1, Col2)", ...).
 #'
 #' @examples
-#' \dontrun{
 #' set.seed(125)
 #' n <- 300
 #'
@@ -100,7 +97,6 @@ print.ctableMixture <- function(x, digits = 3, ...) {
 #' # 4. Extract the variance-covariance matrix of the cell probabilities
 #' vmat <- vcov(fit)
 #' print(vmat)
-#' }
 #'
 #' @export
 vcov.ctableMixture <- function(object, ...) {
@@ -127,7 +123,6 @@ vcov.ctableMixture <- function(object, ...) {
 #' @return A matrix with columns giving lower and upper confidence limits for each parameter.
 #'
 #' @examples
-#' \dontrun{
 #' set.seed(125)
 #' n <- 300
 #'
@@ -155,7 +150,6 @@ vcov.ctableMixture <- function(object, ...) {
 #'
 #' # 90% CI for specific cells by name
 #' confint(fit, parm = c("(low, yes)", "(high, no)"), level = 0.90)
-#' }
 #'
 #' @export
 confint.ctableMixture <- function(object, parm, level = 0.95, ...) {
@@ -216,7 +210,6 @@ confint.ctableMixture <- function(object, parm, level = 0.95, ...) {
 #' \item{iterations}{Number of iterations performed.}
 #'
 #' @examples
-#' \dontrun{
 #' set.seed(125)
 #' n <- 300
 #'
@@ -244,7 +237,6 @@ confint.ctableMixture <- function(object, parm, level = 0.95, ...) {
 #' # 5. Access specific components of the summary
 #' print(sum_fit$coefficients)
 #' print(sum_fit$chisq)
-#' }
 #'
 #' @export
 summary.ctableMixture <- function(object, ...) {

@@ -114,7 +114,7 @@ relabeling algorithm.
 }
 
 \examples{
-\dontrun{
+\donttest{
 # Example: Bayesian mixture survival model fit to linked survival data
 # with induced linkage mismatch errors
 

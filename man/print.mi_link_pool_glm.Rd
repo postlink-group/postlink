@@ -21,7 +21,7 @@ The input \code{x}, invisibly.
 Print pooled regression results
 }
 \examples{
-\dontrun{
+\donttest{
 data(lifem)
 
 # lifem data preprocessing

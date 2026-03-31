@@ -19,7 +19,7 @@ component 1 (the correct-match component).
 Posterior covariance matrix for glmMixBayes coefficients
 }
 \examples{
-\dontrun{
+\donttest{
 data(lifem)
 
 # lifem data preprocessing

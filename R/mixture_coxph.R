@@ -64,7 +64,6 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' library(survival)
 #' set.seed(123)
 #' n <- 200
@@ -100,7 +99,7 @@
 #'
 #' print(fit)
 #' summary(fit)
-#' }
+#'
 coxphMixture <- function(x, y, cens,
                          z, m.rate = NULL, safe.matches = NULL,
                          control = list(), ...) {

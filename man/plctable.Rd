@@ -44,7 +44,6 @@ returned object depend directly on the \code{adjustment} method provided:
 mismatch errors.
 }
 \examples{
-\dontrun{
 set.seed(102)
 n <- 400
 
@@ -76,7 +75,6 @@ fit <- plctable(
   ~ exposure + outcome,
   adjustment = adj
 )
-}
 
 }
 \seealso{

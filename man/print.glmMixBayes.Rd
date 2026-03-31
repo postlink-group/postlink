@@ -20,7 +20,7 @@ The input \code{x}, invisibly.
 Print a glmMixBayes model object
 }
 \examples{
-\dontrun{
+\donttest{
 data(lifem)
 
 # lifem data preprocessing

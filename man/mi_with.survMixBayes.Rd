@@ -52,7 +52,7 @@ model to that subset, extracts the estimated coefficients and covariance
 matrix, and combines the results across draws using Rubin's rules.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)

@@ -54,7 +54,7 @@ to linked data. It serves as a wrapper for the internal engines, compatible with
 \code{\link[survival]{survreg}} specifications.
 }
 \examples{
-\dontrun{
+\donttest{
 library(survival)
 set.seed(202)
 n <- 200

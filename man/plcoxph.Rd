@@ -52,7 +52,6 @@ potential mismatch errors. It serves as a wrapper around the internal \code{fitc
 function, for compatibility with the \code{\link[survival]{coxph}} syntax.
 }
 \examples{
-\dontrun{
 library(survival)
 set.seed(101)
 n <- 250
@@ -90,7 +89,6 @@ fit <- plcoxph(
   adjustment = adj,
   control = list(max.iter = 50)
 )
-}
 
 }
 \seealso{

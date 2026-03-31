@@ -48,7 +48,7 @@ component 2 as the incorrect-match component (after label-switching
 correction).
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)

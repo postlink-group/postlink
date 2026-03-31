@@ -99,7 +99,7 @@ relabeling algorithm.
 }
 
 \examples{
-\dontrun{
+\donttest{
 data(lifem)
 
 # lifem data preprocessing

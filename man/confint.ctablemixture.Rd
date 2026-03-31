@@ -29,7 +29,6 @@ The intervals are calculated using the standard error estimates derived from
 at 0 and 1, respectively, to ensure valid probability estimates.
 }
 \examples{
-\dontrun{
 set.seed(125)
 n <- 300
 
@@ -57,6 +56,5 @@ confint(fit)
 
 # 90\% CI for specific cells by name
 confint(fit, parm = c("(low, yes)", "(high, no)"), level = 0.90)
-}
 
 }

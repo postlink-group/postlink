@@ -21,7 +21,7 @@ The input \code{x}, invisibly.
 Print pooled Cox regression results
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)

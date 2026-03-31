@@ -37,7 +37,7 @@ component and parameter type. Component 1 corresponds to the correct-match
 component and component 2 to the incorrect-match component.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)

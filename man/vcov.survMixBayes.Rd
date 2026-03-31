@@ -21,7 +21,7 @@ coefficients for component 1 of a fitted \code{survMixBayes} model.
 In this package, component 1 is interpreted as the correct-match component.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)

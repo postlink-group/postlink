@@ -22,7 +22,6 @@ from a fitted \code{ctableMixture} object. The variance is estimated using
 the observed information matrix (via the Hessian of the mixture log-likelihood).
 }
 \examples{
-\dontrun{
 set.seed(125)
 n <- 300
 
@@ -47,6 +46,5 @@ fit <- plctable(~ exposure + disease, adjustment = adj)
 # 4. Extract the variance-covariance matrix of the cell probabilities
 vmat <- vcov(fit)
 print(vmat)
-}
 
 }

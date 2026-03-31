@@ -77,7 +77,6 @@ model and mismatches follow the marginal distribution of the survival outcome.
 Variance estimates are obtained via Louis' method.
 }
 \examples{
-\dontrun{
 library(survival)
 set.seed(123)
 n <- 200
@@ -113,7 +112,7 @@ fit <- coxphMixture(x = X, y = yperm, cens = as.numeric(cens),
 
 print(fit)
 summary(fit)
-}
+
 }
 \references{
 Bukke, P., Ben-David, E., Diao, G., Slawski, M., & West, B. T. (2025).

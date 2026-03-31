@@ -22,7 +22,6 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
 #' set.seed(102)
 #' n <- 400
 #'
@@ -54,7 +53,6 @@
 #'   ~ exposure + outcome,
 #'   adjustment = adj
 #' )
-#' }
 #'
 #' @seealso \code{\link{adjMixture}}, \code{\link{ctableMixture}}
 #'

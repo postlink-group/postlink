@@ -39,7 +39,7 @@ credible interval bounds.
 Predictions from a glmMixBayes model
 }
 \examples{
-\dontrun{
+\donttest{
 data(lifem)
 
 # lifem data preprocessing

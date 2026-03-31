@@ -27,7 +27,7 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(survival)
 #' set.seed(202)
 #' n <- 200

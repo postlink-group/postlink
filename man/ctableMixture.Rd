@@ -60,7 +60,6 @@ a correct match (E-step) and the estimates for the saturated and independence
 distributions (M-step).
 }
 \examples{
-\dontrun{
 # Generate Synthetic Data
 set.seed(1234)
 K <- 3; L <- 4
@@ -94,7 +93,6 @@ print(fit$converged)
 # Compare estimated Correct Counts vs True Counts (approx)
 print(round(fit$ftable))
 print(round(table(X, Y))) # True table without errors
-}
 
 }
 \references{
