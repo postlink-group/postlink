@@ -334,6 +334,8 @@ predict.glmMixture <- function(object, newdata = NULL,
 #'
 #' print(fit)
 #'
+#' @return Invisibly returns the input object \code{x}.
+#'
 #' @export
 print.glmMixture <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
  cat("\nCall:  ", paste(deparse(x$call), sep = "\n", collapse = "\n"), "\n\n", sep = "")

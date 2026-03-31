@@ -366,6 +366,8 @@ print.summary.coxphMixture <- function(x,
 #' # Explicitly call the print method
 #' print(fit)
 #'
+#' @return Invisibly returns the input object \code{x}.
+#'
 #' @export
 print.coxphMixture <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
  cat("Call:\n")
