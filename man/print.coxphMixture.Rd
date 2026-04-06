@@ -13,6 +13,9 @@
 
 \item{...}{Additional arguments.}
 }
+\value{
+Invisibly returns the input object \code{x}.
+}
 \description{
 Print a coxphMixture Object
 }

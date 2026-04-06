@@ -18,7 +18,7 @@ An object of class \code{"summary.glmMixBayes"}, which is printed with a custom 
 Summary method for glmMixBayes models
 }
 \examples{
-\dontrun{
+\donttest{
 data(lifem)
 
 # lifem data preprocessing

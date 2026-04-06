@@ -22,7 +22,7 @@ NULL
 #' posterior component-indicator draws.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # mi_with() is a generic function for posterior allocation–based pooling.
 #' # See ?mi_with.glmMixBayes for a complete example illustrating its use
 #' # with Bayesian GLM mixture models.
@@ -41,7 +41,7 @@ mi_with <- function(object, ...) {
 #' @return The input \code{x}, invisibly.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(lifem)
 #'
 #' # lifem data preprocessing
@@ -96,7 +96,7 @@ print.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L),...)
 #' @return An object of class \code{"summary.glmMixBayes"}, which is printed with a custom method.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(lifem)
 #'
 #' # lifem data preprocessing
@@ -226,7 +226,7 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
 #' component 1 (the correct-match component).
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(lifem)
 #'
 #' # lifem data preprocessing
@@ -283,7 +283,7 @@ vcov.glmMixBayes <- function(object, ...) {
 #' upper credible interval bounds. Row names correspond to coefficient names.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(lifem)
 #'
 #' # lifem data preprocessing
@@ -345,7 +345,7 @@ confint.glmMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
 #'   credible interval bounds.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(lifem)
 #'
 #' # lifem data preprocessing
@@ -482,7 +482,7 @@ predict.glmMixBayes <- function(object, newx,
 #'   intervals, and related summary information.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(lifem)
 #'
 #' # lifem data preprocessing
@@ -666,7 +666,7 @@ mi_with.glmMixBayes <- function(object, data, formula,
 #' @return The input \code{x}, invisibly.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(lifem)
 #'
 #' # lifem data preprocessing

@@ -30,7 +30,7 @@ and component-specific distribution parameters in a fitted
 correct-match component and component 2 as the incorrect-match component.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)
@@ -47,11 +47,9 @@ obs_time <- true_obs_time
 obs_status <- true_status
 mismatch_idx <- which(is_mismatch == 1)
 
-if (length(mismatch_idx) > 1) {
-  shuffled <- sample(mismatch_idx)
-  obs_time[mismatch_idx] <- obs_time[shuffled]
-  obs_status[mismatch_idx] <- obs_status[shuffled]
-}
+shuffled <- sample(mismatch_idx)
+obs_time[mismatch_idx] <- obs_time[shuffled]
+obs_status[mismatch_idx] <- obs_status[shuffled]
 
 linked_df <- data.frame(time = obs_time, status = obs_status, trt = trt)
 adj <- adjMixBayes(linked.data = linked_df)

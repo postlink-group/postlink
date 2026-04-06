@@ -11,3 +11,6 @@ docs
 src/*.o
 src/*.so
 src/*.dll
+
+# Ignore raw data
+data-raw/*.rds

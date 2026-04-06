@@ -29,7 +29,7 @@ coefficients in component 1 of the mixture model. A subset of
 coefficients can be selected using \code{parm}.
 }
 \examples{
-\dontrun{
+\donttest{
 data(lifem)
 
 # lifem data preprocessing

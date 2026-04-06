@@ -54,7 +54,6 @@
 #' \emph{Journal of the Royal Statistical Society Series A}.
 #'
 #' @examples
-#' \dontrun{
 #' # Generate Synthetic Data
 #' set.seed(1234)
 #' K <- 3; L <- 4
@@ -88,7 +87,6 @@
 #' # Compare estimated Correct Counts vs True Counts (approx)
 #' print(round(fit$ftable))
 #' print(round(table(X, Y))) # True table without errors
-#' }
 #'
 #' @importFrom utils modifyList
 #' @export

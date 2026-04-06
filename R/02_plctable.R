@@ -22,7 +22,6 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
 #' set.seed(102)
 #' n <- 400
 #'
@@ -38,10 +37,8 @@
 #'
 #' obs_outcome <- true_outcome
 #' mismatch_idx <- which(is_mismatch == 1)
-#' if(length(mismatch_idx) > 1) {
-#'   # Shuffle outcomes for the mismatched records
-#'   obs_outcome[mismatch_idx] <- sample(obs_outcome[mismatch_idx])
-#' }
+#' # Shuffle outcomes for the mismatched records
+#' obs_outcome[mismatch_idx] <- sample(obs_outcome[mismatch_idx])
 #'
 #' linked_df <- data.frame(exposure, outcome = obs_outcome)
 #'
@@ -56,7 +53,6 @@
 #'   ~ exposure + outcome,
 #'   adjustment = adj
 #' )
-#' }
 #'
 #' @seealso \code{\link{adjMixture}}, \code{\link{ctableMixture}}
 #'

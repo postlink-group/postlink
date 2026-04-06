@@ -51,7 +51,7 @@ matrix, and combines the results across draws using multiple-imputation
 pooling rules.
 }
 \examples{
-\dontrun{
+\donttest{
 data(lifem)
 
 # lifem data preprocessing

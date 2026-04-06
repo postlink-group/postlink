@@ -9,6 +9,8 @@
   newdata = NULL,
   type = c("link", "response"),
   se.fit = FALSE,
+  interval = c("none", "confidence"),
+  level = 0.95,
   na.action = stats::na.pass,
   ...
 )
@@ -23,6 +25,10 @@ If omitted, the fitted linear predictors are used.}
 the alternative "response" is on the scale of the response variable.}
 
 \item{se.fit}{Logical switch indicating if standard errors are required.}
+
+\item{interval}{Type of interval calculation ("none" or "confidence").}
+
+\item{level}{Confidence level.}
 
 \item{na.action}{Function determining what should be done with missing values in \code{newdata}.
 The default is to predict NA.}

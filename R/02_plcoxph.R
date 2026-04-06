@@ -27,7 +27,6 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
 #' library(survival)
 #' set.seed(101)
 #' n <- 250
@@ -65,7 +64,6 @@
 #'   adjustment = adj,
 #'   control = list(max.iter = 50)
 #' )
-#' }
 #'
 #' @seealso \code{\link{adjELE}}, \code{\link{adjMixture}}, \code{\link{coxphELE}}, \code{\link{coxphMixture}}
 #' @export

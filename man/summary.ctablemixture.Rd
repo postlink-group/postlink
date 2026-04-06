@@ -27,7 +27,6 @@ the estimated cell probabilities with standard errors, convergence status,
 and a Chi-squared test of independence performed on the adjusted counts.
 }
 \examples{
-\dontrun{
 set.seed(125)
 n <- 300
 
@@ -55,6 +54,5 @@ sum_fit <- summary(fit)
 # 5. Access specific components of the summary
 print(sum_fit$coefficients)
 print(sum_fit$chisq)
-}
 
 }

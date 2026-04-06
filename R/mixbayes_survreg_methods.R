@@ -24,7 +24,7 @@ NULL
 #' @return The input \code{x}, invisibly.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(301)
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
@@ -97,7 +97,7 @@ print.survMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ..
 #'   correct-match component and component 2 to the incorrect-match component.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(301)
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
@@ -214,7 +214,7 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
 #'   corresponding scalar parameters.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(301)
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
@@ -294,7 +294,7 @@ confint.survMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
 #'   component 1, interpreted as the correct-match component.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(301)
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
@@ -367,7 +367,7 @@ vcov.survMixBayes <- function(object, ...) {
 #'   optionally, posterior SDs and credible interval bounds.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(301)
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
@@ -542,7 +542,7 @@ predict.survMixBayes <- function(object, newdata = NULL,
 #'   intervals, and related summary information.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(301)
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)
@@ -733,7 +733,7 @@ mi_with.survMixBayes <- function(object, data, formula,
 #' @return The input \code{x}, invisibly.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(301)
 #' n <- 150
 #' trt <- rbinom(n, 1, 0.5)

@@ -22,7 +22,6 @@ Prints the estimated contingency table (corrected for linkage error) and a summa
 of the adjustment parameters used by the mixture model.
 }
 \examples{
-\dontrun{
 set.seed(125)
 n <- 300
 
@@ -46,7 +45,6 @@ fit <- plctable(~ exposure + disease, adjustment = adj)
 
 # 4. Explicitly call the print method
 print(fit)
-}
 
 }
 \seealso{

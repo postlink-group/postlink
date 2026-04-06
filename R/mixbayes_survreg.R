@@ -118,7 +118,7 @@
 #' \doi{10.18637/jss.v069.c01}
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # Example: Bayesian mixture survival model fit to linked survival data
 #' # with induced linkage mismatch errors
 #'

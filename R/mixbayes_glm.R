@@ -98,7 +98,7 @@
 #' \doi{10.18637/jss.v069.c01}
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(lifem)
 #'
 #' # lifem data preprocessing
