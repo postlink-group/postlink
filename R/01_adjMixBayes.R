@@ -14,6 +14,12 @@
 #'   hyperparameters and passed to the model's data block. Any missing entries are
 #'   automatically filled with symmetric defaults dynamically during the model fitting phase.
 #'
+#'   For GLM models, intercept and slope priors are decoupled. Use
+#'   \code{intercept1}/\code{intercept2} for the intercept of each component and
+#'   \code{beta1}/\code{beta2} for the slope coefficients. This is particularly
+#'   useful when the mismatch component slopes should be shrunk toward zero while
+#'   allowing the intercept to remain unrestricted.
+#'
 #' @return An object of class \code{c("adjMixBayes", "adjustment")}. To minimize
 #' memory overhead, the underlying \code{linked.data} is stored by reference
 #' within an environment inside this object.
@@ -35,9 +41,13 @@
 #' )
 #'
 #' # Construct the Bayesian mixture adjustment object
-#' adj_bayes <- adjMixBayes(
+#' adj_bayes2 <- adjMixBayes(
 #'   linked.data = lifem_small,
-#'   priors = list(theta = "beta(2, 2)")
+#'   priors = list(
+#'     intercept2 = "normal(0, 10)",
+#'     beta2 = "normal(0, 0.01)",
+#'     theta = "beta(2, 2)"
+#'   )
 #' )
 #'
 #' class(adj_bayes)

@@ -33,6 +33,11 @@
 #'   default values via
 #'   \code{fill_defaults(priors, p_family = dist, model_type = "survival")}.
 #'
+#'   Intercept and slope priors are decoupled. Use \code{intercept1}/\code{intercept2}
+#'   for the intercept of each component and \code{beta1}/\code{beta2} for the slope
+#'   coefficients. By default, intercept priors are \code{normal(0, 10)} (weakly
+#'   informative), while slope priors follow the distribution-specific defaults.
+#'
 #' @param control A named \code{list} of control parameters for posterior
 #'   sampling. Defaults are:
 #'   \itemize{

@@ -18,10 +18,16 @@ fill_defaults <- function(priors = list(), p_family, model_type = 'glm') {
   }
 
   # Create list of defaults based on family and model
+  # Intercept priors (intercept1/intercept2) are decoupled from slope priors
+  # (beta1/beta2) to allow separate regularization. If the user does not specify
+  # intercept priors, they inherit the corresponding slope prior defaults so that
+  # the behavior is backward-compatible.
   if (model_type == 'glm') {
     defaults <- switch(
       p_family,
       "gaussian" = list(
+        intercept1 = "normal(0,10)",
+        intercept2 = "normal(0,10)",
         beta1 = "normal(0,5)",
         sigma1 = "cauchy(0,2.5)",
         beta2  = "normal(0,5)",
@@ -29,16 +35,22 @@ fill_defaults <- function(priors = list(), p_family, model_type = 'glm') {
         theta = "beta(1,1)"
       ),
       "poisson" = list(
+        intercept1 = "normal(0,10)",
+        intercept2 = "normal(0,10)",
         beta1 = "normal(0,5)",
         beta2 = "normal(0,5)",
         theta = "beta(1,1)"
       ),
       "binomial" = list(
+        intercept1 = "normal(0,10)",
+        intercept2 = "normal(0,10)",
         beta1 = "normal(0,2.5)",
         beta2 = "normal(0,5)",
         theta = "beta(1,1)"
       ),
       "gamma" = list(
+        intercept1 = "normal(0,10)",
+        intercept2 = "normal(0,10)",
         beta1 = "normal(0,5)",
         beta2 = "normal(0,5)",
         phi1 = "gamma(2,0.1)",
@@ -52,7 +64,9 @@ fill_defaults <- function(priors = list(), p_family, model_type = 'glm') {
     defaults <- switch(
       p_family,
       "gamma" = list(
-        # priors for regression coefficients and mix proportion
+        # priors for intercept and regression coefficients
+        intercept1 = "normal(0,10)",
+        intercept2 = "normal(0,10)",
         beta1 = "normal(0,5)",
         beta2 = "normal(0,5)",
         theta = "beta(1,1)",
@@ -61,6 +75,8 @@ fill_defaults <- function(priors = list(), p_family, model_type = 'glm') {
         phi2 = "exponential(1)"
       ),
       "weibull" = list(
+        intercept1 = "normal(0,10)",
+        intercept2 = "normal(0,10)",
         beta1 = "normal(0,2)",
         beta2 = "normal(0,2)",
         shape1 = "gamma(2,1)",
@@ -279,11 +295,15 @@ generate_stan <- function(components, priors = list()) {
       "  vector[K] beta2;              // Regression coefficients for the second component",
       "}",
       "model {",
-      "  // priors",
+      "  // priors: separate intercept and slope priors",
       "  sigma1 ~ ", priors$sigma1, ";",
       "  sigma2 ~ ", priors$sigma2, ";",
-      "  beta1 ~ ", priors$beta1, ";",
-      "  beta2 ~ ", priors$beta2, ";",
+      "  beta1[1] ~ ", priors$intercept1, ";",
+      "  beta2[1] ~ ", priors$intercept2, ";",
+      "  if (K > 1) {",
+      "    beta1[2:K] ~ ", priors$beta1, ";",
+      "    beta2[2:K] ~ ", priors$beta2, ";",
+      "  }",
       "  theta ~ ", priors$theta, ";",
       "  // Mixture model likelihood",
       "  for (n in 1:N) {",
@@ -349,9 +369,13 @@ generate_stan <- function(components, priors = list()) {
       "    target += log_mix(theta, log_lik1[n], log_lik2[n]);",
       "  }",
       "",
-      "  // Priors for regression coefficients",
-      "  beta1 ~ ", priors$beta1, ";",
-      "  beta2 ~ ", priors$beta2, ";",
+      "  // Priors: separate intercept and slope priors",
+      "  beta1[1] ~ ", priors$intercept1, ";",
+      "  beta2[1] ~ ", priors$intercept2, ";",
+      "  if (K > 1) {",
+      "    beta1[2:K] ~ ", priors$beta1, ";",
+      "    beta2[2:K] ~ ", priors$beta2, ";",
+      "  }",
       "  theta ~ ", priors$theta, ";",
       "}",
       "",
@@ -408,9 +432,13 @@ generate_stan <- function(components, priors = list()) {
       "    target += log_mix(theta, log_lik1[n], log_lik2[n]);",
       "  }",
       "",
-      "  // Priors for regression coefficients and mix proportion",
-      "  beta1 ~ ", priors$beta1, ";",
-      "  beta2 ~ ", priors$beta2, ";",
+      "  // Priors: separate intercept and slope priors",
+      "  beta1[1] ~ ", priors$intercept1, ";",
+      "  beta2[1] ~ ", priors$intercept2, ";",
+      "  if (K > 1) {",
+      "    beta1[2:K] ~ ", priors$beta1, ";",
+      "    beta2[2:K] ~ ", priors$beta2, ";",
+      "  }",
       "  // Priors for shape parameters",
       "  phi1 ~ ", priors$phi1, ";",
       "  phi2 ~ ", priors$phi2, ";",
@@ -461,9 +489,13 @@ generate_stan <- function(components, priors = list()) {
       "  vector[N] eta2 = X * beta2;  // eta2 from component 2",
       "  vector[N] log_lik1;  // Log-likelihood contributions from component 1",
       "  vector[N] log_lik2;  // Log-likelihood contributions from component 2",
-      "  // priors",
-      "  beta1 ~ ", priors$beta1, ";",
-      "  beta2 ~ ", priors$beta2, ";",
+      "  // priors: separate intercept and slope priors",
+      "  beta1[1] ~ ", priors$intercept1, ";",
+      "  beta2[1] ~ ", priors$intercept2, ";",
+      "  if (K > 1) {",
+      "    beta1[2:K] ~ ", priors$beta1, ";",
+      "    beta2[2:K] ~ ", priors$beta2, ";",
+      "  }",
       "  theta ~ ", priors$theta, ";",
       "",
       "  // Mixture model likelihood",
@@ -537,11 +569,24 @@ prepare_stan_priors <- function(priors, family, model_type) {
  }
 
  # Core parameters for all models
- out <- list(
-  prior_beta1_mu = get_args("beta1")[1], prior_beta1_sd = get_args("beta1")[2],
-  prior_beta2_mu = get_args("beta2")[1], prior_beta2_sd = get_args("beta2")[2],
-  prior_theta_alpha = get_args("theta")[1], prior_theta_beta = get_args("theta")[2]
- )
+ # Intercept priors are decoupled from slope priors for GLM models
+ if (model_type == "glm") {
+  out <- list(
+   prior_intercept1_mu = get_args("intercept1")[1], prior_intercept1_sd = get_args("intercept1")[2],
+   prior_intercept2_mu = get_args("intercept2")[1], prior_intercept2_sd = get_args("intercept2")[2],
+   prior_beta1_mu = get_args("beta1")[1], prior_beta1_sd = get_args("beta1")[2],
+   prior_beta2_mu = get_args("beta2")[1], prior_beta2_sd = get_args("beta2")[2],
+   prior_theta_alpha = get_args("theta")[1], prior_theta_beta = get_args("theta")[2]
+  )
+ } else {
+  out <- list(
+   prior_intercept1_mu = get_args("intercept1")[1], prior_intercept1_sd = get_args("intercept1")[2],
+   prior_intercept2_mu = get_args("intercept2")[1], prior_intercept2_sd = get_args("intercept2")[2],
+   prior_beta1_mu = get_args("beta1")[1], prior_beta1_sd = get_args("beta1")[2],
+   prior_beta2_mu = get_args("beta2")[1], prior_beta2_sd = get_args("beta2")[2],
+   prior_theta_alpha = get_args("theta")[1], prior_theta_beta = get_args("theta")[2]
+  )
+ }
 
  if (model_type == "glm") {
   if (family == "gaussian") {

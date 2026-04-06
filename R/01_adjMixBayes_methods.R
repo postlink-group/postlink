@@ -72,9 +72,10 @@ print.adjMixBayes <- function(x, ...) {
  }
 
  cat("    Defaults applied during fitting:\n")
- cat("      GLM:        beta ~ normal(0,5) [binomial: normal(0,2.5)]\n")
- cat("      Survival:   beta ~ normal(0,5) [weibull: normal(0,2)]\n")
- cat("      Mix Weight: theta ~ beta(1,1)\n")
+ cat("      Intercept:  intercept ~ normal(0,10)\n")
+ cat("      GLM Slopes: beta ~ normal(0,5) [binomial: normal(0,2.5)]\n")
+ cat("      Surv Slopes: beta ~ normal(0,5) [weibull: normal(0,2)]\n")
+ cat("      Mix Weight:  theta ~ beta(1,1)\n")
 
  cat("\n")
  invisible(x)
