@@ -62,8 +62,9 @@ adj_obj
 #>       theta      : beta(2, 2)
 #>     (Unspecified parameters will use defaults below)
 #>     Defaults applied during fitting:
-#>       GLM:        beta ~ normal(0,5) [binomial: normal(0,2.5)]
-#>       Survival:   beta ~ normal(0,5) [weibull: normal(0,2)]
-#>       Mix Weight: theta ~ beta(1,1)
+#>       Intercept:  intercept ~ normal(0,10)
+#>       GLM Slopes: beta ~ normal(0,5) [binomial: normal(0,2.5)]
+#>       Surv Slopes: beta ~ normal(0,5) [weibull: normal(0,2)]
+#>       Mix Weight:  theta ~ beta(1,1)
 #> 
 ```
