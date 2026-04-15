@@ -23,7 +23,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/postlink-group/postlink/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/postlink-group/postlink/blob/v0.1.0/DESCRIPTION)
 
 Bukke P, Kamat G, Cui J, Gutman R, Slawski M (2026). *postlink:
 Post-Linkage Data Analysis*. R package version 0.1.0,
