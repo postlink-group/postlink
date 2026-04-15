@@ -3,6 +3,8 @@
 
 <!-- badges: start -->
 
+[![CRAN
+status](https://www.r-pkg.org/badges/version/postlink)](https://CRAN.R-project.org/package=postlink)
 [![R-CMD-check](https://github.com/postlink-group/postlink/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/postlink-group/postlink/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
 coverage](https://codecov.io/gh/postlink-group/postlink/graph/badge.svg)](https://app.codecov.io/gh/postlink-group/postlink)
@@ -95,13 +97,20 @@ design matrices and response vectors (e.g., `coxphELE()`,
 
 ## **Installation**
 
-The development version of `postlink` can be installed from GitHub or
-locally:
+The package can be installed from
+[CRAN](https://CRAN.R-project.org/package=postlink):
 
 ``` r
-# Using devtools:
-# install.packages("devtools")
-devtools::install_github("postlink-group/postlink")
+install.packages("postlink")
+```
+
+The active development version can be installed from
+[GitHub](https://github.com/postlink-group/postlink):
+
+``` r
+# Using remotes:
+# install.packages("remotes")
+remotes::install_github("postlink-group/postlink")
 
 # Or, using pak:
 # install.packages("pak")
@@ -110,25 +119,44 @@ pak::pkg_install("postlink-group/postlink")
 
 ## **System Requirements**
 
-Because `postlink` includes Bayesian mixture models powered by `rstan`,
-installing the development version of the package from source requires a
-working C++ toolchain to compile the underlying models.
+Because **postlink** package relies on compiled C++ code and Stan for
+Bayesian mixture modeling, depending on your operating system and how
+you install the package, additional system tools may be needed to
+compile this code.
 
-Depending on your operating system, please ensure you have the following
-installed:
+When installing the version from CRAN:
 
-- **Windows:** Install the version of
+- Windows and macOS users: In most cases, you do not need any extra
+  tools. `install.packages("postlink")` will download a pre-compiled
+  binary directly from CRAN.
+
+  *(Note: If a new version was just released on CRAN, binaries may take
+  a few days to build. If R prompts you to compile from source during
+  this window, you can either say “no” to install the older binary, or
+  say “yes” and ensure you have the tools listed below).*
+
+- Linux users: CRAN does not provide binaries for Linux. You will always
+  compile from source and must install the system requirements listed
+  below.
+
+When installing the development version from GitHub, all users will be
+compiling from source and must have a working C++ development
+environment and `GNU make` installed.
+
+**Required Tools for Compiling from Source:**
+
+If you are compiling from source (GitHub, Linux, or requesting source
+from CRAN), please ensure your system is set up with a C++11 compatible
+compiler:
+
+- Windows: Install the version of
   [Rtools](https://cran.r-project.org/bin/windows/Rtools/) that matches
   your current R version.
-- **macOS:** Install the Xcode Command Line Tools by opening your
-  terminal and running: `xcode-select --install`
-- **Linux:** Ensure you have the standard C++ compiler and R development
+- macOS: Install the Xcode Command Line Tools by opening your terminal
+  and running: `xcode-select --install`.
+- Linux: Ensure you have the standard C++ compiler and R development
   tools installed (e.g., `sudo apt-get install r-base-dev` on
   Ubuntu/Debian).
-
-*(Note: Once `postlink` is officially released on CRAN, Windows and
-macOS users will be able to download pre-compiled binaries, bypassing
-this requirement).*
 
 ## **Quick Start**
 
