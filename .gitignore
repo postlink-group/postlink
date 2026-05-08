@@ -3,6 +3,7 @@
 .RData
 .Ruserdata
 docs
+doc
 
 # Ignore compiled object files and binaries
 *.o
@@ -14,3 +15,5 @@ src/*.dll
 
 # Ignore raw data
 data-raw/*.rds
+/doc/
+/Meta/
