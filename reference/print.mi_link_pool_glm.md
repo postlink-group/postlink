@@ -64,8 +64,8 @@ fit <- plglm(
 #> 
 #> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 4.9e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.49 seconds.
+#> Chain 1: Gradient evaluation took 4.8e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.48 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -90,9 +90,9 @@ fit <- plglm(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.587 seconds (Warm-up)
-#> Chain 1:                0.757 seconds (Sampling)
-#> Chain 1:                1.344 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.64 seconds (Warm-up)
+#> Chain 1:                0.763 seconds (Sampling)
+#> Chain 1:                1.403 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -107,7 +107,7 @@ fit <- plglm(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.07                 Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.079                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -130,9 +130,9 @@ print(pooled_fit, digits = 4)
 #>   Retained imputations (m): 100 
 #> 
 #>                                Estimate Std.Error    CI.lwr   CI.upr         df
-#> (Intercept)                     59.8435    4.1496   51.7105  67.9766 1127335.70
-#> poly(unit_yob, 3, raw = TRUE)1 -21.8638   41.2469 -102.7092  58.9816   32513.19
-#> poly(unit_yob, 3, raw = TRUE)2 -18.4221  108.6120 -231.3184 194.4743   12392.49
-#> poly(unit_yob, 3, raw = TRUE)3  64.7772   75.6159  -83.4438 212.9982   10769.54
+#> (Intercept)                     59.8322    4.1815   51.6367  68.0278 2145124.81
+#> poly(unit_yob, 3, raw = TRUE)1 -22.2097   41.3896 -103.3339  58.9145   48127.13
+#> poly(unit_yob, 3, raw = TRUE)2 -16.0792  108.7512 -229.2429 197.0845   16812.60
+#> poly(unit_yob, 3, raw = TRUE)3  62.2052   75.8203  -86.4136 210.8239   13175.34
 # }
 ```

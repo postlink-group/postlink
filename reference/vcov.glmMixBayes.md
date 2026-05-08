@@ -59,8 +59,8 @@ fit <- plglm(
 #> 
 #> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 5.1e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.51 seconds.
+#> Chain 1: Gradient evaluation took 4.7e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.47 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -85,9 +85,9 @@ fit <- plglm(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.585 seconds (Warm-up)
-#> Chain 1:                0.755 seconds (Sampling)
-#> Chain 1:                1.34 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.64 seconds (Warm-up)
+#> Chain 1:                0.762 seconds (Sampling)
+#> Chain 1:                1.402 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -102,7 +102,7 @@ fit <- plglm(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.071                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.079                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -115,19 +115,19 @@ fit <- plglm(
 
 vcov(fit)
 #>                                (Intercept) poly(unit_yob, 3, raw = TRUE)1
-#> (Intercept)                       4.388911                      -3.309822
-#> poly(unit_yob, 3, raw = TRUE)1   -3.309822                      18.695524
-#> poly(unit_yob, 3, raw = TRUE)2    1.137019                      -7.864599
-#> poly(unit_yob, 3, raw = TRUE)3   -2.513105                      -5.632237
+#> (Intercept)                       4.646952                      -3.037748
+#> poly(unit_yob, 3, raw = TRUE)1   -3.037748                      18.637965
+#> poly(unit_yob, 3, raw = TRUE)2   -2.332704                      -6.143134
+#> poly(unit_yob, 3, raw = TRUE)3    1.676478                      -6.518406
 #>                                poly(unit_yob, 3, raw = TRUE)2
-#> (Intercept)                                          1.137019
-#> poly(unit_yob, 3, raw = TRUE)1                      -7.864599
-#> poly(unit_yob, 3, raw = TRUE)2                      18.571156
-#> poly(unit_yob, 3, raw = TRUE)3                      -9.242769
+#> (Intercept)                                         -2.332704
+#> poly(unit_yob, 3, raw = TRUE)1                      -6.143134
+#> poly(unit_yob, 3, raw = TRUE)2                      21.137074
+#> poly(unit_yob, 3, raw = TRUE)3                      -8.875787
 #>                                poly(unit_yob, 3, raw = TRUE)3
-#> (Intercept)                                         -2.513105
-#> poly(unit_yob, 3, raw = TRUE)1                      -5.632237
-#> poly(unit_yob, 3, raw = TRUE)2                      -9.242769
-#> poly(unit_yob, 3, raw = TRUE)3                      26.483128
+#> (Intercept)                                          1.676478
+#> poly(unit_yob, 3, raw = TRUE)1                      -6.518406
+#> poly(unit_yob, 3, raw = TRUE)2                      -8.875787
+#> poly(unit_yob, 3, raw = TRUE)3                      20.120496
 # }
 ```

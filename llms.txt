@@ -103,6 +103,7 @@ The package can be installed from
 [CRAN](https://CRAN.R-project.org/package=postlink):
 
 ``` r
+
 install.packages("postlink")
 ```
 
@@ -110,6 +111,7 @@ The active development version can be installed from
 [GitHub](https://github.com/postlink-group/postlink):
 
 ``` r
+
 # Using remotes:
 # install.packages("remotes")
 remotes::install_github("postlink-group/postlink")
@@ -174,6 +176,7 @@ errors, we use the `postlink` to adjust for potential mismatches using
 the entire linked dataset.
 
 ``` r
+
 library(postlink)
 
 # Load the LIFE-M demo dataset
@@ -436,3 +439,6 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
 
   A case study demonstrating the postlink workflow for linear
   regression.
+
+- [postlink: Post-Linkage Data Analysis in
+  R](https://postlink-group.github.io/postlink/articles/postlink.md):

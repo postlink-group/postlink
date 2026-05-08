@@ -103,6 +103,7 @@ The package can be installed from
 [CRAN](https://CRAN.R-project.org/package=postlink):
 
 ``` r
+
 install.packages("postlink")
 ```
 
@@ -110,6 +111,7 @@ The active development version can be installed from
 [GitHub](https://github.com/postlink-group/postlink):
 
 ``` r
+
 # Using remotes:
 # install.packages("remotes")
 remotes::install_github("postlink-group/postlink")
@@ -174,6 +176,7 @@ errors, we use the `postlink` to adjust for potential mismatches using
 the entire linked dataset.
 
 ``` r
+
 library(postlink)
 
 # Load the LIFE-M demo dataset

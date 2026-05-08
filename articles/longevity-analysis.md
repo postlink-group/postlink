@@ -34,6 +34,7 @@ the expected mismatch rate among machine-linked records is approximately
 individual.
 
 ``` r
+
 url <- "https://github.com/postlink-group/postlink/releases/download/v0.1.0/lifem.rds"
 lifem_data <- readRDS(url(url, "rb"))
 
@@ -67,6 +68,7 @@ errors can be estimated using the standard
 [`glm()`](https://rdrr.io/r/stats/glm.html) function.
 
 ``` r
+
 fit_naive <- glm(age_at_death ~ poly(unit_yob, 3, raw = TRUE),
               data = lifem_data, family = "gaussian")
 summary(fit_naive)
@@ -81,6 +83,7 @@ hand-linked. However, this procedure discards the majority of the linked
 data and suffers from significant loss of power.
 
 ``` r
+
 fit_hl <- glm(age_at_death ~ poly(unit_yob, 3, raw = TRUE), 
               data = lifem_data[lifem_data$hndlnk,], family = "gaussian")
 summary(fit_hl)
@@ -143,6 +146,7 @@ To adjust for potential mismatch errors during secondary analysis, we
 can use **postlink** as follows.
 
 ``` r
+
 library(postlink) # v0.1.0
 ```
 
@@ -159,6 +163,7 @@ used in the framework (Slawski et al.
 ([2024](#ref-slawski2024general))).
 
 ``` r
+
 adj_lifem <- adjMixture(
     linked.data = lifem_data,
     m.formula = ~ commf + comml,           
@@ -177,6 +182,7 @@ wrapper. This merges the paradata with the formula for the model of
 specific interest to implement the linkage errors adjusted estimates,
 
 ``` r
+
 fit_adj <- plglm(
     age_at_death ~ poly(unit_yob, 3, raw = TRUE), family = "gaussian",
     adjustment = adj_lifem
@@ -192,6 +198,7 @@ each record is accessible through the `fit` object in the `match.prob`
 vector. For safe matches, the probability is set to 1.
 
 ``` r
+
 str(fit_adj$match.prob)
 ```
 
@@ -203,6 +210,7 @@ confidence intervals for the coefficients. The default confidence level
 is 0.95.
 
 ``` r
+
 confint(fit_adj)
 ```
 
@@ -214,6 +222,7 @@ along with point-wise standard errors and 95\\ confidence intervals. The
 predictions type is set to “link” (i.e., linear predictors) by default.
 
 ``` r
+
 predictions <- predict(fit_adj, se.fit = TRUE, interval = "confidence")
 str(predictions)
 ```
@@ -252,10 +261,9 @@ align more with those expected from correct matches.
 
 ## **References**
 
-Bailey, M., P. Z. Lin, A. R. Shaqir Mohammed, P. Mohnen, J. Murray, M.
-Zhang, and A. Prettyman. 2022. “LIFE-M: The Longitudinal,
-Intergenerational Family Electronic Micro-Database.” Inter-university
-Consortium for Political and Social Research (ICPSR).
+Bailey, M., P. Z. Lin, A. R. Shaqir Mohammed, et al. 2022. *LIFE-M: The
+Longitudinal, Intergenerational Family Electronic Micro-Database*.
+Inter-university Consortium for Political and Social Research (ICPSR).
 
 Slawski, Martin, Brady T West, Priyanjali Bukke, Zhenbang Wang, Guoqing
 Diao, and Emanuel Ben-David. 2024. “A General Framework for Regression

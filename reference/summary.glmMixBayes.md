@@ -85,9 +85,9 @@ fit <- plglm(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.587 seconds (Warm-up)
-#> Chain 1:                0.756 seconds (Sampling)
-#> Chain 1:                1.343 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.642 seconds (Warm-up)
+#> Chain 1:                0.764 seconds (Sampling)
+#> Chain 1:                1.406 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -102,7 +102,7 @@ fit <- plglm(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.069                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.086                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -125,26 +125,26 @@ summary(fit)
 #> (Component 1 = Correct-match):
 #> Outcome Model Coefficients:
 #>                                Estimates Std. Error  2.5 % 97.5 %
-#> (Intercept)                       44.890      2.095 40.870  49.12
-#> poly(unit_yob, 3, raw = TRUE)1    11.604      4.324  3.284  18.83
-#> poly(unit_yob, 3, raw = TRUE)2     8.059      4.309 -2.128  15.62
-#> poly(unit_yob, 3, raw = TRUE)3     8.326      5.146 -3.542  18.75
+#> (Intercept)                       44.625      2.156 40.184  48.18
+#> poly(unit_yob, 3, raw = TRUE)1    12.235      4.317  4.349  20.86
+#> poly(unit_yob, 3, raw = TRUE)2     8.476      4.598  1.782  16.71
+#> poly(unit_yob, 3, raw = TRUE)3     7.593      4.486 -1.595  15.43
 #>  
 #> Dispersion:
 #>   Estimate  Std. Error
-#>   350.8      64.9     
+#>   346.20     57.94    
 #> 
 #> (Component 2 = Incorrect-match):
 #> Outcome Model Coefficients:
 #>                                Estimates Std. Error   2.5 % 97.5 %
-#> (Intercept)                       2.5058     4.6753 -6.1045 10.903
-#> poly(unit_yob, 3, raw = TRUE)1    1.4558     5.1252 -7.6492 10.525
-#> poly(unit_yob, 3, raw = TRUE)2    0.9269     4.6265 -7.9656  8.512
-#> poly(unit_yob, 3, raw = TRUE)3    1.2907     4.6886 -7.4155  9.298
+#> (Intercept)                       3.5959     5.3676 -5.5437 13.570
+#> poly(unit_yob, 3, raw = TRUE)1    2.0126     4.5533 -6.8310 10.371
+#> poly(unit_yob, 3, raw = TRUE)2    1.0419     4.0033 -6.6146  8.583
+#> poly(unit_yob, 3, raw = TRUE)3   -0.1589     4.2471 -8.7294  6.591
 #>  
 #> Dispersion:
 #>   Estimate  Std. Error
-#>   130.6     373.2     
+#>   263.7     973.3     
 #> 
 # }
 ```
