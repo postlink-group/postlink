@@ -9,6 +9,13 @@ data {
   int<lower=0, upper=1> event[N];         // 1 = observed event, 0 = right-censored
 
   // Prior Hyperparameters (Passed from R)
+  // Intercept priors (applied to beta[1] only)
+  real prior_intercept1_mu;
+  real<lower=0> prior_intercept1_sd;
+  real prior_intercept2_mu;
+  real<lower=0> prior_intercept2_sd;
+
+  // Slope priors (applied to beta[2:K])
   real prior_beta1_mu;
   real<lower=0> prior_beta1_sd;
   real prior_beta2_mu;
@@ -39,9 +46,13 @@ transformed parameters {
 }
 
 model {
-  // Priors
-  beta1 ~ normal(prior_beta1_mu, prior_beta1_sd);
-  beta2 ~ normal(prior_beta2_mu, prior_beta2_sd);
+  // Priors: separate intercept and slope priors
+  beta1[1] ~ normal(prior_intercept1_mu, prior_intercept1_sd);
+  beta2[1] ~ normal(prior_intercept2_mu, prior_intercept2_sd);
+  if (K > 1) {
+    beta1[2:K] ~ normal(prior_beta1_mu, prior_beta1_sd);
+    beta2[2:K] ~ normal(prior_beta2_mu, prior_beta2_sd);
+  }
   phi1 ~ gamma(prior_phi1_alpha, prior_phi1_beta);
   phi2 ~ gamma(prior_phi2_alpha, prior_phi2_beta);
 

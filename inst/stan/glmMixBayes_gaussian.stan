@@ -8,6 +8,13 @@ data {
   vector[N] y;                // Response vector
 
   // Prior Hyperparameters (Passed from R)
+  // Intercept priors (applied to beta[1] only)
+  real prior_intercept1_mu;
+  real<lower=0> prior_intercept1_sd;
+  real prior_intercept2_mu;
+  real<lower=0> prior_intercept2_sd;
+
+  // Slope priors (applied to beta[2:K])
   real prior_beta1_mu;
   real<lower=0> prior_beta1_sd;
   real prior_beta2_mu;
@@ -38,9 +45,13 @@ transformed parameters {
 }
 
 model {
-  // Priors
-  beta1 ~ normal(prior_beta1_mu, prior_beta1_sd);
-  beta2 ~ normal(prior_beta2_mu, prior_beta2_sd);
+  // Priors: separate intercept and slope priors
+  beta1[1] ~ normal(prior_intercept1_mu, prior_intercept1_sd);
+  beta2[1] ~ normal(prior_intercept2_mu, prior_intercept2_sd);
+  if (K > 1) {
+    beta1[2:K] ~ normal(prior_beta1_mu, prior_beta1_sd);
+    beta2[2:K] ~ normal(prior_beta2_mu, prior_beta2_sd);
+  }
   sigma1 ~ cauchy(prior_sigma1_loc, prior_sigma1_scale);
   sigma2 ~ cauchy(prior_sigma2_loc, prior_sigma2_scale);
 

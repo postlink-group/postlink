@@ -8,14 +8,20 @@ data {
   int<lower=0, upper=1> y[N];   // Binary outcome variable (0 or 1)
 
   // Prior Hyperparameters (Passed from R)
-  // Assuming normal() for betas and beta() for theta.
-  real prior_beta1_mu;              // e.g., 0
-  real<lower=0> prior_beta1_sd;     // e.g., 2.5
-  real prior_beta2_mu;              // e.g., 0
-  real<lower=0> prior_beta2_sd;     // e.g., 5.0
+  // Intercept priors (applied to beta[1] only)
+  real prior_intercept1_mu;
+  real<lower=0> prior_intercept1_sd;
+  real prior_intercept2_mu;
+  real<lower=0> prior_intercept2_sd;
 
-  real<lower=0> prior_theta_alpha;  // e.g., 1.0
-  real<lower=0> prior_theta_beta;   // e.g., 1.0
+  // Slope priors (applied to beta[2:K])
+  real prior_beta1_mu;
+  real<lower=0> prior_beta1_sd;
+  real prior_beta2_mu;
+  real<lower=0> prior_beta2_sd;
+
+  real<lower=0> prior_theta_alpha;
+  real<lower=0> prior_theta_beta;
 }
 
 parameters {
@@ -33,9 +39,13 @@ transformed parameters {
 }
 
 model {
-  // Priors
-  beta1 ~ normal(prior_beta1_mu, prior_beta1_sd);
-  beta2 ~ normal(prior_beta2_mu, prior_beta2_sd);
+  // Priors: separate intercept and slope priors
+  beta1[1] ~ normal(prior_intercept1_mu, prior_intercept1_sd);
+  beta2[1] ~ normal(prior_intercept2_mu, prior_intercept2_sd);
+  if (K > 1) {
+    beta1[2:K] ~ normal(prior_beta1_mu, prior_beta1_sd);
+    beta2[2:K] ~ normal(prior_beta2_mu, prior_beta2_sd);
+  }
   theta ~ beta(prior_theta_alpha, prior_theta_beta);
 
   // Likelihood
