@@ -211,8 +211,8 @@ fit <- survregMixBayes(
 #> 
 #> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 9.3e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.93 seconds.
+#> Chain 1: Gradient evaluation took 9.6e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.96 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -237,11 +237,11 @@ fit <- survregMixBayes(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.191 seconds (Warm-up)
-#> Chain 1:                0.183 seconds (Sampling)
-#> Chain 1:                0.374 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.202 seconds (Warm-up)
+#> Chain 1:                0.168 seconds (Sampling)
+#> Chain 1:                0.37 seconds (Total)
 #> Chain 1: 
-#> Warning: The largest R-hat is 1.19, indicating chains have not mixed.
+#> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#r-hat
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
@@ -255,7 +255,7 @@ fit <- survregMixBayes(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.133                Converged (3 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.137                Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -271,16 +271,16 @@ fit <- survregMixBayes(
 cat("Component 1 (Correct Links):\n")
 #> Component 1 (Correct Links):
 print(colMeans(fit$estimates$coefficients))
-#> [1]  0.3856700 -0.3266702
+#> [1]  0.3850357 -0.3143901
 
 cat("Component 2 (Incorrect Links):\n")
 #> Component 2 (Incorrect Links):
 print(colMeans(fit$estimates$m.coefficients))
-#> [1]  0.1048798 -0.1195878
+#> [1]  0.1863782 -0.1949688
 
 cat("Estimated probability of correct linkage:\n")
 #> Estimated probability of correct linkage:
 print(mean(fit$estimates$theta))
-#> [1] 0.8279494
+#> [1] 0.7819845
 # }
 ```

@@ -101,8 +101,8 @@ fit <- plsurvreg(
 #> 
 #> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 9.2e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.92 seconds.
+#> Chain 1: Gradient evaluation took 0.0001 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -127,11 +127,11 @@ fit <- plsurvreg(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.611 seconds (Warm-up)
-#> Chain 1:                0.481 seconds (Sampling)
-#> Chain 1:                1.092 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.785 seconds (Warm-up)
+#> Chain 1:                0.638 seconds (Sampling)
+#> Chain 1:                1.423 seconds (Total)
 #> Chain 1: 
-#> Warning: The largest R-hat is 1.18, indicating chains have not mixed.
+#> Warning: The largest R-hat is 1.29, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#r-hat
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
@@ -140,11 +140,12 @@ fit <- plsurvreg(
 #> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#tail-ess
+#> Global label swap performed: label 2 dominates label 1.
 #> 
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.089                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.137                Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -162,11 +163,11 @@ newdata <- stats::model.matrix(~ trt, data = data.frame(trt = c(0, 1)))
 preds <- predict(fit, newdata = newdata, se.fit = TRUE, interval = "credible")
 print(preds$component1)
 #>         fit    se.fit       2.5 %   97.5 %
-#> 1 0.4407128 0.7432820 -0.74783735 1.989130
-#> 2 1.1569081 0.7328594 -0.04520797 2.696848
+#> 1 0.5544883 0.7120851 -0.80681297 1.653006
+#> 2 1.3198537 0.7283811  0.02394876 2.580739
 print(preds$component2)
-#>          fit   se.fit     2.5 %   97.5 %
-#> 1 -0.0683974 1.550691 -3.145031 2.640371
-#> 2 -0.2061190 2.156831 -4.552259 2.747006
+#>        fit   se.fit     2.5 %   97.5 %
+#> 1 2.369660 4.964630 -4.283686 16.70977
+#> 2 2.635022 4.544329 -3.762985 14.01066
 # }
 ```

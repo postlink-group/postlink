@@ -108,8 +108,8 @@ fit <- plsurvreg(
 #> 
 #> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 9.3e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.93 seconds.
+#> Chain 1: Gradient evaluation took 0.000121 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.21 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -134,11 +134,11 @@ fit <- plsurvreg(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.612 seconds (Warm-up)
-#> Chain 1:                0.484 seconds (Sampling)
-#> Chain 1:                1.096 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.776 seconds (Warm-up)
+#> Chain 1:                0.637 seconds (Sampling)
+#> Chain 1:                1.413 seconds (Total)
 #> Chain 1: 
-#> Warning: The largest R-hat is 1.18, indicating chains have not mixed.
+#> Warning: The largest R-hat is 1.29, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#r-hat
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
@@ -147,11 +147,12 @@ fit <- plsurvreg(
 #> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#tail-ess
+#> Global label swap performed: label 2 dominates label 1.
 #> 
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.09                 Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.137                Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -174,7 +175,7 @@ print(pooled_obj)
 #>   Mixture model distribution: weibull 
 #>   Refit model: coxph
 #> 
-#>     Estimate Std.Error   CI.lwr  CI.upr       df
-#> trt -0.97202   0.40304 -1.76665 -0.1774 205.7726
+#>     Estimate Std.Error   CI.lwr   CI.upr       df
+#> trt -0.98587   0.39507 -1.76442 -0.20733 223.3922
 # }
 ```

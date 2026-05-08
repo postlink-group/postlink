@@ -83,8 +83,8 @@ fit <- plsurvreg(
 #> 
 #> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 9.8e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.98 seconds.
+#> Chain 1: Gradient evaluation took 9.9e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.99 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -109,11 +109,11 @@ fit <- plsurvreg(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.614 seconds (Warm-up)
-#> Chain 1:                0.484 seconds (Sampling)
-#> Chain 1:                1.098 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.777 seconds (Warm-up)
+#> Chain 1:                0.637 seconds (Sampling)
+#> Chain 1:                1.414 seconds (Total)
 #> Chain 1: 
-#> Warning: The largest R-hat is 1.18, indicating chains have not mixed.
+#> Warning: The largest R-hat is 1.29, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#r-hat
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
@@ -122,11 +122,12 @@ fit <- plsurvreg(
 #> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#tail-ess
+#> Global label swap performed: label 2 dominates label 1.
 #> 
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.092                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.147                Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -135,46 +136,46 @@ fit <- plsurvreg(
 #>     Retrieve the 1 best clusterings: [...]$clusters
 #>     Retrieve the 1 CPU times: [...]$timings
 #>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
-#>     Label switching finished. Total time: 0.1 seconds. 
+#>     Label switching finished. Total time: 0.2 seconds. 
 
 # Calculate 95% credible intervals for all parameters
 confint(fit, level = 0.95)
 #> $coef1
 #>            2.5%    97.5%
-#> [1,] -0.7478373 1.989130
-#> [2,]  0.2131905 1.253355
+#> [1,] -0.8068130 1.653006
+#> [2,]  0.1994716 1.328743
 #> 
 #> $coef2
-#>           2.5%    97.5%
-#> [1,] -3.145031 2.640371
-#> [2,] -3.333294 2.923438
+#>           2.5%     97.5%
+#> [1,] -4.283686 16.709770
+#> [2,] -4.259021  2.827521
 #> 
 #> $theta
 #>      2.5%     97.5% 
-#> 0.5941939 0.9950833 
+#> 0.5291803 0.9961939 
 #> 
 #> $shape1
-#>      2.5%     97.5% 
-#> 0.9991279 1.5116667 
+#>     2.5%    97.5% 
+#> 1.027643 1.587057 
 #> 
 #> $shape2
-#>      2.5%     97.5% 
-#> 0.6610367 4.9910123 
+#>     2.5%    97.5% 
+#> 0.530436 5.450223 
 #> 
 #> $scale1
 #>      2.5%     97.5% 
-#> 0.3702588 5.0051712 
+#> 0.4503692 4.7910704 
 #> 
 #> $scale2
 #>      2.5%     97.5% 
-#> 0.5516955 5.0570164 
+#> 0.2595882 5.0272855 
 #> 
 
 # Extract credible intervals specifically for the mixing weight
 confint(fit, parm = "theta", level = 0.90)
 #> $theta
 #>        5%       95% 
-#> 0.6192279 0.9942107 
+#> 0.5478957 0.9950528 
 #> 
 # }
 ```

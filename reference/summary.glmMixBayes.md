@@ -59,8 +59,8 @@ fit <- plglm(
 #> 
 #> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 4.9e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.49 seconds.
+#> Chain 1: Gradient evaluation took 5.3e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.53 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -85,9 +85,9 @@ fit <- plglm(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.642 seconds (Warm-up)
-#> Chain 1:                0.764 seconds (Sampling)
-#> Chain 1:                1.406 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.818 seconds (Warm-up)
+#> Chain 1:                0.959 seconds (Sampling)
+#> Chain 1:                1.777 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -102,7 +102,7 @@ fit <- plglm(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.086                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.081                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -124,27 +124,27 @@ summary(fit)
 #>  
 #> (Component 1 = Correct-match):
 #> Outcome Model Coefficients:
-#>                                Estimates Std. Error  2.5 % 97.5 %
-#> (Intercept)                       44.625      2.156 40.184  48.18
-#> poly(unit_yob, 3, raw = TRUE)1    12.235      4.317  4.349  20.86
-#> poly(unit_yob, 3, raw = TRUE)2     8.476      4.598  1.782  16.71
-#> poly(unit_yob, 3, raw = TRUE)3     7.593      4.486 -1.595  15.43
+#>                                Estimates Std. Error   2.5 % 97.5 %
+#> (Intercept)                      55.7967     3.6257 49.5028  62.42
+#> poly(unit_yob, 3, raw = TRUE)1    7.1598     4.4356 -0.9492  16.40
+#> poly(unit_yob, 3, raw = TRUE)2    8.1611     4.0579 -0.7745  15.26
+#> poly(unit_yob, 3, raw = TRUE)3    9.1663     4.5267  1.1864  17.96
 #>  
 #> Dispersion:
 #>   Estimate  Std. Error
-#>   346.20     57.94    
+#>   199.9      70.5     
 #> 
 #> (Component 2 = Incorrect-match):
 #> Outcome Model Coefficients:
-#>                                Estimates Std. Error   2.5 % 97.5 %
-#> (Intercept)                       3.5959     5.3676 -5.5437 13.570
-#> poly(unit_yob, 3, raw = TRUE)1    2.0126     4.5533 -6.8310 10.371
-#> poly(unit_yob, 3, raw = TRUE)2    1.0419     4.0033 -6.6146  8.583
-#> poly(unit_yob, 3, raw = TRUE)3   -0.1589     4.2471 -8.7294  6.591
+#>                                Estimates Std. Error    2.5 % 97.5 %
+#> (Intercept)                      29.0588    14.3733  -1.3359 44.579
+#> poly(unit_yob, 3, raw = TRUE)1   -0.4999     4.2417  -9.1588  7.196
+#> poly(unit_yob, 3, raw = TRUE)2   -1.0870     5.1031 -10.9310  8.499
+#> poly(unit_yob, 3, raw = TRUE)3   -2.7743     4.9410 -11.6794  7.240
 #>  
 #> Dispersion:
 #>   Estimate  Std. Error
-#>   263.7     973.3     
+#>   156.4      91.1     
 #> 
 # }
 ```
