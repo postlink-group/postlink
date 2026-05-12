@@ -813,9 +813,11 @@ R> adj_bayes_strong <- adjMixBayes(linked.data = dat.linked,
 +                                           beta2 = "normal(0,0.01)", 
 +                                           theta = "beta(70,30)"))
 R> fit_bayes_strong <- plglm(formula_sci, family = "binomial", 
-+                            adjustment = adj_bayes_strong)
++                            adjustment = adj_bayes_strong,
++                            control = list(seed = 2026))
 ```
 
+                          
 ### 4.5 Results and Discussion
 
 The coefficient estimates and 95% confidence intervals for all seven
