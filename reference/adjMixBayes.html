@@ -82,7 +82,12 @@ imputation.</p>
 <dd><p>A named <code>list</code> (or <code>NULL</code>) of prior specifications.
 Because the Stan models are pre-compiled, these strings are parsed into numeric
 hyperparameters and passed to the model's data block. Any missing entries are
-automatically filled with symmetric defaults dynamically during the model fitting phase.</p></dd>
+automatically filled with symmetric defaults dynamically during the model fitting phase.</p>
+<p>For GLM models, intercept and slope priors are decoupled. Use
+<code>intercept1</code>/<code>intercept2</code> for the intercept of each component and
+<code>beta1</code>/<code>beta2</code> for the slope coefficients. This is particularly
+useful when the mismatch component slopes should be shrunk toward zero while
+allowing the intercept to remain unrestricted.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -124,13 +129,17 @@ released prisoners who are HIV+. <em>Statistics in Medicine</em>, 35(1), 115–1
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Construct the Bayesian mixture adjustment object</span></span></span>
-<span class="r-in"><span><span class="va">adj_bayes</span> <span class="op">&lt;-</span> <span class="fu">adjMixBayes</span><span class="op">(</span></span></span>
+<span class="r-in"><span><span class="va">adj_bayes2</span> <span class="op">&lt;-</span> <span class="fu">adjMixBayes</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  linked.data <span class="op">=</span> <span class="va">lifem_small</span>,</span></span>
-<span class="r-in"><span>  priors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>theta <span class="op">=</span> <span class="st">"beta(2, 2)"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  priors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    intercept2 <span class="op">=</span> <span class="st">"normal(0, 10)"</span>,</span></span>
+<span class="r-in"><span>    beta2 <span class="op">=</span> <span class="st">"normal(0, 0.01)"</span>,</span></span>
+<span class="r-in"><span>    theta <span class="op">=</span> <span class="st">"beta(2, 2)"</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">adj_bayes</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "adjMixBayes" "adjustment" </span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'adj_bayes' not found</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

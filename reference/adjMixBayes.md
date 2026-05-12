@@ -28,6 +28,12 @@ adjMixBayes(linked.data = NULL, priors = NULL)
   entries are automatically filled with symmetric defaults dynamically
   during the model fitting phase.
 
+  For GLM models, intercept and slope priors are decoupled. Use
+  `intercept1`/`intercept2` for the intercept of each component and
+  `beta1`/`beta2` for the slope coefficients. This is particularly
+  useful when the mismatch component slopes should be shrunk toward zero
+  while allowing the intercept to remain unrestricted.
+
 ## Value
 
 An object of class `c("adjMixBayes", "adjustment")`. To minimize memory
@@ -70,11 +76,15 @@ lifem_small <- rbind(
 )
 
 # Construct the Bayesian mixture adjustment object
-adj_bayes <- adjMixBayes(
+adj_bayes2 <- adjMixBayes(
   linked.data = lifem_small,
-  priors = list(theta = "beta(2, 2)")
+  priors = list(
+    intercept2 = "normal(0, 10)",
+    beta2 = "normal(0, 0.01)",
+    theta = "beta(2, 2)"
+  )
 )
 
 class(adj_bayes)
-#> [1] "adjMixBayes" "adjustment" 
+#> Error: object 'adj_bayes' not found
 ```

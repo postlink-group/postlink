@@ -95,7 +95,11 @@ Since the Stan models are pre-compiled, prior specifications are converted
 into the corresponding numeric hyperparameters and passed to the model as
 data. Any missing entries are automatically filled in using symmetric
 default values via
-<code>fill_defaults(priors, p_family = dist, model_type = "survival")</code>.</p></dd>
+<code>fill_defaults(priors, p_family = dist, model_type = "survival")</code>.</p>
+<p>Intercept and slope priors are decoupled. Use <code>intercept1</code>/<code>intercept2</code>
+for the intercept of each component and <code>beta1</code>/<code>beta2</code> for the slope
+coefficients. By default, intercept priors are <code>normal(0, 10)</code> (weakly
+informative), while slope priors follow the distribution-specific defaults.</p></dd>
 
 
 <dt id="arg-control">control<a class="anchor" aria-label="anchor" href="#arg-control"></a></dt>
@@ -255,8 +259,8 @@ problem in MCMC outputs.
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Gradient evaluation took 9.6e-05 seconds</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.96 seconds.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Gradient evaluation took 0.000102 seconds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.02 seconds.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Adjust your expectations accordingly!</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
@@ -281,9 +285,9 @@ problem in MCMC outputs.
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:  Elapsed Time: 0.202 seconds (Warm-up)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                0.168 seconds (Sampling)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                0.37 seconds (Total)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:  Elapsed Time: 0.207 seconds (Warm-up)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                0.172 seconds (Sampling)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1:                0.379 seconds (Total)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Chain 1: </span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>The largest R-hat is NA, indicating chains have not mixed.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> Running the chains for more iterations may help. See</span>
@@ -299,7 +303,7 @@ problem in MCMC outputs.
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ......................................................................................</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     . Method                         Time (sec)           Status                         . </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ......................................................................................</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     . ECR-ITERATIVE-1                0.137                Converged (3 iterations)       . </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     . ECR-ITERATIVE-1                0.129                Converged (3 iterations)       . </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ......................................................................................</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!</span>
