@@ -27,26 +27,30 @@ namespace model_glmMixBayes_binomial_namespace {
 using stan::model::model_base_crtp;
 using namespace stan::math;
 stan::math::profile_map profiles__;
-static constexpr std::array<const char*, 37> locations_array__ =
+static constexpr std::array<const char*, 45> locations_array__ =
   {" (found before start of program)",
-  " (in 'string', line 19, column 2 to column 31)",
-  " (in 'string', line 20, column 2 to column 18)",
-  " (in 'string', line 21, column 2 to column 18)",
-  " (in 'string', line 26, column 2 to column 29)",
-  " (in 'string', line 27, column 2 to column 29)",
-  " (in 'string', line 45, column 2 to column 29)",
-  " (in 'string', line 47, column 4 to column 17)",
-  " (in 'string', line 48, column 4 to column 62)",
-  " (in 'string', line 49, column 4 to column 64)",
-  " (in 'string', line 50, column 4 to column 40)",
-  " (in 'string', line 46, column 17 to line 51, column 3)",
-  " (in 'string', line 46, column 2 to line 51, column 3)",
-  " (in 'string', line 31, column 2 to column 49)",
-  " (in 'string', line 32, column 2 to column 49)",
-  " (in 'string', line 33, column 2 to column 52)",
-  " (in 'string', line 36, column 4 to line 40, column 6)",
-  " (in 'string', line 35, column 17 to line 41, column 3)",
-  " (in 'string', line 35, column 2 to line 41, column 3)",
+  " (in 'string', line 24, column 2 to column 31)",
+  " (in 'string', line 25, column 2 to column 18)",
+  " (in 'string', line 26, column 2 to column 18)",
+  " (in 'string', line 31, column 2 to column 29)",
+  " (in 'string', line 32, column 2 to column 29)",
+  " (in 'string', line 54, column 2 to column 29)",
+  " (in 'string', line 56, column 4 to column 17)",
+  " (in 'string', line 57, column 4 to column 62)",
+  " (in 'string', line 58, column 4 to column 64)",
+  " (in 'string', line 59, column 4 to column 40)",
+  " (in 'string', line 55, column 17 to line 60, column 3)",
+  " (in 'string', line 55, column 2 to line 60, column 3)",
+  " (in 'string', line 36, column 2 to column 62)",
+  " (in 'string', line 37, column 2 to column 62)",
+  " (in 'string', line 39, column 4 to column 56)",
+  " (in 'string', line 40, column 4 to column 56)",
+  " (in 'string', line 38, column 13 to line 41, column 3)",
+  " (in 'string', line 38, column 2 to line 41, column 3)",
+  " (in 'string', line 42, column 2 to column 52)",
+  " (in 'string', line 45, column 4 to line 49, column 6)",
+  " (in 'string', line 44, column 17 to line 50, column 3)",
+  " (in 'string', line 44, column 2 to line 50, column 3)",
   " (in 'string', line 4, column 2 to column 17)",
   " (in 'string', line 5, column 2 to column 17)",
   " (in 'string', line 6, column 9 to column 10)",
@@ -54,17 +58,21 @@ static constexpr std::array<const char*, 37> locations_array__ =
   " (in 'string', line 6, column 2 to column 17)",
   " (in 'string', line 7, column 26 to column 27)",
   " (in 'string', line 7, column 2 to column 29)",
-  " (in 'string', line 10, column 2 to column 22)",
-  " (in 'string', line 11, column 2 to column 31)",
-  " (in 'string', line 12, column 2 to column 22)",
-  " (in 'string', line 13, column 2 to column 31)",
-  " (in 'string', line 14, column 2 to column 34)",
-  " (in 'string', line 15, column 2 to column 33)",
-  " (in 'string', line 20, column 9 to column 10)",
-  " (in 'string', line 21, column 9 to column 10)",
+  " (in 'string', line 10, column 2 to column 27)",
+  " (in 'string', line 11, column 2 to column 36)",
+  " (in 'string', line 12, column 2 to column 27)",
+  " (in 'string', line 13, column 2 to column 36)",
+  " (in 'string', line 15, column 2 to column 22)",
+  " (in 'string', line 16, column 2 to column 31)",
+  " (in 'string', line 17, column 2 to column 22)",
+  " (in 'string', line 18, column 2 to column 31)",
+  " (in 'string', line 19, column 2 to column 34)",
+  " (in 'string', line 20, column 2 to column 33)",
+  " (in 'string', line 25, column 9 to column 10)",
   " (in 'string', line 26, column 9 to column 10)",
-  " (in 'string', line 27, column 9 to column 10)",
-  " (in 'string', line 45, column 26 to column 27)"};
+  " (in 'string', line 31, column 9 to column 10)",
+  " (in 'string', line 32, column 9 to column 10)",
+  " (in 'string', line 54, column 26 to column 27)"};
 #include <stan_meta_header.hpp>
 class model_glmMixBayes_binomial final : public model_base_crtp<model_glmMixBayes_binomial> {
 private:
@@ -72,6 +80,10 @@ private:
   int K;
   Eigen::Matrix<double,-1,-1> X_data__;
   std::vector<int> y;
+  double prior_intercept1_mu;
+  double prior_intercept1_sd;
+  double prior_intercept2_mu;
+  double prior_intercept2_sd;
   double prior_beta1_mu;
   double prior_beta1_sd;
   double prior_beta2_mu;
@@ -100,27 +112,27 @@ public:
     try {
       int pos__ = std::numeric_limits<int>::min();
       pos__ = 1;
-      current_statement__ = 19;
+      current_statement__ = 23;
       context__.validate_dims("data initialization", "N", "int",
         std::vector<size_t>{});
       N = std::numeric_limits<int>::min();
-      current_statement__ = 19;
+      current_statement__ = 23;
       N = context__.vals_i("N")[(1 - 1)];
-      current_statement__ = 19;
+      current_statement__ = 23;
       stan::math::check_greater_or_equal(function__, "N", N, 1);
-      current_statement__ = 20;
+      current_statement__ = 24;
       context__.validate_dims("data initialization", "K", "int",
         std::vector<size_t>{});
       K = std::numeric_limits<int>::min();
-      current_statement__ = 20;
+      current_statement__ = 24;
       K = context__.vals_i("K")[(1 - 1)];
-      current_statement__ = 20;
+      current_statement__ = 24;
       stan::math::check_greater_or_equal(function__, "K", K, 1);
-      current_statement__ = 21;
+      current_statement__ = 25;
       stan::math::validate_non_negative_index("X", "N", N);
-      current_statement__ = 22;
+      current_statement__ = 26;
       stan::math::validate_non_negative_index("X", "K", K);
-      current_statement__ = 23;
+      current_statement__ = 27;
       context__.validate_dims("data initialization", "X", "double",
         std::vector<size_t>{static_cast<size_t>(N), static_cast<size_t>(K)});
       X_data__ = Eigen::Matrix<double,-1,-1>::Constant(N, K,
@@ -128,92 +140,122 @@ public:
       new (&X) Eigen::Map<Eigen::Matrix<double,-1,-1>>(X_data__.data(), N, K);
       {
         std::vector<local_scalar_t__> X_flat__;
-        current_statement__ = 23;
+        current_statement__ = 27;
         X_flat__ = context__.vals_r("X");
-        current_statement__ = 23;
+        current_statement__ = 27;
         pos__ = 1;
-        current_statement__ = 23;
+        current_statement__ = 27;
         for (int sym1__ = 1; sym1__ <= K; ++sym1__) {
-          current_statement__ = 23;
+          current_statement__ = 27;
           for (int sym2__ = 1; sym2__ <= N; ++sym2__) {
-            current_statement__ = 23;
+            current_statement__ = 27;
             stan::model::assign(X, X_flat__[(pos__ - 1)],
               "assigning variable X", stan::model::index_uni(sym2__),
               stan::model::index_uni(sym1__));
-            current_statement__ = 23;
+            current_statement__ = 27;
             pos__ = (pos__ + 1);
           }
         }
       }
-      current_statement__ = 24;
+      current_statement__ = 28;
       stan::math::validate_non_negative_index("y", "N", N);
-      current_statement__ = 25;
+      current_statement__ = 29;
       context__.validate_dims("data initialization", "y", "int",
         std::vector<size_t>{static_cast<size_t>(N)});
       y = std::vector<int>(N, std::numeric_limits<int>::min());
-      current_statement__ = 25;
+      current_statement__ = 29;
       y = context__.vals_i("y");
-      current_statement__ = 25;
+      current_statement__ = 29;
       stan::math::check_greater_or_equal(function__, "y", y, 0);
-      current_statement__ = 25;
+      current_statement__ = 29;
       stan::math::check_less_or_equal(function__, "y", y, 1);
-      current_statement__ = 26;
+      current_statement__ = 30;
+      context__.validate_dims("data initialization", "prior_intercept1_mu",
+        "double", std::vector<size_t>{});
+      prior_intercept1_mu = std::numeric_limits<double>::quiet_NaN();
+      current_statement__ = 30;
+      prior_intercept1_mu = context__.vals_r("prior_intercept1_mu")[(1 - 1)];
+      current_statement__ = 31;
+      context__.validate_dims("data initialization", "prior_intercept1_sd",
+        "double", std::vector<size_t>{});
+      prior_intercept1_sd = std::numeric_limits<double>::quiet_NaN();
+      current_statement__ = 31;
+      prior_intercept1_sd = context__.vals_r("prior_intercept1_sd")[(1 - 1)];
+      current_statement__ = 31;
+      stan::math::check_greater_or_equal(function__, "prior_intercept1_sd",
+        prior_intercept1_sd, 0);
+      current_statement__ = 32;
+      context__.validate_dims("data initialization", "prior_intercept2_mu",
+        "double", std::vector<size_t>{});
+      prior_intercept2_mu = std::numeric_limits<double>::quiet_NaN();
+      current_statement__ = 32;
+      prior_intercept2_mu = context__.vals_r("prior_intercept2_mu")[(1 - 1)];
+      current_statement__ = 33;
+      context__.validate_dims("data initialization", "prior_intercept2_sd",
+        "double", std::vector<size_t>{});
+      prior_intercept2_sd = std::numeric_limits<double>::quiet_NaN();
+      current_statement__ = 33;
+      prior_intercept2_sd = context__.vals_r("prior_intercept2_sd")[(1 - 1)];
+      current_statement__ = 33;
+      stan::math::check_greater_or_equal(function__, "prior_intercept2_sd",
+        prior_intercept2_sd, 0);
+      current_statement__ = 34;
       context__.validate_dims("data initialization", "prior_beta1_mu",
         "double", std::vector<size_t>{});
       prior_beta1_mu = std::numeric_limits<double>::quiet_NaN();
-      current_statement__ = 26;
+      current_statement__ = 34;
       prior_beta1_mu = context__.vals_r("prior_beta1_mu")[(1 - 1)];
-      current_statement__ = 27;
+      current_statement__ = 35;
       context__.validate_dims("data initialization", "prior_beta1_sd",
         "double", std::vector<size_t>{});
       prior_beta1_sd = std::numeric_limits<double>::quiet_NaN();
-      current_statement__ = 27;
+      current_statement__ = 35;
       prior_beta1_sd = context__.vals_r("prior_beta1_sd")[(1 - 1)];
-      current_statement__ = 27;
+      current_statement__ = 35;
       stan::math::check_greater_or_equal(function__, "prior_beta1_sd",
         prior_beta1_sd, 0);
-      current_statement__ = 28;
+      current_statement__ = 36;
       context__.validate_dims("data initialization", "prior_beta2_mu",
         "double", std::vector<size_t>{});
       prior_beta2_mu = std::numeric_limits<double>::quiet_NaN();
-      current_statement__ = 28;
+      current_statement__ = 36;
       prior_beta2_mu = context__.vals_r("prior_beta2_mu")[(1 - 1)];
-      current_statement__ = 29;
+      current_statement__ = 37;
       context__.validate_dims("data initialization", "prior_beta2_sd",
         "double", std::vector<size_t>{});
       prior_beta2_sd = std::numeric_limits<double>::quiet_NaN();
-      current_statement__ = 29;
+      current_statement__ = 37;
       prior_beta2_sd = context__.vals_r("prior_beta2_sd")[(1 - 1)];
-      current_statement__ = 29;
+      current_statement__ = 37;
       stan::math::check_greater_or_equal(function__, "prior_beta2_sd",
         prior_beta2_sd, 0);
-      current_statement__ = 30;
+      current_statement__ = 38;
       context__.validate_dims("data initialization", "prior_theta_alpha",
         "double", std::vector<size_t>{});
       prior_theta_alpha = std::numeric_limits<double>::quiet_NaN();
-      current_statement__ = 30;
+      current_statement__ = 38;
       prior_theta_alpha = context__.vals_r("prior_theta_alpha")[(1 - 1)];
-      current_statement__ = 30;
+      current_statement__ = 38;
       stan::math::check_greater_or_equal(function__, "prior_theta_alpha",
         prior_theta_alpha, 0);
-      current_statement__ = 31;
+      current_statement__ = 39;
       context__.validate_dims("data initialization", "prior_theta_beta",
         "double", std::vector<size_t>{});
       prior_theta_beta = std::numeric_limits<double>::quiet_NaN();
-      current_statement__ = 31;
+      current_statement__ = 39;
       prior_theta_beta = context__.vals_r("prior_theta_beta")[(1 - 1)];
-      current_statement__ = 31;
+      current_statement__ = 39;
       stan::math::check_greater_or_equal(function__, "prior_theta_beta",
         prior_theta_beta, 0);
-      current_statement__ = 32;
+      current_statement__ = 40;
       stan::math::validate_non_negative_index("beta1", "K", K);
-      current_statement__ = 33;
+      current_statement__ = 41;
       stan::math::validate_non_negative_index("beta2", "K", K);
-      current_statement__ = 34;
+      current_statement__ = 42;
       stan::math::validate_non_negative_index("eta1", "N", N);
-      current_statement__ = 35;
+      current_statement__ = 43;
       stan::math::validate_non_negative_index("eta2", "N", N);
-      current_statement__ = 36;
+      current_statement__ = 44;
       stan::math::validate_non_negative_index("z", "N", N);
     } catch (const std::exception& e) {
       stan::lang::rethrow_located(e, locations_array__[current_statement__]);
@@ -271,17 +313,34 @@ public:
         "assigning variable eta2");
       {
         current_statement__ = 13;
-        lp_accum__.add(stan::math::normal_lpdf<propto__>(beta1,
-                         prior_beta1_mu, prior_beta1_sd));
+        lp_accum__.add(stan::math::normal_lpdf<propto__>(
+                         stan::model::rvalue(beta1, "beta1",
+                           stan::model::index_uni(1)), prior_intercept1_mu,
+                         prior_intercept1_sd));
         current_statement__ = 14;
-        lp_accum__.add(stan::math::normal_lpdf<propto__>(beta2,
-                         prior_beta2_mu, prior_beta2_sd));
-        current_statement__ = 15;
+        lp_accum__.add(stan::math::normal_lpdf<propto__>(
+                         stan::model::rvalue(beta2, "beta2",
+                           stan::model::index_uni(1)), prior_intercept2_mu,
+                         prior_intercept2_sd));
+        current_statement__ = 18;
+        if (stan::math::logical_gt(K, 1)) {
+          current_statement__ = 15;
+          lp_accum__.add(stan::math::normal_lpdf<propto__>(
+                           stan::model::rvalue(beta1, "beta1",
+                             stan::model::index_min_max(2, K)),
+                           prior_beta1_mu, prior_beta1_sd));
+          current_statement__ = 16;
+          lp_accum__.add(stan::math::normal_lpdf<propto__>(
+                           stan::model::rvalue(beta2, "beta2",
+                             stan::model::index_min_max(2, K)),
+                           prior_beta2_mu, prior_beta2_sd));
+        }
+        current_statement__ = 19;
         lp_accum__.add(stan::math::beta_lpdf<propto__>(theta,
                          prior_theta_alpha, prior_theta_beta));
-        current_statement__ = 18;
+        current_statement__ = 22;
         for (int n = 1; n <= N; ++n) {
-          current_statement__ = 16;
+          current_statement__ = 20;
           lp_accum__.add(stan::math::log_mix(theta,
                            stan::math::bernoulli_logit_lpmf<false>(
                              stan::model::rvalue(y, "y",

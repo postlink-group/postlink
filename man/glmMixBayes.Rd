@@ -29,7 +29,12 @@ Controls the component-specific likelihood.}
 Because the Stan models are pre-compiled, these strings are parsed into numeric
 hyperparameters and passed to the model's data block. Any missing entries are
 automatically filled with symmetric defaults via
-\code{fill_defaults(priors, p_family = family, model_type = "glm")}.}
+\code{fill_defaults(priors, p_family = family, model_type = "glm")}.
+
+Intercept and slope priors are decoupled. Use \code{intercept1}/\code{intercept2}
+for the intercept of each component and \code{beta1}/\code{beta2} for the slope
+coefficients. By default, intercept priors are \code{normal(0, 10)} (weakly
+informative), while slope priors follow the family-specific defaults.}
 
 \item{control}{A named \code{list} of MCMC tuning parameters.
 Supported elements include:

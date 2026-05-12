@@ -12,7 +12,13 @@ adjMixBayes(linked.data = NULL, priors = NULL)
 \item{priors}{A named \code{list} (or \code{NULL}) of prior specifications.
 Because the Stan models are pre-compiled, these strings are parsed into numeric
 hyperparameters and passed to the model's data block. Any missing entries are
-automatically filled with symmetric defaults dynamically during the model fitting phase.}
+automatically filled with symmetric defaults dynamically during the model fitting phase.
+
+For GLM models, intercept and slope priors are decoupled. Use
+\code{intercept1}/\code{intercept2} for the intercept of each component and
+\code{beta1}/\code{beta2} for the slope coefficients. This is particularly
+useful when the mismatch component slopes should be shrunk toward zero while
+allowing the intercept to remain unrestricted.}
 }
 \value{
 An object of class \code{c("adjMixBayes", "adjustment")}. To minimize
@@ -45,9 +51,13 @@ lifem_small <- rbind(
 )
 
 # Construct the Bayesian mixture adjustment object
-adj_bayes <- adjMixBayes(
+adj_bayes2 <- adjMixBayes(
   linked.data = lifem_small,
-  priors = list(theta = "beta(2, 2)")
+  priors = list(
+    intercept2 = "normal(0, 10)",
+    beta2 = "normal(0, 0.01)",
+    theta = "beta(2, 2)"
+  )
 )
 
 class(adj_bayes)

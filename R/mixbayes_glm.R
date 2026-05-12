@@ -239,6 +239,16 @@ glmMixBayes <- function(X, y, family = "gaussian", priors = NULL,
   posterior <- swap_if_present(posterior, "phi1",   "phi2")    # gamma
  }
 
+
+ if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+  old_seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  on.exit(assign(".Random.seed", old_seed, envir = .GlobalEnv), add = TRUE)
+ } else {
+  on.exit(rm(list = ".Random.seed", envir = .GlobalEnv), add = TRUE)
+ }
+
+ set.seed(seed)
+
  # --- 1) Iterative ECR alignment of labels across MCMC draws -------------------
  ls_out <- label.switching::label.switching(
   method = "ECR-ITERATIVE-1",
