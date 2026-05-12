@@ -878,7 +878,7 @@ the benchmark models and post-linkage adjustment methods.*
 | 5\. EM (Global Rate) | -1.231 | 0.199 | 1.075 | 0.434 | 0.596 | 0.255 | -0.811 | 0.379 |
 | 6\. EM (Exact + Rate) | -1.184 | 0.174 | 0.945 | 0.330 | 0.538 | 0.233 | -0.776 | 0.402 |
 | 7\. EM (String Distances) | -1.240 | 0.157 | 1.025 | 0.139 | 0.700 | 0.129 | -0.909 | 0.231 |
-| 8\. Bayesian (Informative) | -1.091 | 0.419 | 1.012 | 0.235 | 0.569 | 0.154 | -0.764 | 0.272 |
+| 8\. Bayesian (Informative) | -1.099 | 0.419 | 1.029 | 0.251 | 0.573 | 0.162 | -0.782 | 0.282 |
 
 ### 4.6 Decoupling Linkage and Analysis via Multiple Imputation
 
@@ -910,12 +910,12 @@ R> pooled_mi_fit <- mi_with(object = fit_bayes_strong,
 +                           formula = formula_interaction, 
 +                           family = binomial())
 R> print(pooled_mi_fit, digits = 3)
-#> Multiple Imputation (from allocation draws):
-#>   Retained imputations (m): 1000 
+#>  Pooled regression results across posterior match classifications:
+#>   Retained imputations (m): 9000 
 #> 
-#>             Estimate Std.Error  CI.lwr  CI.upr        df
-#> (Intercept)   -0.866     0.291  -1.436  -0.296  1432.068
-#> Treatment     -0.625     0.226  -1.067  -0.183  9481.545
+#>             Estimate Std.Error  CI.lwr  CI.upr         df
+#> (Intercept)   -0.868     0.288  -1.432  -0.304  13017.312
+#> Treatment     -0.629     0.227  -1.074  -0.184  82594.793
 ```
 
 As detailed in the output, the marginal term for `Treatment` is
