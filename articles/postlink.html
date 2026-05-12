@@ -955,7 +955,8 @@ of the distribution is 0.7 and the standard deviation is 0.05.</p>
 <span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="sc">+</span>                                           <span class="at">beta2 =</span> <span class="st">"normal(0,0.01)"</span>, </span>
 <span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="sc">+</span>                                           <span class="at">theta =</span> <span class="st">"beta(70,30)"</span>))</span>
 <span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>R<span class="sc">&gt;</span> fit_bayes_strong <span class="ot">&lt;-</span> <span class="fu">plglm</span>(formula_sci, <span class="at">family =</span> <span class="st">"binomial"</span>, </span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="sc">+</span>                            <span class="at">adjustment =</span> adj_bayes_strong)</span></code></pre></div>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="sc">+</span>                            <span class="at">adjustment =</span> adj_bayes_strong,</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="sc">+</span>                            <span class="at">control =</span> <span class="fu">list</span>(<span class="at">seed =</span> <span class="dv">2026</span>))</span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results-and-discussion">4.5 Results and Discussion<a class="anchor" aria-label="anchor" href="#results-and-discussion"></a>
@@ -1110,14 +1111,14 @@ from the benchmark models and post-linkage adjustment methods.</em></p>
 </tr>
 <tr class="even">
 <td align="left">8. Bayesian (Informative)</td>
-<td align="center">-1.091</td>
+<td align="center">-1.099</td>
 <td align="center">0.419</td>
-<td align="center">1.012</td>
-<td align="center">0.235</td>
-<td align="center">0.569</td>
-<td align="center">0.154</td>
-<td align="center">-0.764</td>
-<td align="center">0.272</td>
+<td align="center">1.029</td>
+<td align="center">0.251</td>
+<td align="center">0.573</td>
+<td align="center">0.162</td>
+<td align="center">-0.782</td>
+<td align="center">0.282</td>
 </tr>
 </tbody>
 </table>
@@ -1152,12 +1153,12 @@ pre-computed adjustment object:</p>
 <span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="sc">+</span>                           <span class="at">formula =</span> formula_interaction, </span>
 <span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="sc">+</span>                           <span class="at">family =</span> <span class="fu">binomial</span>())</span>
 <span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>R<span class="sc">&gt;</span> <span class="fu">print</span>(pooled_mi_fit, <span class="at">digits =</span> <span class="dv">3</span>)</span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co">#&gt; Multiple Imputation (from allocation draws):</span></span>
-<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="co">#&gt;   Retained imputations (m): 1000 </span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co">#&gt;  Pooled regression results across posterior match classifications:</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="co">#&gt;   Retained imputations (m): 9000 </span></span>
 <span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#&gt;             Estimate Std.Error  CI.lwr  CI.upr        df</span></span>
-<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt; (Intercept)   -0.866     0.291  -1.436  -0.296  1432.068</span></span>
-<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co">#&gt; Treatment     -0.625     0.226  -1.067  -0.183  9481.545</span></span></code></pre></div>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#&gt;             Estimate Std.Error  CI.lwr  CI.upr         df</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt; (Intercept)   -0.868     0.288  -1.432  -0.304  13017.312</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co">#&gt; Treatment     -0.629     0.227  -1.074  -0.184  82594.793</span></span></code></pre></div>
 <p>As detailed in the output, the marginal term for
 <code>Treatment</code> is estimated to be significantly different from
 zero at the 5% nominal level (95% CI: -1.067, -0.183), which is

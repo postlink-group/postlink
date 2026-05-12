@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   articles/longevity-analysis: longevity-analysis.html
   postlink: postlink.html
-last_built: 2026-05-12T23:26Z
+last_built: 2026-05-12T23:35Z
 urls:
   reference: https://postlink-group.github.io/postlink/reference
   article: https://postlink-group.github.io/postlink/articles
