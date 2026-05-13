@@ -50,7 +50,7 @@
 #'   )
 #' )
 #'
-#' class(adj_bayes)
+#' class(adj_bayes2)
 #'
 #' @seealso
 #' * [plglm()] for generalized linear regression modeling

@@ -60,7 +60,7 @@ adj_bayes2 <- adjMixBayes(
   )
 )
 
-class(adj_bayes)
+class(adj_bayes2)
 
 }
 \references{
