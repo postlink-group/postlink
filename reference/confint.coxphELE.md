@@ -72,7 +72,7 @@ fit <- plcoxph(Surv(time, status) ~ age + treatment, adjustment = adj)
 confint(fit) # 95% CI for all coefficients
 #>                2.5 %     97.5 %
 #> age       -0.0853233 0.06064571
-#> treatment -0.6688953 0.89980481
+#> treatment -0.6688953 0.89980482
 confint(fit, parm = "treatment", level = 0.90) # 90% CI for a specific parameter
 #>                  5 %      95 %
 #> treatment -0.5427925 0.7737021

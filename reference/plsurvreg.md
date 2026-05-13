@@ -122,8 +122,8 @@ fit <- plsurvreg(
 #> 
 #> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.000117 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.17 seconds.
+#> Chain 1: Gradient evaluation took 0.000128 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.28 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -140,9 +140,9 @@ fit <- plsurvreg(
 #> Chain 1: Iteration: 1900 / 2000 [ 95%]  (Sampling)
 #> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 3.481 seconds (Warm-up)
-#> Chain 1:                18.469 seconds (Sampling)
-#> Chain 1:                21.95 seconds (Total)
+#> Chain 1:  Elapsed Time: 5.384 seconds (Warm-up)
+#> Chain 1:                28.318 seconds (Sampling)
+#> Chain 1:                33.702 seconds (Total)
 #> Chain 1: 
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
 #> Running the chains for more iterations may help. See
@@ -154,7 +154,7 @@ fit <- plsurvreg(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                1.137                Converged (3 iterations)       . 
+#>     . ECR-ITERATIVE-1                1.603                Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -163,6 +163,6 @@ fit <- plsurvreg(
 #>     Retrieve the 1 best clusterings: [...]$clusters
 #>     Retrieve the 1 CPU times: [...]$timings
 #>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
-#>     Label switching finished. Total time: 1.4 seconds. 
+#>     Label switching finished. Total time: 1.7 seconds. 
 # }
 ```

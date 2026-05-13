@@ -108,8 +108,8 @@ fit <- plsurvreg(
 #> 
 #> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 8e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.8 seconds.
+#> Chain 1: Gradient evaluation took 9.5e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.95 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -134,9 +134,9 @@ fit <- plsurvreg(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.485 seconds (Warm-up)
-#> Chain 1:                0.4 seconds (Sampling)
-#> Chain 1:                0.885 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.766 seconds (Warm-up)
+#> Chain 1:                0.628 seconds (Sampling)
+#> Chain 1:                1.394 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is 1.29, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -152,7 +152,7 @@ fit <- plsurvreg(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.109                Converged (3 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.146                Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -161,7 +161,7 @@ fit <- plsurvreg(
 #>     Retrieve the 1 best clusterings: [...]$clusters
 #>     Retrieve the 1 CPU times: [...]$timings
 #>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
-#>     Label switching finished. Total time: 0.1 seconds. 
+#>     Label switching finished. Total time: 0.2 seconds. 
 
 pooled_obj <- mi_with(
   object = fit,

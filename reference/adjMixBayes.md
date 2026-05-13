@@ -85,6 +85,6 @@ adj_bayes2 <- adjMixBayes(
   )
 )
 
-class(adj_bayes)
-#> Error: object 'adj_bayes' not found
+class(adj_bayes2)
+#> [1] "adjMixBayes" "adjustment" 
 ```
