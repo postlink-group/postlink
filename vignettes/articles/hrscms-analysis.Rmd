@@ -1,5 +1,5 @@
 ---
-title: "Contingency Table Analysis with HRS-CMS Data"
+title: "HRS-CMS Contingency Table Analysis"
 author: "Jiayi Huang"
 description: "A case study demonstrating contingency table analysis under linkage error."
 output: rmarkdown::html_vignette
