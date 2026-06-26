@@ -1,0 +1,241 @@
+---
+title: "Contingency Table Analysis with HRS-CMS Data"
+author: "Jiayi Huang"
+description: "A case study demonstrating contingency table analysis under linkage error."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{HRS-CMS Contingency Table Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+# This chunk ensures the vignette is static and won't run during package build
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = TRUE
+)
+```
+
+
+<a target="_blank" href="https://colab.research.google.com/github/postlink-group/postlink/blob/main/notebooks/hrscms_contingency.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" style="width: 150px !important; height: auto !important; border: none;"/>
+</a>
+
+## **1. Linked Data Set: HRS-CMS Example**
+
+The HRS-CMS (Health and Retirement Study linked with Centers for Medicare & Medicaid Services) dataset combines survey and administrative records to study health and socioeconomic outcomes among older adults. This linkage enables researchers to analyze the relationships between health indicators and conditions recorded in different data sources while accounting for potential errors in record linkage.
+
+A subset of records is considered high-quality based on stricter linkage criteria, whereas the remaining records are obtained through automated matching procedures that may introduce linkage error. Consequently, discrepancies between variables recorded in the two sources can occur, motivating the use of statistical methods that adjust for misclassification.
+
+For demonstration purposes, we examine a small aggregated subset of the HRS-CMS dataset. Each row represents a cell count for one combination of HRS self-report, CMS administrative record, and linkage mismatch status.
+
+```{r}
+# Data input (aggregated counts only)
+agg <- read.csv("hrscms_aggregated.csv")
+
+# Ensure types are numeric
+agg$mismatch   <- as.integer(agg$mismatch)
+agg$NRSHOM     <- as.integer(agg$NRSHOM)
+agg$mds_nrshom <- as.integer(agg$mds_nrshom)
+
+# Quick sanity check
+str(agg)
+knitr::kable(
+  head(agg),
+  caption = "Aggregated HRS-CMS data"
+)
+```
+
+The dataset includes the following variables:  
+  
+- `NRSHOM`: indicator of nursing home residence based on HRS self-reports (1: yes, 0: no).  
+- `mds_nrshom`: indicator of nursing home residence based on CMS administrative records (1: yes, 0: no).  
+- `mismatch`: indicator of linkage mismatch status (1: mismatched link, 0: correctly linked record).  
+- `count`: number of records in each aggregated cell.  
+
+The overall linkage mismatch rate is computed as a weighted proportion using the aggregated counts:
+```{r}
+mm_rate <- sum(agg$mismatch * agg$count) / sum(agg$count)
+knitr::kable(
+  data.frame(`Mismatch rate` = round(mm_rate, 4)),
+  caption = "Overall linkage mismatch rate"
+)
+```
+
+The observed mismatch rate motivates the use of statistical methods that explicitly adjust for linkage error. Naive analyses that ignore these mismatches may underestimate or distort associations between variables. In later sections, we demonstrate the workflow for contingency table analysis under linkage error using the `postlink` package.
+
+
+## **2. Naive Approach**
+We first use the observed aggregated data without accounting for potential linkage mismatches. This approach treats the linked data as if all records were correctly matched.
+```{r}
+# Total number of records represented in the aggregated data
+n <- sum(agg$count)
+
+# Naive contingency table in counts
+ctab <- xtabs(count ~ NRSHOM + mds_nrshom, data = agg)
+knitr::kable(
+  as.data.frame.matrix(ctab),
+  caption = "Naive contingency table in counts"
+)
+
+# Naive contingency table in proportions
+ctab_prop <- ctab / sum(ctab)
+knitr::kable(
+  round(as.data.frame.matrix(ctab_prop), 4),
+  caption = "Naive contingency table in proportions"
+)
+```
+The naive table summarizes the observed joint distribution of HRS self-reported nursing home residence (`NRSHOM`) and CMS administrative nursing home residence (`mds_nrshom`) without adjusting for linkage error.
+
+## **3. Exact Approach**
+We next restrict the analysis to aggregated cells corresponding to correctly linked records, where `mismatch = 0`. This provides a comparison table based only on records without linkage mismatches.
+```{r}
+# Keep only correctly linked records
+agg_exact <- subset(agg, mismatch == 0)
+
+# Exact-match contingency table in counts
+ctab_exact <- xtabs(count ~ NRSHOM + mds_nrshom, data = agg_exact)
+knitr::kable(
+  as.data.frame.matrix(ctab_exact),
+  caption = "Exact-match contingency table in counts"
+)
+
+# Exact-match contingency table in proportions
+ctab_exact_prop <- ctab_exact / sum(ctab_exact)
+knitr::kable(
+  round(as.data.frame.matrix(ctab_exact_prop), 4),
+  caption = "Exact-match contingency table in proportions"
+)
+```
+
+This table shows the joint distribution of HRS self-reports and CMS administrative records among correctly linked records only. Comparing this table with the naive table illustrates how linkage mismatches may affect the observed relationship between the two variables.
+
+
+## **4. Adjustment Approach**
+We adjust for potential mismatches between HRS self-reports (`NRSHOM`) and CMS records (`mds_nrshom`) using the observed mismatch rate.
+```{r}
+library(postlink)
+
+# Expand the aggregated counts only for compatibility with postlink
+hrscms_clean <- agg[
+  rep(seq_len(nrow(agg)), agg$count),
+  c("NRSHOM", "mds_nrshom")
+]
+
+rownames(hrscms_clean) <- NULL
+
+# Mismatch rate from aggregated counts
+mm_rate <- sum(agg$mismatch * agg$count) / sum(agg$count)
+
+# Create adjustment object
+adj <- adjMixture(
+  linked.data = hrscms_clean,
+  m.rate = mm_rate
+)
+
+# Adjusted contingency table
+adjusted_table <- plctable(
+  formula = ~ NRSHOM + mds_nrshom,
+  adjustment = adj
+)
+
+# Adjusted probability table
+knitr::kable(
+  round(as.data.frame.matrix(adjusted_table$phat), 4),
+  caption = "Adjusted contingency table in proportions"
+)
+```
+
+We also demonstrate an alternative lower mismatch rate (not all non-exact matches are mismatches):
+```{r}
+# Alternative lower mismatch rate
+lower_mm_rate <- 0.5 * mm_rate
+
+adj_lower <- adjMixture(
+  linked.data = hrscms_clean,
+  m.rate = lower_mm_rate
+)
+
+adjusted_table_lower <- plctable(
+  formula = ~ NRSHOM + mds_nrshom,
+  adjustment = adj_lower
+)
+
+knitr::kable(
+  round(as.data.frame.matrix(adjusted_table_lower$phat), 4),
+  caption = "Adjusted contingency table using lower mismatch rate"
+)
+```
+
+These adjusted tables estimate the joint distribution of the two nursing home residence indicators after accounting for possible linkage errors.
+
+
+## **5. Evaluation**
+We evaluate the adjusted contingency table for the HRSCMS dataset, quantifying how well it recovers the joint distribution of nursing home residence indicators across HRS and CMS records while accounting for mismatches.
+```{r}
+# Evaluation
+
+# Use the adjusted table from the main adjustment approach
+phat_adj <- adjusted_table$phat
+
+# Use the exact-match table from the aggregated data
+exactprobs <- ctab_exact_prop
+
+# Convert both tables to vectors in the same order
+phat_vec <- as.vector(t(phat_adj))
+exact_vec <- as.vector(t(exactprobs))
+
+# MRAE
+mrae <- mean(abs(phat_vec - exact_vec) / exact_vec)
+
+# KLD
+kld <- sum(exact_vec * log(exact_vec / phat_vec))
+
+# GOF
+n_exact <- sum(ctab_exact)
+gof <- n_exact * sum((exact_vec - phat_vec)^2 / exact_vec)
+
+# Association
+adj_counts <- matrix(
+  n_exact * phat_vec,
+  byrow = TRUE,
+  nrow = 2,
+  ncol = 2
+)
+
+c2 <- suppressWarnings(chisq.test(adj_counts))
+
+# Kappa
+suppressPackageStartupMessages(library(vcd))
+k <- Kappa(adj_counts)
+
+# Combine results into table
+evaluation_results <- data.frame(
+  Metric = c("MRAE", "KLD", "GOF", "Chi-square", "Kappa"),
+  Value = c(
+    mrae,
+    kld,
+    gof,
+    as.numeric(c2$statistic),
+    k$Unweighted[1]
+  )
+)
+
+knitr::kable(
+  evaluation_results,
+  digits = 4,
+  caption = "Evaluation metrics for the adjusted contingency table"
+)
+```
+
+These metrics summarize the behavior of the `postlink` adjustment procedure relative to the exact-match contingency table. MRAE quantifies the average relative difference in joint cell probabilities, KLD measures distributional divergence, GOF summarizes the overall discrepancy between adjusted and exact-match probabilities, the chi-square statistic measures association between the HRS and CMS indicators, and Kappa evaluates agreement beyond chance.
+
+
+## **References**
+Centers for Medicare & Medicaid Services (CMS). 2026. [CMS Data](https://www.cms.gov/), U.S. Department of Health & Human Services, Washington, DC, US.
+
+Health and Retirement Study (HRS). 2026. [HRS Dataset](https://hrs.isr.umich.edu/), University of Michigan, Ann Arbor, MI, US.
+
+Slawski, Martin, Brady T. West, Priyanjali Bukke, Zhenbang Wang, Guoqing Diao, and Emanuel Ben-David. 2024. “A General Framework for Regression with Mismatched Data Based on Mixture Modelling.” *Journal of the Royal Statistical Society Series A: Statistics in Society*, qnae083.
