@@ -2,9 +2,7 @@
 title: "HRS-CMS Contingency Table Analysis"
 author: "Jiayi Huang"
 description: "A case study demonstrating contingency table analysis under linkage error."
-output: 
-  rmarkdown::html_vignette:
-    df_print: kable
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{HRS-CMS Contingency Table Analysis}
   %\VignetteEngine{knitr::rmarkdown}
@@ -15,7 +13,29 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = TRUE
+  eval = TRUE,
+  render = function(x, ...) {
+    if (is.data.frame(x) || is.matrix(x) || is.table(x)) {
+      cap <- knitr::opts_current$get("tab.cap")
+      if (!is.null(cap)) {
+        cap <- sprintf("<span style='white-space: nowrap; font-weight: bold;'>%s</span>", cap)
+      }
+      if (is.matrix(x) || is.table(x)) {
+        x <- as.data.frame.matrix(x)
+      }
+      out <- knitr::kable(
+        x, 
+        format = "html", 
+        digits = 4, 
+        caption = cap,
+        table.attr = "class='table' style='width: max-content !important; max-width: none !important; margin-bottom: 20px;'"
+      )
+      knitr::asis_output(paste(c("", "", out), 
+                               collapse = "\n"))
+    } else {
+      knitr::knit_print(x, ...)
+    }
+  }
 )
 ```
 

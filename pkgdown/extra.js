@@ -29,3 +29,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
   observer.observe(document.documentElement, { attributes: true });
 });
+
+/* Hide navbar logo on vignette/article pages */
+document.addEventListener("DOMContentLoaded", function() {
+  if (window.location.pathname.includes("/articles/")) {
+    const logos = document.querySelectorAll(".navbar-brand img");
+    logos.forEach(logo => {
+      logo.style.display = "none";
+      logo.style.visibility = "hidden";
+    });
+  }
+});
