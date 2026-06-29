@@ -2,7 +2,9 @@
 title: "HRS-CMS Contingency Table Analysis"
 author: "Jiayi Huang"
 description: "A case study demonstrating contingency table analysis under linkage error."
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    self_contained: true
 vignette: >
   %\VignetteIndexEntry{HRS-CMS Contingency Table Analysis}
   %\VignetteEngine{knitr::rmarkdown}
@@ -41,7 +43,7 @@ knitr::opts_chunk$set(
 
 
 <a target="_blank" href="https://colab.research.google.com/github/postlink-group/postlink/blob/main/notebooks/hrscms_contingency.ipynb">
-  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" style="width: 150px !important; height: auto !important; border: none;"/>
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" data-external="1" alt="Open In Colab" style="width: 150px !important; height: auto !important; border: none;"/>
 </a>
 
 ## **1. Linked Data Set: HRS-CMS Example**
