@@ -202,8 +202,8 @@ adj_counts <- matrix(
 c2 <- suppressWarnings(chisq.test(adj_counts))
 
 # Kappa
-p_o        <- sum(diag(adjusted_table_lower$phat))
-p_e        <- sum(rowSums(adjusted_table_lower$phat) * colSums(adjusted_table_lower$phat))
+p_o <- sum(diag(adjusted_table_lower$phat))
+p_e <- sum(rowSums(adjusted_table_lower$phat) * colSums(adjusted_table_lower$phat))
 k <- (p_o - p_e) / (1 - p_e)
 
 # Combine results into table
