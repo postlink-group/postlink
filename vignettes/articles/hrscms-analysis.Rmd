@@ -2,7 +2,9 @@
 title: "HRS-CMS Contingency Table Analysis"
 author: "Jiayi Huang"
 description: "A case study demonstrating contingency table analysis under linkage error."
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    df_print: kable
 vignette: >
   %\VignetteIndexEntry{HRS-CMS Contingency Table Analysis}
   %\VignetteEngine{knitr::rmarkdown}
@@ -10,7 +12,6 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-# This chunk ensures the vignette is static and won't run during package build
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -31,21 +32,14 @@ A subset of records is considered high-quality based on stricter linkage criteri
 
 For demonstration purposes, we examine a small aggregated subset of the HRS-CMS dataset. Each row represents a cell count for one combination of HRS self-report, CMS administrative record, and linkage mismatch status.
 
-```{r}
-# Data input (aggregated counts only)
-agg <- read.csv("hrscms_aggregated.csv")
-
-# Ensure types are numeric
-agg$mismatch   <- as.integer(agg$mismatch)
-agg$NRSHOM     <- as.integer(agg$NRSHOM)
-agg$mds_nrshom <- as.integer(agg$mds_nrshom)
-
-# Quick sanity check
-str(agg)
-knitr::kable(
-  head(agg),
-  caption = "Aggregated HRS-CMS data"
+```{r, tab.cap = "Aggregated HRS-CMS data"}
+agg <- data.frame(
+  NRSHOM     = as.integer(c(0, 1, 0, 1, 0, 0)),
+  mds_nrshom = as.integer(c(0, 0, 1, 1, 0, 1)),
+  mismatch   = as.integer(c(0, 0, 0, 0, 1, 1)),
+  count      = as.integer(c(271, 9, 5, 15, 56, 3))
 )
+agg # Data input (aggregated counts only)
 ```
 
 The dataset includes the following variables:  
@@ -56,12 +50,9 @@ The dataset includes the following variables:
 - `count`: number of records in each aggregated cell.  
 
 The overall linkage mismatch rate is computed as a weighted proportion using the aggregated counts:
-```{r}
+```{r, tab.cap = "Overall linkage mismatch rate"}
 mm_rate <- sum(agg$mismatch * agg$count) / sum(agg$count)
-knitr::kable(
-  data.frame(`Mismatch rate` = round(mm_rate, 4)),
-  caption = "Overall linkage mismatch rate"
-)
+data.frame(`Mismatch rate` = round(mm_rate, 4))
 ```
 
 The observed mismatch rate motivates the use of statistical methods that explicitly adjust for linkage error. Naive analyses that ignore these mismatches may underestimate or distort associations between variables. In later sections, we demonstrate the workflow for contingency table analysis under linkage error using the `postlink` package.
@@ -69,53 +60,49 @@ The observed mismatch rate motivates the use of statistical methods that explici
 
 ## **2. Naive Approach**
 We first use the observed aggregated data without accounting for potential linkage mismatches. This approach treats the linked data as if all records were correctly matched.
-```{r}
+```{r, tab.cap = "Naive contingency table in counts"}
 # Total number of records represented in the aggregated data
 n <- sum(agg$count)
 
 # Naive contingency table in counts
 ctab <- xtabs(count ~ NRSHOM + mds_nrshom, data = agg)
-knitr::kable(
-  as.data.frame.matrix(ctab),
-  caption = "Naive contingency table in counts"
-)
+as.data.frame.matrix(ctab)
+```
 
+```{r, tab.cap = "Naive contingency table in proportions"}
 # Naive contingency table in proportions
 ctab_prop <- ctab / sum(ctab)
-knitr::kable(
-  round(as.data.frame.matrix(ctab_prop), 4),
-  caption = "Naive contingency table in proportions"
-)
+round(as.data.frame.matrix(ctab_prop), 4)
 ```
+
 The naive table summarizes the observed joint distribution of HRS self-reported nursing home residence (`NRSHOM`) and CMS administrative nursing home residence (`mds_nrshom`) without adjusting for linkage error.
 
 ## **3. Exact Approach**
 We next restrict the analysis to aggregated cells corresponding to correctly linked records, where `mismatch = 0`. This provides a comparison table based only on records without linkage mismatches.
-```{r}
+
+```{r, tab.cap = "Exact-match contingency table in counts"}
 # Keep only correctly linked records
 agg_exact <- subset(agg, mismatch == 0)
 
 # Exact-match contingency table in counts
-ctab_exact <- xtabs(count ~ NRSHOM + mds_nrshom, data = agg_exact)
-knitr::kable(
-  as.data.frame.matrix(ctab_exact),
-  caption = "Exact-match contingency table in counts"
-)
+ctab_exact <- xtabs(count ~ NRSHOM + mds_nrshom, 
+                    data = agg_exact)
+as.data.frame.matrix(ctab_exact)
+```
 
+```{r, tab.cap = "Exact-match contingency table in proportions"}
 # Exact-match contingency table in proportions
 ctab_exact_prop <- ctab_exact / sum(ctab_exact)
-knitr::kable(
-  round(as.data.frame.matrix(ctab_exact_prop), 4),
-  caption = "Exact-match contingency table in proportions"
-)
+round(as.data.frame.matrix(ctab_exact_prop), 4)
 ```
+
 
 This table shows the joint distribution of HRS self-reports and CMS administrative records among correctly linked records only. Comparing this table with the naive table illustrates how linkage mismatches may affect the observed relationship between the two variables.
 
 
 ## **4. Adjustment Approach**
 We adjust for potential mismatches between HRS self-reports (`NRSHOM`) and CMS records (`mds_nrshom`) using the observed mismatch rate.
-```{r}
+```{r, tab.cap = "Adjusted contingency table in proportions"}
 library(postlink)
 
 # Expand the aggregated counts only for compatibility with postlink
@@ -142,14 +129,11 @@ adjusted_table <- plctable(
 )
 
 # Adjusted probability table
-knitr::kable(
-  round(as.data.frame.matrix(adjusted_table$phat), 4),
-  caption = "Adjusted contingency table in proportions"
-)
+round(as.data.frame.matrix(adjusted_table$phat), 4)
 ```
 
 We also demonstrate an alternative lower mismatch rate (not all non-exact matches are mismatches):
-```{r}
+```{r, tab.cap = "Adjusted contingency table using lower mismatch rate"}
 # Alternative lower mismatch rate
 lower_mm_rate <- 0.5 * mm_rate
 
@@ -163,10 +147,7 @@ adjusted_table_lower <- plctable(
   adjustment = adj_lower
 )
 
-knitr::kable(
-  round(as.data.frame.matrix(adjusted_table_lower$phat), 4),
-  caption = "Adjusted contingency table using lower mismatch rate"
-)
+round(as.data.frame.matrix(adjusted_table_lower$phat), 4)
 ```
 
 These adjusted tables estimate the joint distribution of the two nursing home residence indicators after accounting for possible linkage errors.
@@ -174,32 +155,25 @@ These adjusted tables estimate the joint distribution of the two nursing home re
 
 ## **5. Evaluation**
 We evaluate the adjusted contingency table for the HRSCMS dataset, quantifying how well it recovers the joint distribution of nursing home residence indicators across HRS and CMS records while accounting for mismatches.
-```{r}
-# Evaluation
-
+```{r, tab.cap = "Evaluation metrics for the adjusted contingency table"}
 # Use the adjusted table from the main adjustment approach
-phat_adj <- adjusted_table$phat
+phat_adj <- as.vector(t(adjusted_table_lower$phat)) 
 
 # Use the exact-match table from the aggregated data
-exactprobs <- ctab_exact_prop
-
-# Convert both tables to vectors in the same order
-phat_vec <- as.vector(t(phat_adj))
-exact_vec <- as.vector(t(exactprobs))
+exactprobs <- t(ctab_exact_prop)
 
 # MRAE
-mrae <- mean(abs(phat_vec - exact_vec) / exact_vec)
+mrae <- mean(abs((phat_adj - exactprobs) / exactprobs))
 
 # KLD
-kld <- sum(exact_vec * log(exact_vec / phat_vec))
+kld <- sum(exactprobs * log(exactprobs / phat_adj))
 
 # GOF
-n_exact <- sum(ctab_exact)
-gof <- n_exact * sum((exact_vec - phat_vec)^2 / exact_vec)
+gof <- n * sum((exactprobs - phat_adj)^2 / exactprobs)
 
 # Association
 adj_counts <- matrix(
-  n_exact * phat_vec,
+  n * phat_adj,
   byrow = TRUE,
   nrow = 2,
   ncol = 2
@@ -208,25 +182,16 @@ adj_counts <- matrix(
 c2 <- suppressWarnings(chisq.test(adj_counts))
 
 # Kappa
-suppressPackageStartupMessages(library(vcd))
-k <- Kappa(adj_counts)
+p_o        <- sum(diag(adjusted_table_lower$phat))
+p_e        <- sum(rowSums(adjusted_table_lower$phat) * colSums(adjusted_table_lower$phat))
+k <- (p_o - p_e) / (1 - p_e)
 
 # Combine results into table
-evaluation_results <- data.frame(
+data.frame(
   Metric = c("MRAE", "KLD", "GOF", "Chi-square", "Kappa"),
-  Value = c(
-    mrae,
-    kld,
-    gof,
-    as.numeric(c2$statistic),
-    k$Unweighted[1]
-  )
-)
-
-knitr::kable(
-  evaluation_results,
-  digits = 4,
-  caption = "Evaluation metrics for the adjusted contingency table"
+  Value  = round(c(mrae, kld, gof,
+                   as.numeric(c2$statistic), 
+                   k), 4)
 )
 ```
 
