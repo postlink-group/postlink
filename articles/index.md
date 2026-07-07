@@ -2,6 +2,12 @@
 
 ### All vignettes
 
+- [HRS-CMS Contingency Table
+  Analysis](https://postlink-group.github.io/postlink/articles/hrscms-analysis.md):
+
+  A case study demonstrating contingency table analysis under linkage
+  error.
+
 - [Longevity Analysis with LIFE-M
   Data](https://postlink-group.github.io/postlink/articles/longevity-analysis.md):
 

@@ -2,9 +2,10 @@ pandoc: 3.8.3
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
+  articles/hrscms-analysis: hrscms-analysis.html
   articles/longevity-analysis: longevity-analysis.html
   postlink: postlink.html
-last_built: 2026-05-13T00:52Z
+last_built: 2026-07-07T03:50Z
 urls:
   reference: https://postlink-group.github.io/postlink/reference
   article: https://postlink-group.github.io/postlink/articles
