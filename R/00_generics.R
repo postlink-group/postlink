@@ -53,7 +53,7 @@ rstudent.plglm <- function(model, ...) .plda_generic_error()
 # Base Methods for Adjustment Objects
 #
 
-#' Print base method for adjustment objects
+#' Print Base Method for Adjustment Objects
 #' @param x An object of class "adjustment".
 #' @param ... Additional arguments.
 #' @export
@@ -119,7 +119,7 @@ coef.survMixBayes <- function(object, ...) {
  return(colMeans(object$estimates$coefficients))
 }
 
-#' Extract Residual Degrees of Freedom for plglm models
+#' Extract Residual Degrees of Freedom for plglm Models
 #' @param object A fitted plglm object.
 #' @param ... Additional arguments.
 #' @export

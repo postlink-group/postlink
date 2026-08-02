@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{mi_with.survMixBayes}
 \alias{mi_with.survMixBayes}
-\title{Pool regression fits across posterior draws of correct-match classifications}
+\title{Pool Regression Fits Across Posterior Draws of Correct-Match Classifications}
 \usage{
 \method{mi_with}{survMixBayes}(
   object,

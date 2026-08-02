@@ -1,4 +1,4 @@
-#' Bayesian Mixture Helpers (Stan generation + priors)
+#' Bayesian Mixture Helpers (Stan Generation + Priors)
 #'
 #' Internal helper functions for Bayesian mixture workers.
 #' These are used by glmMixBayes / survregMixBayes engines and corresponding

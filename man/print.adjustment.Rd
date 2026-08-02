@@ -2,7 +2,7 @@
 % Please edit documentation in R/00_generics.R
 \name{print.adjustment}
 \alias{print.adjustment}
-\title{Print base method for adjustment objects}
+\title{Print Base Method for Adjustment Objects}
 \usage{
 \method{print}{adjustment}(x, ...)
 }
@@ -12,5 +12,5 @@
 \item{...}{Additional arguments.}
 }
 \description{
-Print base method for adjustment objects
+Print Base Method for Adjustment Objects
 }

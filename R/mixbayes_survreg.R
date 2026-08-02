@@ -1,4 +1,4 @@
-#' Bayesian two-component mixture survival regression model
+#' Bayesian Two-Component Mixture Survival Regression Model
 #'
 #' Fits a Bayesian two-component parametric survival regression model
 #' using Stan. Each observation is assumed to arise from one of two latent

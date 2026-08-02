@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{summary.glmMixBayes}
 \alias{summary.glmMixBayes}
-\title{Summary method for glmMixBayes models}
+\title{Summary Method for glmMixBayes Models}
 \usage{
 \method{summary}{glmMixBayes}(object, ...)
 }
@@ -15,7 +15,7 @@
 An object of class \code{"summary.glmMixBayes"}, which is printed with a custom method.
 }
 \description{
-Summary method for glmMixBayes models
+Summary Method for glmMixBayes Models
 }
 \examples{
 \donttest{

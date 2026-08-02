@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_glm.R
 \name{glmMixBayes}
 \alias{glmMixBayes}
-\title{Bayesian two-component mixture generalized linear model}
+\title{Bayesian Two-Component Mixture Generalized Linear Model}
 \usage{
 glmMixBayes(
   X,

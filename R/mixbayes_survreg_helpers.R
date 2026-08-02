@@ -2,7 +2,7 @@
 # Internal helpers for Bayesian survival mixture worker.
 # Keep these helpers in a file that is collated/sourced before mixture_bayessurvreg.R.
 
-#' Validate survreg dist string
+#' Validate Survreg Dist String
 #' @noRd
 .validate_survreg_dist <- function(dist) {
  if (missing(dist) || !is.character(dist) || length(dist) != 1L) {
@@ -11,7 +11,7 @@
  tolower(dist)
 }
 
-#' Normalize survreg response to (time, event)
+#' Normalize Survreg Response to (Time, Event)
 #' @noRd
 .normalize_surv_y <- function(y) {
  if (is.list(y) && all(c("time", "event") %in% names(y))) {
@@ -29,7 +29,7 @@
  list(time = time, event = event)
 }
 
-#' Generate Stan code for a two-component survival mixture
+#' Generate Stan Code for a Two-Component Survival Mixture
 #'
 #' Creates a complete Stan program as a single string for a two-component mixture survival model
 #' with both components of the same family (Gamma or Weibull). The Stan code includes

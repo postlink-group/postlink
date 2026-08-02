@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{print.survMixBayes}
 \alias{print.survMixBayes}
-\title{Print a survMixBayes model object}
+\title{Print a survMixBayes Model Object}
 \usage{
 \method{print}{survMixBayes}(x, digits = max(3L, getOption("digits") - 3L), ...)
 }

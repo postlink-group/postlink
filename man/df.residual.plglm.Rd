@@ -2,7 +2,7 @@
 % Please edit documentation in R/00_generics.R
 \name{df.residual.plglm}
 \alias{df.residual.plglm}
-\title{Extract Residual Degrees of Freedom for plglm models}
+\title{Extract Residual Degrees of Freedom for plglm Models}
 \usage{
 \method{df.residual}{plglm}(object, ...)
 }
@@ -12,5 +12,5 @@
 \item{...}{Additional arguments.}
 }
 \description{
-Extract Residual Degrees of Freedom for plglm models
+Extract Residual Degrees of Freedom for plglm Models
 }
