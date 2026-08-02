@@ -2,7 +2,7 @@
 # Internal helpers for Bayesian survival mixture worker.
 # Keep these helpers in a file that is collated/sourced before mixture_bayessurvreg.R.
 
-#' Validate Survreg Dist String
+#' Validate survreg Dist String
 #' @noRd
 .validate_survreg_dist <- function(dist) {
  if (missing(dist) || !is.character(dist) || length(dist) != 1L) {
@@ -11,7 +11,7 @@
  tolower(dist)
 }
 
-#' Normalize Survreg Response to (Time, Event)
+#' Normalize survreg Response to (Time, Event)
 #' @noRd
 .normalize_surv_y <- function(y) {
  if (is.list(y) && all(c("time", "event") %in% names(y))) {
