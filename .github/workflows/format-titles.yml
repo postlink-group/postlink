@@ -1,12 +1,13 @@
 name: Enforce Roxygen Title Case
 
 on:
+  workflow_dispatch:
   push:
-    branches: [main, master]
     paths:
       - 'R/**'
+    branches-ignore:
+      - 'auto/format-titles'
   pull_request:
-    branches: [main, master]
     paths:
       - 'R/**'
 
@@ -45,7 +46,7 @@ jobs:
           body: |
             This is an auto-generated PR.
 
-            The `format_roxygen_titles.R` script detected improperly cased titles in the `R/` directory. It has reformatted them to Title Case, and regenerated the `.Rd` files.
+            The `format_roxygen_titles.R` script detected improperly cased titles in the `R/` directory. It has reformatted them to Title Cases, and regenerated the `.Rd` files.
 
             Please review the changes to ensure everything looks correct before merging.
           branch: "auto/format-titles"
