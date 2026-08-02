@@ -102,7 +102,6 @@ plcoxph <- function(formula,
  if (!is.null(data_linked)) {
   mf$data <- data_linked
  }
-
  mf <- eval(mf, parent.frame())
 
  # Extract X and Y
