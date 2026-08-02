@@ -99,7 +99,7 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Priyanjali Bukke \email{postlink.group@gmail.com}
+
   \item Gauri Kamat
   \item Jiahao Cui
   \item Roee Gutman
