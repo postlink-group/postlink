@@ -99,7 +99,6 @@ Useful links:
 
 Authors:
 \itemize{
-
   \item Gauri Kamat
   \item Jiahao Cui
   \item Roee Gutman
