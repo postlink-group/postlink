@@ -9,7 +9,7 @@ format_title <- function(text) {
 
  # Define a dictionary of terms that must retain exact casing
  exception_terms <- c(
-  "postlink",
+  "postlink", "survreg",
   "BRFSS", "ELE", "GLM", "CoxPH",
   "adjELE", "adjMixBayes", "adjMixture",
   "plcoxph", "coxphELE", "coxphMixture",
