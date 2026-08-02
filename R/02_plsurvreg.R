@@ -126,5 +126,7 @@ plsurvreg <- function(formula,
  if (x) fit$x <- X_mat
  if (y) fit$y <- Y_obj
 
+ class(fit) <- c(class(fit), "plsurvreg", "plmodel")
+
  return(fit)
 }

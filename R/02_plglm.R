@@ -144,8 +144,7 @@ plglm <- function(formula,
  # class hierarchy
  # 1. Function Class (e.g., "glmMixture") - preserved from fitglm
  # 2. Package Class ("plglm") - added here
- # 3. Standard Classes ("glm", "lm") - added here for compatibility
- class(fit) <- c(class(fit), "plglm", "glm", "lm")
+ class(fit) <- c(class(fit), "plglm", "plmodel")
 
  return(fit)
 }

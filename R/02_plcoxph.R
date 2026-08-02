@@ -128,7 +128,7 @@ plcoxph <- function(formula,
  if (x) fit$x <- X_mat
  if (y) fit$y <- Y_obj
 
- class(fit) <- c(class(fit), "plcoxph", "coxph")
+ class(fit) <- c(class(fit), "plcoxph", "plmodel")
 
  return(fit)
 }

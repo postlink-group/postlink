@@ -101,7 +101,7 @@ plctable <- function(formula,
  fit$formula <- formula
 
  # Append package-level class "plctable" to the internal function-level class
- class(fit) <- c(class(fit), "plctable")
+ class(fit) <- c(class(fit), "plctable", "plmodel")
 
  return(fit)
 }
