@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{mixture_bayessurvreg_methods}
 \alias{mixture_bayessurvreg_methods}
-\title{Methods for Bayesian mixture survival regression fits}
+\title{Methods for Bayesian Mixture Survival Regression Fits}
 \description{
 S3 methods for objects returned by \code{survregMixBayes()}, including
 printing, summarizing fitted models, computing credible intervals and

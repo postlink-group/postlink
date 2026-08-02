@@ -1,4 +1,4 @@
-#' Bayesian two-component mixture generalized linear model
+#' Bayesian Two-Component Mixture Generalized Linear Model
 #'
 #' Fits a Bayesian two-component mixture generalized linear model (GLM)
 #' using Stan. Each observation is assumed to arise from one of two latent

@@ -1,4 +1,4 @@
-#' Methods for Bayesian mixture survival regression fits
+#' Methods for Bayesian Mixture Survival Regression Fits
 #'
 #' @description
 #' S3 methods for objects returned by \code{survregMixBayes()}, including
@@ -10,7 +10,7 @@
 #' @keywords internal
 NULL
 
-#' Print a survMixBayes model object
+#' Print a survMixBayes Model Object
 #'
 #' Prints the model call and posterior mean regression coefficients for the
 #' first mixture component of the fitted survival model. In this package,
@@ -76,7 +76,7 @@ print.survMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L), ..
   invisible(x)
 }
 
-#' Summary method for survMixBayes models
+#' Summary Method for survMixBayes Models
 #'
 #' Computes posterior summaries for the regression coefficients, mixing weight,
 #' and component-specific distribution parameters in a fitted
@@ -187,7 +187,7 @@ print.summary.survMixBayes <- function(x, digits = max(3L, getOption("digits") -
   invisible(x)
 }
 
-#' Credible intervals for parameters from a survMixBayes fit
+#' Credible Intervals for Parameters from a survMixBayes Fit
 #'
 #' Computes posterior credible intervals for the regression coefficients,
 #' mixing weight, and family-specific distribution parameters from a fitted
@@ -281,7 +281,7 @@ confint.survMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
  out
 }
 
-#' Posterior covariance matrix for survMixBayes coefficients
+#' Posterior Covariance Matrix for survMixBayes Coefficients
 #'
 #' Returns the empirical posterior covariance matrix of the regression
 #' coefficients for component 1 of a fitted \code{survMixBayes} model.
@@ -339,7 +339,7 @@ vcov.survMixBayes <- function(object, ...) {
   stats::cov(b)
 }
 
-#' Predictions from a survMixBayes model
+#' Predictions from a survMixBayes Model
 #'
 #' Computes posterior predictions for each latent component of a
 #' \code{survMixBayes} model. By default, predictions are returned on the
@@ -510,7 +510,7 @@ predict.survMixBayes <- function(object, newdata = NULL,
  )
 }
 
-#' Pool regression fits across posterior draws of correct-match classifications
+#' Pool Regression Fits Across Posterior Draws of Correct-Match Classifications
 #'
 #' @description
 #' Use posterior draws of the latent match indicators from \code{survregMixBayes()}
@@ -723,7 +723,7 @@ mi_with.survMixBayes <- function(object, data, formula,
  out
 }
 
-#' Print pooled Cox regression results
+#' Print Pooled Cox Regression Results
 #'
 #' @param x An object of class \code{mi_link_pool_survreg}, typically returned by
 #'   \code{mi_with()} for a \code{survMixBayes} fit.

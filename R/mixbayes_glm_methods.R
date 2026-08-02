@@ -1,4 +1,4 @@
-#' Methods for Bayesian mixture GLM fits
+#' Methods for Bayesian Mixture GLM Fits
 #'
 #' @description
 #' S3 methods for objects returned by \code{glmMixBayes()}, including printing,
@@ -10,7 +10,7 @@
 #' @keywords internal
 NULL
 
-#' Pool parameter estimates across posterior draws
+#' Pool Parameter Estimates Across Posterior Draws
 #'
 #' Generic function for pooling parameter estimates from Bayesian mixture
 #' models using posterior draws of the latent component indicators.
@@ -33,7 +33,7 @@ mi_with <- function(object, ...) {
  UseMethod("mi_with", object)
 }
 
-#' Print a glmMixBayes model object
+#' Print a glmMixBayes Model Object
 #'
 #' @param x An object of class \code{glmMixBayes}.
 #' @param digits Minimum number of significant digits to show.
@@ -89,7 +89,7 @@ print.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 3L),...)
   invisible(x)
 }
 
-#' Summary method for glmMixBayes models
+#' Summary Method for glmMixBayes Models
 #'
 #' @param object An object of class \code{glmMixBayes}.
 #' @param ... Not used.
@@ -218,7 +218,7 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
   invisible(x)
 }
 
-#' Posterior covariance matrix for glmMixBayes coefficients
+#' Posterior Covariance Matrix for glmMixBayes Coefficients
 #'
 #' @param object A \code{glmMixBayes} model object.
 #' @param ... Not used.
@@ -264,7 +264,7 @@ vcov.glmMixBayes <- function(object, ...) {
  stats::cov(object$estimates$coefficients)
 }
 
-#' Credible intervals for regression coefficients from a glmMixBayes fit
+#' Credible Intervals for Regression Coefficients from a glmMixBayes Fit
 #'
 #' Computes posterior credible intervals for the regression coefficients in a
 #' fitted \code{glmMixBayes} model. By default, intervals are returned for all
@@ -329,7 +329,7 @@ confint.glmMixBayes <- function(object, parm = NULL, level = 0.95, ...) {
 }
 
 
-#' Predictions from a glmMixBayes model
+#' Predictions from a glmMixBayes Model
 #'
 #' @param object A \code{glmMixBayes} model object.
 #' @param newx A numeric matrix of new observations (n_new x K) with columns aligned
@@ -452,7 +452,7 @@ predict.glmMixBayes <- function(object, newx,
 }
 
 
-#' Pooling regression fits across posterior draws of correct-match classifications
+#' Pooling Regression Fits Across Posterior Draws of Correct-Match Classifications
 #'
 #' @description
 #' Use posterior draws of the latent match indicators from \code{glmMixBayes()}
@@ -657,7 +657,7 @@ mi_with.glmMixBayes <- function(object, data, formula,
   out
 }
 
-#' Print pooled regression results
+#' Print Pooled Regression Results
 #'
 #' @param x An object of class \code{mi_link_pool_glm}, typically returned by
 #'   \code{mi_with()} for a \code{glmMixBayes} fit.

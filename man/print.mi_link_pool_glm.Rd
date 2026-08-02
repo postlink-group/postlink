@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{print.mi_link_pool_glm}
 \alias{print.mi_link_pool_glm}
-\title{Print pooled regression results}
+\title{Print Pooled Regression Results}
 \usage{
 \method{print}{mi_link_pool_glm}(x, digits = max(3L, getOption("digits") - 2L), ...)
 }
@@ -18,7 +18,7 @@
 The input \code{x}, invisibly.
 }
 \description{
-Print pooled regression results
+Print Pooled Regression Results
 }
 \examples{
 \donttest{

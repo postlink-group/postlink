@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_survreg.R
 \name{survregMixBayes}
 \alias{survregMixBayes}
-\title{Bayesian two-component mixture survival regression model}
+\title{Bayesian Two-Component Mixture Survival Regression Model}
 \usage{
 survregMixBayes(
   X,
