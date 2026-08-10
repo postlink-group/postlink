@@ -304,7 +304,9 @@ print.summary.coxphMixture <- function(x,
  dput(x$call)
 
  cat("\n--- Outcome Model (Cox PH) ---\n")
- stats::printCoefmat(x$coefficients, digits = digits, signif.stars = signif.stars, P.values = TRUE, has.Pvalue = TRUE)
+ stats::printCoefmat(x$coefficients, digits = digits, signif.stars = signif.stars,
+                     P.values = TRUE, has.Pvalue = TRUE,
+                     signif.legend = FALSE)
 
  cat("\n--- Hazard Ratios & Confidence Intervals ---\n")
  print(x$conf.int, digits = digits)

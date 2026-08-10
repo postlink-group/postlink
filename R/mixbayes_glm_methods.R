@@ -189,30 +189,33 @@ print.summary.glmMixBayes <- function(x, digits = max(3L, getOption("digits") - 
   cat(" ", sep="\n")
   cat("Family:", x$family, " ", sep="\n")
 
+  print_mat <- function(mat) {
+   print(format(round(mat, digits = digits), nsmall = digits),
+         quote = FALSE, right = TRUE)
+  }
+
   cat("(Component 1 = Correct-match):", sep = "\n")
 
   cat("Outcome Model Coefficients:", sep="\n")
-  stats::printCoefmat(x$coefficients,quote=F, digits = digits,
-               signif.stars = signif.stars)
-  cat(" ", sep="\n")
+  print_mat(x$coefficients)
+  cat("\n")
 
   if (x$family %in% c("gamma", "gaussian")){
-    cat("Dispersion:", sep="\n")
-    print(format(signif(x$dispersion, digits)), print.gap = 2, quote = F)
+   cat("Dispersion:", sep="\n")
+   print_mat(x$dispersion)
     cat("\n")
   }
 
   cat("(Component 2 = Incorrect-match):", sep = "\n")
 
   cat("Outcome Model Coefficients:", sep="\n")
-  stats::printCoefmat(x$m.coefficients,quote=F, digits = digits,
-               signif.stars = signif.stars)
-  cat(" ", sep="\n")
+  print_mat(x$m.coefficients)
+  cat("\n")
 
   if (x$family %in% c("gamma", "gaussian")){
     cat("Dispersion:", sep="\n")
-    print(format(signif(x$m.dispersion, digits)), print.gap = 2, quote = F)
-    cat("\n")
+   print_mat(x$m.dispersion)
+   cat("\n")
   }
 
   invisible(x)
@@ -718,6 +721,7 @@ print.mi_link_pool_glm <- function(x, digits = max(3L, getOption("digits") - 2L)
   tab <- cbind(Estimate = est, Std.Error = se,
                CI.lwr = ci[, "lwr"], CI.upr = ci[, "upr"],
                df = df)
-  print(round(tab, digits))
+
+  stats::printCoefmat(tab, digits = digits, has.Pvalue = FALSE, ...)
   invisible(x)
 }

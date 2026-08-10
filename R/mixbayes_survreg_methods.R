@@ -791,6 +791,6 @@ print.mi_link_pool_survreg <- function(x,
   df        = x$df
  )
 
- print(round(tab, digits))
+ stats::printCoefmat(tab, digits = digits, has.Pvalue = FALSE, ...)
  invisible(x)
 }
