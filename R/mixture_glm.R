@@ -110,6 +110,10 @@ glmMixture <- function(x, y, family,
  }
  family_name <- tolower(family$family)
 
+ if (family_name == "gaussian" && family$link != "identity") {
+  stop("The 'gaussian' family is currently restricted to the 'identity' link.")
+ }
+
  # Marginal Density (fy) Estimation
  fy <- con$fy
  if (is.null(fy)) {
