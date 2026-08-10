@@ -48,6 +48,7 @@ print.adjMixBayes <- function(x, ...) {
   cat("\n    Status:       None specified. Using symmetric defaults.\n")
  }
 
+ cat("\n")
  cat("    Defaults applied during fitting (for any unspecified):\n")
  cat("      Intercept:  intercept ~ normal(0,10)\n")
  cat("      GLM Slopes: beta ~ normal(0,5) [binomial: normal(0,2.5)]\n")

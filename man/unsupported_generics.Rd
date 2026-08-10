@@ -8,7 +8,6 @@
 \alias{extractAIC.plmodel}
 \alias{cooks.distance.plglm}
 \alias{rstudent.plglm}
-\alias{dffits.plglm}
 \title{Unsupported Generics for postlink Models}
 \usage{
 \method{logLik}{plmodel}(object, ...)
@@ -22,8 +21,6 @@
 \method{cooks.distance}{plglm}(model, ...)
 
 \method{rstudent}{plglm}(model, ...)
-
-dffits.plglm(model, ...)
 }
 \arguments{
 \item{object}{A fitted model object.}
