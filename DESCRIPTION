@@ -35,7 +35,6 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Config/testthat/edition: 3
 BugReports: https://github.com/postlink-group/postlink/issues
 Biarch: true
@@ -49,3 +48,4 @@ LinkingTo:
 SystemRequirements: GNU make
 URL: https://postlink-group.github.io/postlink/
 Config/Needs/website: rmarkdown
+Config/roxygen2/version: 8.0.0

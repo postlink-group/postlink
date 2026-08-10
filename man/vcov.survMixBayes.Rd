@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{vcov.survMixBayes}
 \alias{vcov.survMixBayes}
-\title{Posterior covariance matrix for survMixBayes coefficients}
+\title{Posterior Covariance Matrix for survMixBayes Coefficients}
 \usage{
 \method{vcov}{survMixBayes}(object, ...)
 }

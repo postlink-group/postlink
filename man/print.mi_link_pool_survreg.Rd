@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{print.mi_link_pool_survreg}
 \alias{print.mi_link_pool_survreg}
-\title{Print pooled Cox regression results}
+\title{Print Pooled Cox Regression Results}
 \usage{
 \method{print}{mi_link_pool_survreg}(x, digits = max(3L, getOption("digits") - 2L), ...)
 }
@@ -18,7 +18,7 @@
 The input \code{x}, invisibly.
 }
 \description{
-Print pooled Cox regression results
+Print Pooled Cox Regression Results
 }
 \examples{
 \donttest{

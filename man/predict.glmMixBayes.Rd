@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{predict.glmMixBayes}
 \alias{predict.glmMixBayes}
-\title{Predictions from a glmMixBayes model}
+\title{Predictions from a glmMixBayes Model}
 \usage{
 \method{predict}{glmMixBayes}(
   object,
@@ -36,7 +36,7 @@ Otherwise, a matrix with columns for the fit, (optional) \code{se.fit}, and (opt
 credible interval bounds.
 }
 \description{
-Predictions from a glmMixBayes model
+Predictions from a glmMixBayes Model
 }
 \examples{
 \donttest{

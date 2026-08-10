@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{confint.glmMixBayes}
 \alias{confint.glmMixBayes}
-\title{Credible intervals for regression coefficients from a glmMixBayes fit}
+\title{Credible Intervals for Regression Coefficients from a glmMixBayes Fit}
 \usage{
 \method{confint}{glmMixBayes}(object, parm = NULL, level = 0.95, ...)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{mi_with}
 \alias{mi_with}
-\title{Pool parameter estimates across posterior draws}
+\title{Pool Parameter Estimates Across Posterior Draws}
 \usage{
 mi_with(object, ...)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{mixture_bayesglm_methods}
 \alias{mixture_bayesglm_methods}
-\title{Methods for Bayesian mixture GLM fits}
+\title{Methods for Bayesian Mixture GLM Fits}
 \description{
 S3 methods for objects returned by \code{glmMixBayes()}, including printing,
 summarizing fitted models, computing credible intervals and posterior
