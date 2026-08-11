@@ -48,5 +48,4 @@ LinkingTo:
 SystemRequirements: GNU make
 URL: https://postlink-group.github.io/postlink/
 Config/Needs/website: rmarkdown
-Config/roxygen2/version: 8.0.0
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.1.0

@@ -92,49 +92,55 @@ importFrom(RcppParallel,RcppParallelLibs)
 importFrom(nleqslv,nleqslv)
 importFrom(rstan,sampling)
 importFrom(rstantools,rstan_config)
-importFrom(stats,Gamma)
-importFrom(stats,aggregate)
-importFrom(stats,approxfun)
-importFrom(stats,ave)
-importFrom(stats,binomial)
-importFrom(stats,coef)
-importFrom(stats,constrOptim)
-importFrom(stats,cov)
-importFrom(stats,dbinom)
-importFrom(stats,delete.response)
-importFrom(stats,density)
-importFrom(stats,dgamma)
-importFrom(stats,dnorm)
-importFrom(stats,dpois)
-importFrom(stats,family)
-importFrom(stats,formula)
-importFrom(stats,gaussian)
-importFrom(stats,glm)
-importFrom(stats,glm.fit)
-importFrom(stats,lm)
-importFrom(stats,model.frame)
-importFrom(stats,model.matrix)
-importFrom(stats,model.response)
-importFrom(stats,na.pass)
-importFrom(stats,napredict)
-importFrom(stats,optim)
-importFrom(stats,plogis)
-importFrom(stats,poisson)
-importFrom(stats,predict)
-importFrom(stats,qlogis)
-importFrom(stats,qnorm)
-importFrom(stats,qt)
-importFrom(stats,quasibinomial)
-importFrom(stats,sd)
-importFrom(stats,terms)
-importFrom(stats,var)
-importFrom(stats,vcov)
-importFrom(survival,Surv)
-importFrom(survival,coxph)
-importFrom(survival,coxph.control)
-importFrom(survival,coxph.fit)
-importFrom(survival,survfit)
-importFrom(utils,modifyList)
-importFrom(utils,setTxtProgressBar)
-importFrom(utils,txtProgressBar)
+importFrom(stats,
+  Gamma,
+  aggregate,
+  approxfun,
+  ave,
+  binomial,
+  coef,
+  constrOptim,
+  cov,
+  dbinom,
+  delete.response,
+  density,
+  dgamma,
+  dnorm,
+  dpois,
+  family,
+  formula,
+  gaussian,
+  glm,
+  glm.fit,
+  lm,
+  model.frame,
+  model.matrix,
+  model.response,
+  na.pass,
+  napredict,
+  optim,
+  plogis,
+  poisson,
+  predict,
+  qlogis,
+  qnorm,
+  qt,
+  quasibinomial,
+  sd,
+  terms,
+  var,
+  vcov
+)
+importFrom(survival,
+  Surv,
+  coxph,
+  coxph.control,
+  coxph.fit,
+  survfit
+)
+importFrom(utils,
+  modifyList,
+  setTxtProgressBar,
+  txtProgressBar
+)
 useDynLib(postlink, .registration = TRUE)
