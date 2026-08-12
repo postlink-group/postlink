@@ -27,7 +27,7 @@
 #'
 #' @export
 print.adjELE <- function(x, digits = 3, ...) {
- cat("\n Adjustment Object: Exchangeable Linkage Errors (Chambers, 2009) \n")
+ cat("\n Adjustment Object: Exchangeable Linkage Errors \n")
 
  NextMethod("print")
 

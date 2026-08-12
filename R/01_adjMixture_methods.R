@@ -32,7 +32,7 @@
 #'
 #' @export
 print.adjMixture <- function(x, digits = 3, ...) {
- cat("\n Adjustment Object: Mixture Model (Slawski et al., 2025) \n")
+ cat("\n Adjustment Object: Mixture Model \n")
 
  NextMethod("print")
 

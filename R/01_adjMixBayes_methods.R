@@ -34,7 +34,7 @@
 #'
 #' @export
 print.adjMixBayes <- function(x, ...) {
- cat("\n Adjustment Object: Bayesian Mixture (Gutman et al., 2016) \n")
+ cat("\n Adjustment Object: Bayesian Mixture \n")
 
  NextMethod("print")
 
