@@ -170,6 +170,9 @@ glmMixture <- function(x, y, family,
 
  # Initialization: Gamma
  gamma_cur <- con$init.gamma
+ if (!is.null(gamma_cur)) {
+  gamma_cur <- -1 * gamma_cur
+ }
  if (is.null(gamma_cur)) {
   if (!is.null(logitbound)) {
    if (ncol(z) == 1 && all(z == 1)) {
@@ -430,6 +433,8 @@ glmMixture <- function(x, y, family,
   Hess[(d+1):ncol(Hess), 1:d] <- t(Hess[1:d, (d+1):ncol(Hess)])
  }
 
+ gamma_cur <- as.numeric(-1 * gamma_cur)
+
  cov_1_hat <- tryCatch(solve(Hess, meat), error = function(e) matrix(NA, nrow(Hess), ncol(Hess)))
  covhat <- if (anyNA(cov_1_hat)) matrix(NA, nrow(Hess), ncol(Hess)) else t(solve(Hess, t(cov_1_hat)))
 
@@ -452,6 +457,16 @@ glmMixture <- function(x, y, family,
  }
  rownames(covhat) <- colnames(covhat) <- rn
 
+ p_tot <- ncol(covhat)
+ p_gamma <- ncol(z)
+ idx_other <- 1:(p_tot - p_gamma)
+ idx_gamma <- (p_tot - p_gamma + 1):p_tot
+
+ if (!anyNA(covhat)) {
+  covhat[idx_other, idx_gamma] <- -1 * covhat[idx_other, idx_gamma]
+  covhat[idx_gamma, idx_other] <- -1 * covhat[idx_gamma, idx_other]
+ }
+
  out <- list(coefficients = beta_cur,
              m.coefficients = gamma_cur,
              residuals = y - mu_cur,
@@ -464,7 +479,7 @@ glmMixture <- function(x, y, family,
              rank = p,
              family = family,
              converged = converged_flag,
-             match.prob = hs,
+             match.prob = as.numeric(hs),
              var = covhat,
              objective = objs[1:iter],
              call = match.call())

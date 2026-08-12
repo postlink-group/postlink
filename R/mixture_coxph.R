@@ -179,7 +179,7 @@ coxphMixture <- function(x, y, cens,
       gamma_cur <- rep(0, ncol(z))
     }
   } else {
-    gamma_cur <- control$init.gamma
+   gamma_cur <- -1 * control$init.gamma
   }
 
   # EM Algorithm
@@ -407,6 +407,15 @@ coxphMixture <- function(x, y, cens,
     matrix(NA, pt, pt)
   })
 
+  idx_beta <- 1:ncol(x)
+  idx_gamma <- (ncol(x) + 1):pt
+  if (!anyNA(covhat)) {
+   covhat[idx_beta, idx_gamma] <- -1 * covhat[idx_beta, idx_gamma]
+   covhat[idx_gamma, idx_beta] <- -1 * covhat[idx_gamma, idx_beta]
+  }
+
+  gamma_cur <- as.numeric(-1 * gamma_cur)
+
   beta_names <- colnames(x); if (is.null(beta_names)) beta_names <- paste0("beta", 1:ncol(x))
   gamma_names <- colnames(z); if (is.null(gamma_names)) gamma_names <- paste0("gamma", 1:ncol(z))
 
@@ -420,7 +429,7 @@ coxphMixture <- function(x, y, cens,
               means = colMeans(x),
               n = n,
               nevent = sum(1 - cens),
-              match.prob = hs,
+              match.prob = as.numeric(hs),
               objective = objs[1:(iter - 1)],
               converged = iter < control$max.iter,
               Lambdahat0 = Lambdahat_0,

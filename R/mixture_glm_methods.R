@@ -442,11 +442,9 @@ summary.glmMixture <- function(object, dispersion = NULL, ...) {
   z_val_m <- m_est / m_se
   p_val_m <- 2 * stats::pnorm(-abs(z_val_m)) # Mismatch model usually asymptotic/Wald
 
-  m_coef_mat <- cbind(Estimate = m_est,
-                      `Std. Error` = m_se,
-                      `z value` = z_val_m,
-                      `Pr(>|z|)` = p_val_m)
+  m_coef_mat <- cbind(m_est, m_se, z_val_m, p_val_m)
   rownames(m_coef_mat) <- names(object$m.coefficients)
+  colnames(m_coef_mat) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
  }
 
  # Dispersion
