@@ -43,6 +43,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "style: auto-format Roxygen man page titles to Title Case"
           title: "Style: Auto-format Roxygen documentation titles"
+          base: ${{ github.base_ref || github.ref_name }}
           add-paths: |
             R/*.R
             man/*.Rd
