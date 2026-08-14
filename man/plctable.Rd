@@ -38,6 +38,8 @@ returned object depend directly on the \code{adjustment} method provided:
 \itemize{
 \item If \code{adjustment} is of class \code{adjMixture}, returns an object of class \code{\link{ctableMixture}}.
 }
+The returned object is a list containing the original \code{adjustment} object
+under the \code{adjustment} element.
 }
 \description{
 \code{plctable} constructs a contingency table and adjusts the fitted model for

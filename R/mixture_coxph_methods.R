@@ -270,12 +270,9 @@ summary.coxphMixture <- function(object, conf.int = 0.95, scale = 1, ...) {
   z_gamma <- gamma / se_gamma
   p_gamma <- 2 * (1 - stats::pnorm(abs(z_gamma)))
 
-  m_coef_mat <- cbind(
-   Estimate = gamma,
-   `Std. Error` = se_gamma,
-   `z value` = z_gamma,
-   `Pr(>|z|)` = p_gamma
-  )
+  m_coef_mat <- cbind(gamma, se_gamma, z_gamma, p_gamma)
+
+  colnames(m_coef_mat) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
   rownames(m_coef_mat) <- names(gamma)
  }
 
@@ -304,7 +301,9 @@ print.summary.coxphMixture <- function(x,
  dput(x$call)
 
  cat("\n--- Outcome Model (Cox PH) ---\n")
- stats::printCoefmat(x$coefficients, digits = digits, signif.stars = signif.stars, P.values = TRUE, has.Pvalue = TRUE)
+ stats::printCoefmat(x$coefficients, digits = digits, signif.stars = signif.stars,
+                     P.values = TRUE, has.Pvalue = TRUE,
+                     signif.legend = FALSE)
 
  cat("\n--- Hazard Ratios & Confidence Intervals ---\n")
  print(x$conf.int, digits = digits)

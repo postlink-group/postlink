@@ -11,17 +11,17 @@ designed to rigorously account for record linkage errors in downstream modeling.
 
 Record linkage is often error-prone. When datasets are merged using noisy or non-unique
 identifiers, mismatches (false links) are inadvertently introduced. Ignoring these errors
-acts as a contaminant in regression analysis, typically leading to significantly attenuated
+acts as a contaminant in regression analysis, typically leading to attenuated
 estimates and biased statistical inference. \code{postlink} equips researchers with
-methodologies to propagate linkage uncertainty into their models, specifically accommodating
+methodologies to propagate linkage uncertainty into their models, in particular accommodating
 "secondary analysis" workflows where direct access to the primary, unlinked files is restricted.
 }
 \details{
 \strong{A Two-Phase Workflow}
 
-The package is built on a modular, object-oriented S3 architecture that decouples
-the specification of linkage error from the substantive statistical modeling. This
-provides a familiar, standard formula-based modeling interface.
+The package is built on a modular, object-oriented S3 architecture to
+provide a familiar, standard formula-based modeling interface. The
+specification of linkage error is decoupled from the substantive statistical modeling.
 
 \strong{Phase 1: Adjustment Specification}
 
@@ -99,6 +99,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Priyanjali Bukke \email{postlink.group@gmail.com}
   \item Gauri Kamat
   \item Jiahao Cui
   \item Roee Gutman

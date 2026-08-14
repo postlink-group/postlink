@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{predict.survMixBayes}
 \alias{predict.survMixBayes}
-\title{Predictions from a survMixBayes model}
+\title{Predictions from a survMixBayes Model}
 \usage{
 \method{predict}{survMixBayes}(
   object,

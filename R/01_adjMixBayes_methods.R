@@ -34,35 +34,12 @@
 #'
 #' @export
 print.adjMixBayes <- function(x, ...) {
+ cat("\n Adjustment Object: Bayesian Mixture \n")
 
- # Header: ASCII used for maximum CRAN compatibility
- cat("\n--- Adjustment Object: Bayesian Mixture (Gutman et al., 2016) ---\n")
+ NextMethod("print")
 
- # Check data status safely
- has_data <- FALSE
- n_obs <- 0
-
- # Verify environment exists and contains non-NULL data
- if (!is.null(x$data_ref) && is.environment(x$data_ref)) {
-  if (exists("data", envir = x$data_ref, inherits = FALSE)) {
-   stored_data <- x$data_ref$data
-   if (!is.null(stored_data) && is.data.frame(stored_data)) {
-    has_data <- TRUE
-    n_obs <- nrow(stored_data)
-   }
-  }
- }
-
- cat("\n* Linked Data:")
- if (has_data) {
-  cat("\n    Observations:", format(n_obs, big.mark = ","))
- } else {
-  cat("\n    Status:       None specified (NULL)\n")
- }
-
- cat("\n* Priors:")
+ cat("\n* Priors:\n")
  if (!is.null(x$priors) && length(x$priors) > 0) {
-  cat("\n    User-specified overrides:\n")
   for (p in names(x$priors)) {
    cat(sprintf("      %-10s : %s\n", p, x$priors[[p]]))
   }
@@ -71,7 +48,8 @@ print.adjMixBayes <- function(x, ...) {
   cat("\n    Status:       None specified. Using symmetric defaults.\n")
  }
 
- cat("    Defaults applied during fitting:\n")
+ cat("\n")
+ cat("    Defaults applied during fitting (for any unspecified):\n")
  cat("      Intercept:  intercept ~ normal(0,10)\n")
  cat("      GLM Slopes: beta ~ normal(0,5) [binomial: normal(0,2.5)]\n")
  cat("      Surv Slopes: beta ~ normal(0,5) [weibull: normal(0,2)]\n")

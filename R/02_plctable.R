@@ -20,6 +20,8 @@
 #' \itemize{
 #'   \item If `adjustment` is of class `adjMixture`, returns an object of class \code{\link{ctableMixture}}.
 #' }
+#' The returned object is a list containing the original `adjustment` object
+#' under the \code{adjustment} element.
 #'
 #' @examples
 #' set.seed(102)
@@ -97,11 +99,12 @@ plctable <- function(formula,
                   ...)
 
  # Post-Processing & Class Assignment
+ fit$adjustment <- adjustment
  fit$call <- cl
  fit$formula <- formula
 
  # Append package-level class "plctable" to the internal function-level class
- class(fit) <- c(class(fit), "plctable")
+ class(fit) <- c(class(fit), "plctable", "plmodel")
 
  return(fit)
 }

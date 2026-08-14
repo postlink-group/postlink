@@ -141,8 +141,9 @@ print.summary.glmELE <- function(x, digits = max(3L, getOption("digits") - 3L),
   # Iterate over each method's summary
   for (m in names(x$coefficients)) {
     cat(paste0("\n--- Weighting Method: ", m, " ---\n"))
-    stats::printCoefmat(x$coefficients[[m]], digits = digits, signif.stars = signif.stars,
-                        na.print = "NA", ...)
+   stats::printCoefmat(x$coefficients[[m]], digits = digits,
+                       signif.stars = signif.stars, has.Pvalue = TRUE,
+                       na.print = "NA", ...)
 
     # Print dispersion if available for this method
     if (!is.null(x$dispersion) && m %in% names(x$dispersion)) {

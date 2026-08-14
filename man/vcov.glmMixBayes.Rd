@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{vcov.glmMixBayes}
 \alias{vcov.glmMixBayes}
-\title{Posterior covariance matrix for glmMixBayes coefficients}
+\title{Posterior Covariance Matrix for glmMixBayes Coefficients}
 \usage{
 \method{vcov}{glmMixBayes}(object, ...)
 }
@@ -16,7 +16,7 @@ Posterior covariance matrix of the regression coefficients for
 component 1 (the correct-match component).
 }
 \description{
-Posterior covariance matrix for glmMixBayes coefficients
+Posterior Covariance Matrix for glmMixBayes Coefficients
 }
 \examples{
 \donttest{

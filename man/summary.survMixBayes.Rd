@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{summary.survMixBayes}
 \alias{summary.survMixBayes}
-\title{Summary method for survMixBayes models}
+\title{Summary Method for survMixBayes Models}
 \usage{
 \method{summary}{survMixBayes}(object, probs = c(0.025, 0.5, 0.975), ...)
 }

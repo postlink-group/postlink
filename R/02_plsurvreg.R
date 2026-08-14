@@ -25,6 +25,8 @@
 #' \itemize{
 #'   \item If `adjustment` is of class `adjMixBayes`, returns an object of class \code{\link{survregMixBayes}}.
 #' }
+#' The returned object is a list containing the original `adjustment` object
+#' under the \code{adjustment} element.
 #'
 #' @examples
 #' \donttest{
@@ -121,10 +123,13 @@ plsurvreg <- function(formula,
                    ...)
 
  # Post-Processing
+ fit$adjustment <- adjustment
  fit$call <- cl
  if (model) fit$model <- mf
  if (x) fit$x <- X_mat
  if (y) fit$y <- Y_obj
+
+ class(fit) <- c(class(fit), "plsurvreg", "plmodel")
 
  return(fit)
 }

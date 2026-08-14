@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_survreg_methods.R
 \name{confint.survMixBayes}
 \alias{confint.survMixBayes}
-\title{Credible intervals for parameters from a survMixBayes fit}
+\title{Credible Intervals for Parameters from a survMixBayes Fit}
 \usage{
 \method{confint}{survMixBayes}(object, parm = NULL, level = 0.95, ...)
 }

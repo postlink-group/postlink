@@ -27,40 +27,14 @@
 #'
 #' @export
 print.adjELE <- function(x, digits = 3, ...) {
+ cat("\n Adjustment Object: Exchangeable Linkage Errors \n")
 
- # 1. Header (ASCII for CRAN compatibility)
- cat("\n--- Adjustment Object: Exchangeable Linkage Errors (Chambers, 2009) ---\n")
+ NextMethod("print")
 
- # 2. Data Summary
- has_data <- FALSE
- n_obs <- 0
-
- if (!is.null(x$data_ref) && is.environment(x$data_ref)) {
-  if (exists("data", envir = x$data_ref, inherits = FALSE)) {
-   stored_data <- x$data_ref$data
-   if (!is.null(stored_data) && is.data.frame(stored_data)) {
-    has_data <- TRUE
-    n_obs <- nrow(stored_data)
-   }
-  }
- }
-
- cat("\n* Linked Data:")
- if (has_data) {
-  cat("\n    Observations:  ", format(n_obs, big.mark = ","))
- } else {
-  cat("\n    Status:         Not available / Empty\n")
- }
-
- # 3. Method Specification
  cat("\n* Specification:")
-
- # Weight Matrix Method
  w_mat <- if (!is.null(x$weight.matrix)) x$weight.matrix else "Unknown"
  cat("\n    Weight Matrix:  ", w_mat)
 
- # Blocking Structure
- # Calculate unique blocks safely (ignoring NAs)
  if (!is.null(x$blocks)) {
   n_unique_blocks <- length(unique(x$blocks[!is.na(x$blocks)]))
   if (n_unique_blocks == 1) {
@@ -72,15 +46,12 @@ print.adjELE <- function(x, digits = 3, ...) {
   cat("\n    Blocks:         None specified")
  }
 
- # 4. Mismatch Rates Summary
  cat("\n    Mismatch Rate:  ")
  if (!is.null(x$m.rate)) {
   rates <- x$m.rate
-  # Check if constant
   if (length(unique(rates)) == 1) {
    cat(format(rates[1], digits = digits), "(Constant)")
   } else {
-   # Summary for variable rates
    mean_r <- mean(rates, na.rm = TRUE)
    min_r <- min(rates, na.rm = TRUE)
    max_r <- max(rates, na.rm = TRUE)
@@ -91,22 +62,15 @@ print.adjELE <- function(x, digits = 3, ...) {
   cat("None specified")
  }
 
- # 5. Audit Size Summary
  if (!is.null(x$audit.size)) {
   audits <- x$audit.size
-  total_audit <- sum(unique(audits), na.rm = TRUE)
-
-  # If audit.size is length 1 or constant
   if (length(unique(audits)) == 1) {
-   # we report the Total if computable, or the raw value if global.
-   cat("\n    Audit Sample:   Global size", format(audits[1], big.mark = ","))
+   cat("\n    Audit Sample:   Same size", format(audits[1], big.mark = ","))
   } else {
-   # If variable, likely specific per block.
-   # It's safer to describe variability than try to guess 'Total' without block IDs here
-   cat("\n    Audit Sample:   Variable (Range:", min(audits), "-", max(audits), ")")
+   cat("\n    Audit Sample:   Varied sizes (Range:", min(audits), "-", max(audits), ")")
   }
  } else {
-  cat("\n    Audit Sample:   None (Using known rates)")
+  cat("\n    Audit Sample:   None (Assuming correct match rate(s) are known)")
  }
 
  cat("\n\n")

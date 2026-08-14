@@ -25,6 +25,8 @@
 #'   \item If `adjustment` is of class `adjELE`, returns an object of class \code{\link{coxphELE}}.
 #'   \item If `adjustment` is of class `adjMixture`, returns an object of class \code{\link{coxphMixture}}.
 #' }
+#' In all cases, the returned object is a list containing the original `adjustment` object
+#' under the \code{adjustment} element.
 #'
 #' @examples
 #' library(survival)
@@ -102,7 +104,6 @@ plcoxph <- function(formula,
  if (!is.null(data_linked)) {
   mf$data <- data_linked
  }
-
  mf <- eval(mf, parent.frame())
 
  # Extract X and Y
@@ -123,12 +124,13 @@ plcoxph <- function(formula,
                  ...)
 
  # Post-Processing
+ fit$adjustment <- adjustment
  fit$call <- cl
  if (model) fit$model <- mf
  if (x) fit$x <- X_mat
  if (y) fit$y <- Y_obj
 
- class(fit) <- c(class(fit), "plcoxph", "coxph")
+ class(fit) <- c(class(fit), "plcoxph", "plmodel")
 
  return(fit)
 }

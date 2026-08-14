@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{mi_with.glmMixBayes}
 \alias{mi_with.glmMixBayes}
-\title{Pooling regression fits across posterior draws of correct-match classifications}
+\title{Pooling Regression Fits Across Posterior Draws of Correct-Match Classifications}
 \usage{
 \method{mi_with}{glmMixBayes}(
   object,
