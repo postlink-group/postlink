@@ -45,6 +45,8 @@ returned object depend directly on the \code{adjustment} method provided:
 \item If \code{adjustment} is of class \code{adjELE}, returns an object of class \code{\link{coxphELE}}.
 \item If \code{adjustment} is of class \code{adjMixture}, returns an object of class \code{\link{coxphMixture}}.
 }
+In all cases, the returned object is a list containing the original \code{adjustment} object
+under the \code{adjustment} element.
 }
 \description{
 \code{plcoxph} fits Cox proportional hazards models to linked data, adjusting for

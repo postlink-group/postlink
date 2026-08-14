@@ -53,6 +53,8 @@ returned object depend directly on the \code{adjustment} method provided:
 \item If \code{adjustment} is of class \code{adjMixture}, returns an object of class \code{\link{glmMixture}}.
 \item If \code{adjustment} is of class \code{adjMixBayes}, returns an object of class \code{\link{glmMixBayes}}.
 }
+In all cases, the returned object is a list containing the original \code{adjustment} object
+under the \code{adjustment} element.
 }
 \description{
 \code{plglm} fits generalized linear models (GLMs) to linked data, incorporating

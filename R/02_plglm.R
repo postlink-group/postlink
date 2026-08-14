@@ -31,6 +31,8 @@
 #'   \item If `adjustment` is of class `adjMixture`, returns an object of class \code{\link{glmMixture}}.
 #'   \item If `adjustment` is of class `adjMixBayes`, returns an object of class \code{\link{glmMixBayes}}.
 #' }
+#' In all cases, the returned object is a list containing the original `adjustment` object
+#' under the \code{adjustment} element.
 #'
 #' @details
 #' This function attempts to extract the linked data from the \code{adjustment}
@@ -136,6 +138,7 @@ plglm <- function(formula,
                ...)
 
  # Post-Processing
+ fit$adjustment <- adjustment
  fit$call <- cl
  if (model) fit$model <- mf
  if (x) fit$x <- X_mat

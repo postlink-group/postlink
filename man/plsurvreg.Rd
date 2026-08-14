@@ -47,6 +47,8 @@ returned object depend directly on the \code{adjustment} method provided:
 \itemize{
 \item If \code{adjustment} is of class \code{adjMixBayes}, returns an object of class \code{\link{survregMixBayes}}.
 }
+The returned object is a list containing the original \code{adjustment} object
+under the \code{adjustment} element.
 }
 \description{
 \code{plsurvreg} fits parametric survival models (Accelerated Failure Time models)
