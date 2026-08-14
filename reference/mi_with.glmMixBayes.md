@@ -1,4 +1,4 @@
-# Pooling regression fits across posterior draws of correct-match classifications
+# Pooling Regression Fits Across Posterior Draws of Correct-Match Classifications
 
 Use posterior draws of the latent match indicators from
 [`glmMixBayes()`](https://postlink-group.github.io/postlink/reference/glmMixBayes.md)
@@ -107,8 +107,8 @@ fit <- plglm(
 #> 
 #> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 5.2e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.52 seconds.
+#> Chain 1: Gradient evaluation took 4.8e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.48 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -133,9 +133,9 @@ fit <- plglm(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.753 seconds (Warm-up)
-#> Chain 1:                0.903 seconds (Sampling)
-#> Chain 1:                1.656 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.659 seconds (Warm-up)
+#> Chain 1:                0.793 seconds (Sampling)
+#> Chain 1:                1.452 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -150,7 +150,7 @@ fit <- plglm(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.083                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.062                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -172,15 +172,10 @@ print(pooled_fit)
 #> Pooled regression results across posterior match classifications:
 #>   Retained imputations (m): 100 
 #> 
-#>                                 Estimate Std.Error     CI.lwr    CI.upr
-#> (Intercept)                     61.85770   4.13863   53.73857  69.97684
-#> poly(unit_yob, 3, raw = TRUE)1 -44.21015  38.90026 -120.49686  32.07656
-#> poly(unit_yob, 3, raw = TRUE)2  96.55414 117.84201 -134.92180 328.03008
-#> poly(unit_yob, 3, raw = TRUE)3 -28.32764  88.53263 -202.39640 145.74111
-#>                                       df
-#> (Intercept)                    1299.2274
-#> poly(unit_yob, 3, raw = TRUE)1 2117.5213
-#> poly(unit_yob, 3, raw = TRUE)2  549.5034
-#> poly(unit_yob, 3, raw = TRUE)3  384.4554
+#>                                 Estimate Std.Error    CI.lwr    CI.upr      df
+#> (Intercept)                      61.8577    4.1386   53.7386   69.9768 1299.23
+#> poly(unit_yob, 3, raw = TRUE)1  -44.2101   38.9003 -120.4969   32.0766 2117.52
+#> poly(unit_yob, 3, raw = TRUE)2   96.5541  117.8420 -134.9218  328.0301  549.50
+#> poly(unit_yob, 3, raw = TRUE)3  -28.3276   88.5326 -202.3964  145.7411  384.46
 # }
 ```

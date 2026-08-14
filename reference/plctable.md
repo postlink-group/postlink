@@ -61,6 +61,9 @@ method provided:
 - If `adjustment` is of class `adjMixture`, returns an object of class
   [`ctableMixture`](https://postlink-group.github.io/postlink/reference/ctableMixture.md).
 
+The returned object is a list containing the original `adjustment`
+object under the `adjustment` element.
+
 ## See also
 
 [`adjMixture`](https://postlink-group.github.io/postlink/reference/adjMixture.md),

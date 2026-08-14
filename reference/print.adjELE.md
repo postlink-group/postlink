@@ -50,7 +50,7 @@ adj_object <- adjELE(linked.data = brfss,
                     weight.matrix = "BLUE")
 print(adj_object)
 #> 
-#> --- Adjustment Object: Exchangeable Linkage Errors (Chambers, 2009) ---
+#>  Adjustment Object: Exchangeable Linkage Errors 
 #> 
 #> * Linked Data:
 #>     Observations:   2,000
@@ -58,6 +58,6 @@ print(adj_object)
 #>     Weight Matrix:   BLUE
 #>     Blocks:         12 distinct blocks
 #>     Mismatch Rate:  Variable (Mean: 0.275, Range: 0.201 - 0.339)
-#>     Audit Sample:   None (Using known rates)
+#>     Audit Sample:   None (Assuming correct match rate(s) are known)
 #> 
 ```

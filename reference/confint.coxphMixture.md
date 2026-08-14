@@ -82,11 +82,11 @@ fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj,
 
 # Extract Confidence Intervals
 confint(fit)
-#>                  2.5 %     97.5 %
-#> x1           0.6710011  1.6021040
-#> x2          -2.1429623 -0.4823973
-#> (Intercept)         NA         NA
-#> match_score         NA         NA
+#>         2.5 %     97.5 %
+#> x1  0.6710011  1.6021040
+#> x2 -2.1429623 -0.4823973
+#>            NA         NA
+#>            NA         NA
 confint(fit, parm = "treatment", level = 0.90)
 #>           5 % 95 %
 #> treatment  NA   NA

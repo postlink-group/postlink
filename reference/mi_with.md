@@ -1,4 +1,4 @@
-# Pool parameter estimates across posterior draws
+# Pool Parameter Estimates Across Posterior Draws
 
 Generic function for pooling parameter estimates from Bayesian mixture
 models using posterior draws of the latent component indicators.

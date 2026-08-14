@@ -1,4 +1,4 @@
-# Methods for Bayesian mixture survival regression fits
+# Methods for Bayesian Mixture Survival Regression Fits
 
 S3 methods for objects returned by
 [`survregMixBayes()`](https://postlink-group.github.io/postlink/reference/survregMixBayes.md),

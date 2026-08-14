@@ -117,8 +117,6 @@ print(sum_fit)
 #>       coef exp(coef) se(coef)      z Pr(>|z|)    
 #> x1  1.1366    3.1160   0.2375  4.785 1.71e-06 ***
 #> x2 -1.3127    0.2691   0.4236 -3.099  0.00194 ** 
-#> ---
-#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> 
 #> --- Hazard Ratios & Confidence Intervals ---
 #>    exp(coef) exp(-coef) lower .95 upper .95
@@ -126,9 +124,9 @@ print(sum_fit)
 #> x2    0.2691     3.7161    0.1173    0.6173
 #> 
 #> --- Mismatch Indicator Model ---
-#>             Estimate Std. Error z value Pr(>|z|)  
-#> (Intercept)   -5.687      2.337  -2.434   0.0149 *
-#> match_score    7.128      2.977   2.395   0.0166 *
+#>      Estimate Std. Error z value Pr(>|z|)  
+#> [1,]    5.687      2.337   2.434   0.0149 *
+#> [2,]   -7.128      2.977  -2.395   0.0166 *
 #> ---
 #> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> 

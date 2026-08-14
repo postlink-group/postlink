@@ -13,7 +13,7 @@ mixture model."><meta property="og:image" content="https://postlink-group.github
 
     <a class="navbar-brand me-2" href="../index.html">postlink</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,8 +21,7 @@ mixture model."><meta property="og:image" content="https://postlink-group.github
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/postlink.html">Get started</a></li>
-<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/hrscms-analysis.html">HRS-CMS Contingency Table Analysis</a></li>
@@ -130,10 +129,10 @@ EM algorithm. <em>Journal of the Royal Statistical Society: Series B
 <span class="r-in"><span><span class="va">vmat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">vmat</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                        x1          x2 m.(Intercept) m.match_score</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1             0.05642079 -0.04016553     0.1909437    -0.2567206</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2            -0.04016553  0.17945502    -0.2074337     0.2891386</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> m.(Intercept)  0.19094373 -0.20743369     5.4601921    -6.8925090</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> m.match_score -0.25672058  0.28913860    -6.8925090     8.8613058</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1             0.05642079 -0.04016553    -0.1909437     0.2567206</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x2            -0.04016553  0.17945502     0.2074337    -0.2891386</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> m.(Intercept) -0.19094373  0.20743369     5.4601921    -6.8925090</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> m.match_score  0.25672058 -0.28913860    -6.8925090     8.8613058</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
@@ -146,7 +145,7 @@ EM algorithm. <em>Journal of the Royal Statistical Society: Series B
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

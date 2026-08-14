@@ -53,15 +53,15 @@ adj_obj <- adjMixBayes(
 # Implicitly calls print.adjMixBayes()
 adj_obj
 #> 
-#> --- Adjustment Object: Bayesian Mixture (Gutman et al., 2016) ---
+#>  Adjustment Object: Bayesian Mixture 
 #> 
 #> * Linked Data:
-#>     Observations: 120
+#>     Observations:   120
 #> * Priors:
-#>     User-specified overrides:
 #>       theta      : beta(2, 2)
 #>     (Unspecified parameters will use defaults below)
-#>     Defaults applied during fitting:
+#> 
+#>     Defaults applied during fitting (for any unspecified):
 #>       Intercept:  intercept ~ normal(0,10)
 #>       GLM Slopes: beta ~ normal(0,5) [binomial: normal(0,2.5)]
 #>       Surv Slopes: beta ~ normal(0,5) [weibull: normal(0,2)]

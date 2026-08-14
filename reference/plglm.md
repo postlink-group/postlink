@@ -85,6 +85,9 @@ method provided:
 - If `adjustment` is of class `adjMixBayes`, returns an object of class
   [`glmMixBayes`](https://postlink-group.github.io/postlink/reference/glmMixBayes.md).
 
+In all cases, the returned object is a list containing the original
+`adjustment` object under the `adjustment` element.
+
 ## Details
 
 This function attempts to extract the linked data from the `adjustment`

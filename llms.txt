@@ -233,6 +233,9 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
 
 ## All functions
 
+- [`LD1000`](https://postlink-group.github.io/postlink/reference/LD1000.md)
+  : Linked Dataset (n = 1000) for a Simple Illustration
+
 - [`adjELE()`](https://postlink-group.github.io/postlink/reference/adjELE.md)
   : Secondary Analysis Constructor Assuming ELE
 
@@ -245,13 +248,25 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
 - [`brfss`](https://postlink-group.github.io/postlink/reference/brfss.md)
   : Behavioral Risk Factor Surveillance System (BRFSS) 2013 Subsample
 
+- [`coef(`*`<glmELE>`*`)`](https://postlink-group.github.io/postlink/reference/coef.glmELE.md)
+  : Extract Coefficients for glmELE
+
+- [`coef(`*`<glmMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/coef.glmMixBayes.md)
+  : Extract Coefficients for glmMixBayes
+
+- [`coef(`*`<glmMixture>`*`)`](https://postlink-group.github.io/postlink/reference/coef.glmMixture.md)
+  : Extract Coefficients for glmMixture
+
+- [`coef(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/coef.survMixBayes.md)
+  : Extract Coefficients for survMixBayes
+
 - [`confint(`*`<coxphELE>`*`)`](https://postlink-group.github.io/postlink/reference/confint.coxphELE.md)
   : Confidence Intervals for coxphELE Objects
 
 - [`confint(`*`<coxphMixture>`*`)`](https://postlink-group.github.io/postlink/reference/confint.coxphMixture.md)
   : Confidence Intervals for coxphMixture Objects
 
-- [`confint(`*`<ctableMixture>`*`)`](https://postlink-group.github.io/postlink/reference/confint.ctablemixture.md)
+- [`confint(`*`<ctableMixture>`*`)`](https://postlink-group.github.io/postlink/reference/confint.ctableMixture.md)
   : Confidence Intervals for Adjusted Cell Probabilities
 
 - [`confint(`*`<glmELE>`*`)`](https://postlink-group.github.io/postlink/reference/confint.glmELE.md)
@@ -260,14 +275,14 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
   Confidence Intervals for `glmELE` Objects
 
 - [`confint(`*`<glmMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/confint.glmMixBayes.md)
-  : Credible intervals for regression coefficients from a glmMixBayes
-  fit
+  : Credible Intervals for Regression Coefficients from a glmMixBayes
+  Fit
 
 - [`confint(`*`<glmMixture>`*`)`](https://postlink-group.github.io/postlink/reference/confint.glmMixture.md)
   : Confidence Intervals for glmMixture Objects
 
 - [`confint(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/confint.survMixBayes.md)
-  : Credible intervals for parameters from a survMixBayes fit
+  : Credible Intervals for Parameters from a survMixBayes Fit
 
 - [`coxphELE()`](https://postlink-group.github.io/postlink/reference/coxphELE.md)
   : Fit a CoxPH Model Assuming Exchangeable Linkage Errors
@@ -278,11 +293,14 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
 - [`ctableMixture()`](https://postlink-group.github.io/postlink/reference/ctableMixture.md)
   : Contingency Table Analysis with Mixture-Based Adjustment
 
+- [`df.residual(`*`<plglm>`*`)`](https://postlink-group.github.io/postlink/reference/df.residual.plglm.md)
+  : Extract Residual Degrees of Freedom for plglm Models
+
 - [`glmELE()`](https://postlink-group.github.io/postlink/reference/glmELE.md)
   : GLM with ELE-Based Linkage Error Adjustment
 
 - [`glmMixBayes()`](https://postlink-group.github.io/postlink/reference/glmMixBayes.md)
-  : Bayesian two-component mixture generalized linear model
+  : Bayesian Two-Component Mixture Generalized Linear Model
 
 - [`glmMixture()`](https://postlink-group.github.io/postlink/reference/glmMixture.md)
   : GLM with Mixture-Based Linkage Error Adjustment
@@ -291,15 +309,15 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
   : Longitudinal Intergenerational Family Electronic Micro-Database
 
 - [`mi_with()`](https://postlink-group.github.io/postlink/reference/mi_with.md)
-  : Pool parameter estimates across posterior draws
+  : Pool Parameter Estimates Across Posterior Draws
 
 - [`mi_with(`*`<glmMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/mi_with.glmMixBayes.md)
-  : Pooling regression fits across posterior draws of correct-match
-  classifications
+  : Pooling Regression Fits Across Posterior Draws of Correct-Match
+  Classifications
 
 - [`mi_with(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/mi_with.survMixBayes.md)
-  : Pool regression fits across posterior draws of correct-match
-  classifications
+  : Pool Regression Fits Across Posterior Draws of Correct-Match
+  Classifications
 
 - [`plcoxph()`](https://postlink-group.github.io/postlink/reference/plcoxph.md)
   : Fit Cox Proportional Hazards Models with Linkage Error Adjustment
@@ -329,13 +347,13 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
   Predictions for `glmELE` Objects
 
 - [`predict(`*`<glmMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/predict.glmMixBayes.md)
-  : Predictions from a glmMixBayes model
+  : Predictions from a glmMixBayes Model
 
 - [`predict(`*`<glmMixture>`*`)`](https://postlink-group.github.io/postlink/reference/predict.glmMixture.md)
   : Model Predictions for glmMixture Objects
 
 - [`predict(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/predict.survMixBayes.md)
-  : Predictions from a survMixBayes model
+  : Predictions from a survMixBayes Model
 
 - [`print(`*`<adjELE>`*`)`](https://postlink-group.github.io/postlink/reference/print.adjELE.md)
   :
@@ -352,13 +370,16 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
 
   Print Method for `adjMixture` Objects
 
+- [`print(`*`<adjustment>`*`)`](https://postlink-group.github.io/postlink/reference/print.adjustment.md)
+  : Print Base Method for Adjustment Objects
+
 - [`print(`*`<coxphELE>`*`)`](https://postlink-group.github.io/postlink/reference/print.coxphELE.md)
   : Print a coxphELE Object
 
 - [`print(`*`<coxphMixture>`*`)`](https://postlink-group.github.io/postlink/reference/print.coxphMixture.md)
   : Print a coxphMixture Object
 
-- [`print(`*`<ctableMixture>`*`)`](https://postlink-group.github.io/postlink/reference/print.ctablemixture.md)
+- [`print(`*`<ctableMixture>`*`)`](https://postlink-group.github.io/postlink/reference/print.ctableMixture.md)
   : Print Method for Adjusted Contingency Tables
 
 - [`print(`*`<glmELE>`*`)`](https://postlink-group.github.io/postlink/reference/print.glmELE.md)
@@ -367,19 +388,19 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
   Print a `glmELE` Object
 
 - [`print(`*`<glmMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/print.glmMixBayes.md)
-  : Print a glmMixBayes model object
+  : Print a glmMixBayes Model Object
 
 - [`print(`*`<glmMixture>`*`)`](https://postlink-group.github.io/postlink/reference/print.glmMixture.md)
   : Print a glmMixture Object
 
 - [`print(`*`<mi_link_pool_glm>`*`)`](https://postlink-group.github.io/postlink/reference/print.mi_link_pool_glm.md)
-  : Print pooled regression results
+  : Print Pooled Regression Results
 
 - [`print(`*`<mi_link_pool_survreg>`*`)`](https://postlink-group.github.io/postlink/reference/print.mi_link_pool_survreg.md)
-  : Print pooled Cox regression results
+  : Print Pooled Cox Regression Results
 
 - [`print(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/print.survMixBayes.md)
-  : Print a survMixBayes model object
+  : Print a survMixBayes Model Object
 
 - [`summary(`*`<coxphELE>`*`)`](https://postlink-group.github.io/postlink/reference/summary.coxphELE.md)
   : Summary of a coxphELE Object
@@ -387,7 +408,7 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
 - [`summary(`*`<coxphMixture>`*`)`](https://postlink-group.github.io/postlink/reference/summary.coxphMixture.md)
   : Summarizing Cox PH Mixture Fits
 
-- [`summary(`*`<ctableMixture>`*`)`](https://postlink-group.github.io/postlink/reference/summary.ctablemixture.md)
+- [`summary(`*`<ctableMixture>`*`)`](https://postlink-group.github.io/postlink/reference/summary.ctableMixture.md)
   : Summary Method for Adjusted Contingency Tables
 
 - [`summary(`*`<glmELE>`*`)`](https://postlink-group.github.io/postlink/reference/summary.glmELE.md)
@@ -396,16 +417,24 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
   Summarize a `glmELE` Object
 
 - [`summary(`*`<glmMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/summary.glmMixBayes.md)
-  : Summary method for glmMixBayes models
+  : Summary Method for glmMixBayes Models
 
 - [`summary(`*`<glmMixture>`*`)`](https://postlink-group.github.io/postlink/reference/summary.glmMixture.md)
   : Summarizing GLM Mixture Fits
 
 - [`summary(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/summary.survMixBayes.md)
-  : Summary method for survMixBayes models
+  : Summary Method for survMixBayes Models
 
 - [`survregMixBayes()`](https://postlink-group.github.io/postlink/reference/survregMixBayes.md)
-  : Bayesian two-component mixture survival regression model
+  : Bayesian Two-Component Mixture Survival Regression Model
+
+- [`logLik(`*`<plmodel>`*`)`](https://postlink-group.github.io/postlink/reference/unsupported_generics.md)
+  [`profile(`*`<plmodel>`*`)`](https://postlink-group.github.io/postlink/reference/unsupported_generics.md)
+  [`anova(`*`<plmodel>`*`)`](https://postlink-group.github.io/postlink/reference/unsupported_generics.md)
+  [`extractAIC(`*`<plmodel>`*`)`](https://postlink-group.github.io/postlink/reference/unsupported_generics.md)
+  [`cooks.distance(`*`<plglm>`*`)`](https://postlink-group.github.io/postlink/reference/unsupported_generics.md)
+  [`rstudent(`*`<plglm>`*`)`](https://postlink-group.github.io/postlink/reference/unsupported_generics.md)
+  : Unsupported Generics for postlink Models
 
 - [`vcov(`*`<coxphELE>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.coxphELE.md)
   : Variance-Covariance Matrix for coxphELE Objects
@@ -413,7 +442,7 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
 - [`vcov(`*`<coxphMixture>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.coxphMixture.md)
   : Extract Variance-Covariance Matrix from a coxphMixture Object
 
-- [`vcov(`*`<ctableMixture>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.ctablemixture.md)
+- [`vcov(`*`<ctableMixture>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.ctableMixture.md)
   : Extract Variance-Covariance Matrix from ctableMixture Objects
 
 - [`vcov(`*`<glmELE>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.glmELE.md)
@@ -422,13 +451,13 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
   Extract Variance-Covariance Matrix from a `glmELE` Object
 
 - [`vcov(`*`<glmMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.glmMixBayes.md)
-  : Posterior covariance matrix for glmMixBayes coefficients
+  : Posterior Covariance Matrix for glmMixBayes Coefficients
 
 - [`vcov(`*`<glmMixture>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.glmMixture.md)
   : Extract Variance-Covariance Matrix from a glmMixture Object
 
 - [`vcov(`*`<survMixBayes>`*`)`](https://postlink-group.github.io/postlink/reference/vcov.survMixBayes.md)
-  : Posterior covariance matrix for survMixBayes coefficients
+  : Posterior Covariance Matrix for survMixBayes Coefficients
 
 # Articles
 
@@ -445,6 +474,3 @@ Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
 
   A case study demonstrating the postlink workflow for linear
   regression.
-
-- [postlink: Post-Linkage Data Analysis in
-  R](https://postlink-group.github.io/postlink/articles/postlink.md):

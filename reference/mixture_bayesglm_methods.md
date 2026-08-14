@@ -1,4 +1,4 @@
-# Methods for Bayesian mixture GLM fits
+# Methods for Bayesian Mixture GLM Fits
 
 S3 methods for objects returned by
 [`glmMixBayes()`](https://postlink-group.github.io/postlink/reference/glmMixBayes.md),

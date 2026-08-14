@@ -64,7 +64,7 @@ print(fit)
 #> 
 #> Coefficients (Mismatch Model):
 #> (Intercept)        commf        comml  
-#>      -7.562        6.731        8.974  
+#>       7.562       -6.731       -8.974  
 #> 
 #> Dispersion parameter estimate:  373.1 
 #> 

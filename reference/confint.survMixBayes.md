@@ -1,4 +1,4 @@
-# Credible intervals for parameters from a survMixBayes fit
+# Credible Intervals for Parameters from a survMixBayes Fit
 
 Computes posterior credible intervals for the regression coefficients,
 mixing weight, and family-specific distribution parameters from a fitted
@@ -83,8 +83,8 @@ fit <- plsurvreg(
 #> 
 #> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.000101 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.01 seconds.
+#> Chain 1: Gradient evaluation took 7.8e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.78 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -109,9 +109,9 @@ fit <- plsurvreg(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.779 seconds (Warm-up)
-#> Chain 1:                0.64 seconds (Sampling)
-#> Chain 1:                1.419 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.48 seconds (Warm-up)
+#> Chain 1:                0.398 seconds (Sampling)
+#> Chain 1:                0.878 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is 1.29, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -127,7 +127,7 @@ fit <- plsurvreg(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.128                Converged (3 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.108                Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!

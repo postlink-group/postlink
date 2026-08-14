@@ -1,4 +1,4 @@
-# Credible intervals for regression coefficients from a glmMixBayes fit
+# Credible Intervals for Regression Coefficients from a glmMixBayes Fit
 
 Computes posterior credible intervals for the regression coefficients in
 a fitted `glmMixBayes` model. By default, intervals are returned for all
@@ -73,8 +73,8 @@ fit <- plglm(
 #> 
 #> SAMPLING FOR MODEL 'glmMixBayes_gaussian' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 8.7e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.87 seconds.
+#> Chain 1: Gradient evaluation took 7.7e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.77 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -99,9 +99,9 @@ fit <- plglm(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.767 seconds (Warm-up)
-#> Chain 1:                0.917 seconds (Sampling)
-#> Chain 1:                1.684 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.658 seconds (Warm-up)
+#> Chain 1:                0.789 seconds (Sampling)
+#> Chain 1:                1.447 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -116,7 +116,7 @@ fit <- plglm(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.072                Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.117                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!

@@ -11,7 +11,7 @@ It mimics the interface of glm to ensure familiarity for users."><meta property=
 
     <a class="navbar-brand me-2" href="../index.html">postlink</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,8 +19,7 @@ It mimics the interface of glm to ensure familiarity for users."><meta property=
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/postlink.html">Get started</a></li>
-<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/hrscms-analysis.html">HRS-CMS Contingency Table Analysis</a></li>
@@ -125,7 +124,9 @@ adjustment process.</p></dd>
 returned object depend directly on the <code>adjustment</code> method provided:</p><ul><li><p>If <code>adjustment</code> is of class <code>adjELE</code>, returns an object of class <code><a href="glmELE.html">glmELE</a></code>.</p></li>
 <li><p>If <code>adjustment</code> is of class <code>adjMixture</code>, returns an object of class <code><a href="glmMixture.html">glmMixture</a></code>.</p></li>
 <li><p>If <code>adjustment</code> is of class <code>adjMixBayes</code>, returns an object of class <code><a href="glmMixBayes.html">glmMixBayes</a></code>.</p></li>
-</ul></div>
+</ul><p>In all cases, the returned object is a list containing the original <code>adjustment</code> object
+under the <code>adjustment</code> element.</p>
+    </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>This function attempts to extract the linked data from the <code>adjustment</code>
@@ -176,7 +177,7 @@ response vector to the appropriate <code>fitglm</code> method.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

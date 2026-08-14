@@ -54,13 +54,13 @@ adj_object <- adjMixture(
 # Print specified adjustment
 print(adj_object)
 #> 
-#> --- Adjustment Object: Mixture Model (Slawski et al., 2025) ---
+#>  Adjustment Object: Mixture Model 
 #> 
 #> * Linked Data:
-#>     Observations: 3,238
+#>     Observations:   3,238
 #> * Specification:
 #>     Mismatch Model:        ~commf + comml
-#>     Global Mismatch Rate: 0.05 (User Constrained)
+#>     Global Mismatch Rate: 0.05 (Constrained)
 #>     Safe Matches:         2,159 (66.7%)
 #> 
 ```

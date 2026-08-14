@@ -76,8 +76,7 @@ print(fit)
 #>  1.137 -1.313 
 #> 
 #> Mismatch Model Coefficients:
-#> (Intercept) match_score 
-#>      -5.687       7.128 
+#> [1]  5.687 -7.128
 #> 
 #> Likelihood ratio test (model=outcome) not available due to pseudo-likelihood.
 #> n= 200 , number of events= 113 

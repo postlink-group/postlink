@@ -76,6 +76,9 @@ method provided:
 - If `adjustment` is of class `adjMixBayes`, returns an object of class
   [`survregMixBayes`](https://postlink-group.github.io/postlink/reference/survregMixBayes.md).
 
+The returned object is a list containing the original `adjustment`
+object under the `adjustment` element.
+
 ## See also
 
 [`adjMixBayes`](https://postlink-group.github.io/postlink/reference/adjMixBayes.md),
@@ -122,8 +125,8 @@ fit <- plsurvreg(
 #> 
 #> SAMPLING FOR MODEL 'survMixBayes_weibull' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.000131 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.31 seconds.
+#> Chain 1: Gradient evaluation took 0.000103 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.03 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -140,9 +143,9 @@ fit <- plsurvreg(
 #> Chain 1: Iteration: 1900 / 2000 [ 95%]  (Sampling)
 #> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 5.476 seconds (Warm-up)
-#> Chain 1:                28.804 seconds (Sampling)
-#> Chain 1:                34.28 seconds (Total)
+#> Chain 1:  Elapsed Time: 3.43 seconds (Warm-up)
+#> Chain 1:                18.084 seconds (Sampling)
+#> Chain 1:                21.514 seconds (Total)
 #> Chain 1: 
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
 #> Running the chains for more iterations may help. See
@@ -154,7 +157,7 @@ fit <- plsurvreg(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                1.322                Converged (3 iterations)       . 
+#>     . ECR-ITERATIVE-1                1.3                  Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
