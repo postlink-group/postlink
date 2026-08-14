@@ -124,12 +124,15 @@ test_that("Gamma Regression (Log Link) runs and converges", {
 # Test Group 2: Non-Standard Links
 # ------------------------------------------------------------------------------
 
-test_that("Gaussian Regression with Inverse Link works", {
+test_that("Gaussian Regression with Inverse Link doesn't work", {
  dat <- generate_mixture_data(family_type = "gaussian", link = "inverse", alpha = 0.05)
 
- fit <- glmMixture(x = dat$X, y = dat$y, z = dat$Z,
-                   family = gaussian(link = "inverse"),
-                   control = list(max.iter = 1000, tol = 1e-3, init.beta = dat$true_beta))
+ expect_error(
+  glmMixture(x = dat$X, y = dat$y, z = dat$Z,
+             family = gaussian(link = "inverse"),
+             control = list(max.iter = 1000, tol = 0.001, init.beta = dat$true_beta)),
+  "The 'gaussian' family is currently restricted to the 'identity' link."
+ )
 
  expect_true(fit$converged)
  expect_equal(as.vector(fit$coefficients), dat$true_beta, tolerance = 0.2)

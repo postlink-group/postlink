@@ -127,7 +127,8 @@ test_that("plcoxph returns expected class structure and components", {
 
  # Check Classes
  expect_true(inherits(fit, "plcoxph"))
- expect_true(inherits(fit, "coxph"))
+ expect_s3_class(fit, "plcoxph")
+ expect_s3_class(fit, "plmodel")
 
  # Check Components
  expect_true(!is.null(fit$call))

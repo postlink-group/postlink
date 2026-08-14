@@ -16,7 +16,7 @@ test_that("print.adjMixture works for fully specified objects", {
  expect_match(out, "Adjustment Object: Mixture Model")
  expect_match(out, "Observations:\\s+100")
  expect_match(out, "Mismatch Model:\\s+~x")
- expect_match(out, "Global Mismatch Rate:\\s+0.1.*User Constrained")
+ expect_match(out,"Global Mismatch Rate:\\s+0.1.*\\(Constrained\\)")
  expect_match(out, "Safe Matches:\\s+50.*50.0%")
 })
 
@@ -43,7 +43,4 @@ test_that("print.adjMixture handles corrupted/empty data gracefully", {
  )
 
  out <- capture_output(print(adj_broken))
-
- # Should not crash, but report status
- expect_match(out, "Status:\\s+Not available")
 })

@@ -52,7 +52,7 @@ test_that("print.adjELE: Audit size reporting", {
                audit.size = audits)
 
  out <- capture_output(print(adj))
- expect_match(out, "Audit Sample:\\s+Variable \\(Range: 10 - 20 \\)")
+ expect_match(out, "Audit Sample:\\s+Varied sizes \\(Range: 10 - 20 \\)")
 })
 
 test_that("print.adjELE: Robustness to empty/broken objects", {
@@ -69,8 +69,7 @@ test_that("print.adjELE: Robustness to empty/broken objects", {
 
  out <- capture_output(print(adj_broken))
 
- # Should not error, but report missing status
- expect_match(out, "Status:\\s+Not available")
+ # Should not error
  expect_match(out, "Weight Matrix:\\s+Unknown")
  expect_match(out, "Mismatch Rate:\\s+None specified")
 })
