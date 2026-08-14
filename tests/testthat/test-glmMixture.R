@@ -134,8 +134,6 @@ test_that("Gaussian Regression with Inverse Link doesn't work", {
   "The 'gaussian' family is currently restricted to the 'identity' link."
  )
 
- expect_true(fit$converged)
- expect_equal(as.vector(fit$coefficients), dat$true_beta, tolerance = 0.2)
 })
 
 test_that("Poisson Regression with Identity Link works", {
