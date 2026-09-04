@@ -3,7 +3,7 @@
 data {
   // Core Data
   int<lower=1> N;             // Number of observations
-  int<lower=0> y[N];          // Poisson response variable (counts)
+  array[N] int<lower=0> y;          // Poisson response variable (counts)
   int<lower=1> K;             // Number of predictors
   matrix[N, K] X;             // Predictor matrix
 
@@ -59,7 +59,7 @@ model {
 
 generated quantities {
   // Posterior Predictions / Mixture Assignments
-  int<lower=1, upper=2> z[N];
+  array[N] int<lower=1, upper=2> z;
   for (n in 1:N) {
     vector[2] lw;
     lw[1] = log(theta) + poisson_log_lpmf(y[n] | eta1[n]);
