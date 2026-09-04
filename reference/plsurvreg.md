@@ -143,9 +143,9 @@ fit <- plsurvreg(
 #> Chain 1: Iteration: 1900 / 2000 [ 95%]  (Sampling)
 #> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 3.092 seconds (Warm-up)
-#> Chain 1:                16.092 seconds (Sampling)
-#> Chain 1:                19.184 seconds (Total)
+#> Chain 1:  Elapsed Time: 2.65 seconds (Warm-up)
+#> Chain 1:                13.968 seconds (Sampling)
+#> Chain 1:                16.618 seconds (Total)
 #> Chain 1: 
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
 #> Running the chains for more iterations may help. See
@@ -157,7 +157,7 @@ fit <- plsurvreg(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                1.146                Converged (3 iterations)       . 
+#>     . ECR-ITERATIVE-1                1.057                Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -166,6 +166,6 @@ fit <- plsurvreg(
 #>     Retrieve the 1 best clusterings: [...]$clusters
 #>     Retrieve the 1 CPU times: [...]$timings
 #>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
-#>     Label switching finished. Total time: 1.2 seconds. 
+#>     Label switching finished. Total time: 1.1 seconds. 
 # }
 ```

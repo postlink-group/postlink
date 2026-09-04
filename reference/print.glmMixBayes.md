@@ -88,9 +88,9 @@ fit <- plglm(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.625 seconds (Warm-up)
-#> Chain 1:                0.744 seconds (Sampling)
-#> Chain 1:                1.369 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.555 seconds (Warm-up)
+#> Chain 1:                0.658 seconds (Sampling)
+#> Chain 1:                1.213 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is NA, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -105,7 +105,7 @@ fit <- plglm(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.05                 Converged (2 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.046                Converged (2 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
@@ -114,7 +114,7 @@ fit <- plglm(
 #>     Retrieve the 1 best clusterings: [...]$clusters
 #>     Retrieve the 1 CPU times: [...]$timings
 #>     Retrieve the 1 X 1 similarity matrix: [...]$similarity
-#>     Label switching finished. Total time: 0.1 seconds. 
+#>     Label switching finished. Total time: 0 seconds. 
 
 print(fit)
 #> Call:

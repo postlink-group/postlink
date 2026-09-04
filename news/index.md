@@ -1,5 +1,15 @@
 # Changelog
 
+## **postlink 0.1.2**
+
+#### Bug Fixes
+
+- Migrated `.stan` models to the new Stan `array[...]` syntax to resolve
+  compiler parsing errors on R-devel and platforms running `stanc3`
+  compilers.
+- Increased minimum dependency requirements for `rstan` and
+  `StanHeaders` to `>= 2.26.0`.
+
 ## **postlink 0.1.1**
 
 #### New Features
