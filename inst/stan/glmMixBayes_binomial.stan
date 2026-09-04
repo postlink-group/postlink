@@ -5,7 +5,7 @@ data {
   int<lower=1> N;               // Number of observations
   int<lower=1> K;               // Number of predictors
   matrix[N, K] X;               // Predictor matrix
-  int<lower=0, upper=1> y[N];   // Binary outcome variable (0 or 1)
+  array[N] int<lower=0, upper=1> y;   // Binary outcome variable (0 or 1)
 
   // Prior Hyperparameters (Passed from R)
   // Intercept priors (applied to beta[1] only)
@@ -60,7 +60,7 @@ model {
 
 generated quantities {
   // Posterior Predictions / Mixture Assignments
-  int<lower=1, upper=2> z[N];
+  array[N] int<lower=1, upper=2> z;
   for (n in 1:N) {
     vector[2] lw;
     lw[1] = log(theta) + bernoulli_logit_lpmf(y[n] | eta1[n]);

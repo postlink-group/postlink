@@ -6,7 +6,7 @@ data {
   int<lower=1> K;                         // Number of predictors
   matrix[N, K] X;                         // Predictor matrix
   vector<lower=0>[N] time;                // Survival times (strictly positive)
-  int<lower=0, upper=1> event[N];         // 1 = observed event, 0 = right-censored
+  array[N] int<lower=0, upper=1> event;         // 1 = observed event, 0 = right-censored
 
   // Prior Hyperparameters (Passed from R)
   // Intercept priors (applied to beta[1] only)
@@ -79,7 +79,7 @@ model {
 
 generated quantities {
   // Posterior Predictions / Mixture Assignments
-  int<lower=1, upper=2> z[N];
+  array[N] int<lower=1, upper=2> z;
   for (n in 1:N) {
     vector[2] lw;
     if (event[n] == 1) {

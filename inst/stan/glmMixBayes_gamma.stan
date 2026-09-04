@@ -70,7 +70,7 @@ model {
 
 generated quantities {
   // Posterior Predictions / Mixture Assignments
-  int<lower=1, upper=2> z[N];
+  array[N] int<lower=1, upper=2> z;
   for (n in 1:N) {
     vector[2] lw;
     lw[1] = log(theta) + gamma_lpdf(y[n] | phi1, phi1 * exp(-eta1[n]));
