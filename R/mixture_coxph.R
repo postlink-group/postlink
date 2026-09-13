@@ -219,6 +219,7 @@ coxphMixture <- function(x, y, cens,
     # Posterior Match Probability
     num <- hs[!safe.matches] * f_cox[!safe.matches]
     denom <- num + (1 - hs[!safe.matches]) * fy[!safe.matches]
+    denom[denom <= 0] <- 1e-10
 
     p_cur[!safe.matches] <- num / denom
     p_cur[safe.matches] <- 1
@@ -308,10 +309,12 @@ coxphMixture <- function(x, y, cens,
   sum_grad <- numeric(pt)
   sum_grad_sq <- matrix(0, pt, pt)
 
-  eta_g_final <- as.vector(z %*% gamma_cur)
-  prob_match_all <- plogis(eta_g_final)
-  w_vec_const <- prob_match_all * (1 - prob_match_all)
-  z_weighted_const <- z * sqrt(w_vec_const)
+  z_sub_se <- z[!safe.matches, , drop = FALSE]
+
+  eta_g_final <- as.vector(z_sub_se %*% gamma_cur)
+  prob_match_sub <- plogis(eta_g_final)
+  w_vec_const <- prob_match_sub * (1 - prob_match_sub)
+  z_weighted_const <- z_sub_se * sqrt(w_vec_const)
   hess_gamma_const <- crossprod(z_weighted_const)
 
   prob_mismatch_posterior <- 1 - p_cur
@@ -372,8 +375,9 @@ coxphMixture <- function(x, y, cens,
     # Gradient for Gamma (Mismatch Model)
     # Gamma parameterizes P(Match). m_sim=0 is Match.
     # Score for logistic: X^T * (Y - p). Here Y is "IsMatch" (1-m_sim).
-    resid <- (1 - m_sim) - prob_match_all
-    grad_gamma <- crossprod(z, resid)
+    # Calculate only for non-safe matches
+    resid <- (1 - m_sim[!safe.matches]) - prob_match_sub
+    grad_gamma <- crossprod(z_sub_se, resid)
 
     grad_total <- c(as.vector(grad_beta), as.vector(grad_gamma))
     hess_total <- matrix(0, pt, pt)
@@ -429,7 +433,7 @@ coxphMixture <- function(x, y, cens,
               means = colMeans(x),
               n = n,
               nevent = sum(1 - cens),
-              match.prob = as.numeric(hs),
+              match.prob = as.numeric(p_cur),
               objective = objs[1:(iter - 1)],
               converged = iter < control$max.iter,
               Lambdahat0 = Lambdahat_0,
@@ -502,9 +506,16 @@ fitcoxph.adjMixture <- function(x, y, adjustment, control, ...) {
   # -------------------------------------------------------------------------
   # 4. Stage 2: Secondary Intersection (Handle Missingness in Z)
   # -------------------------------------------------------------------------
+
+  if (!inherits(y, "Surv") && !is.matrix(y)) {
+   stop("Response y must be a Surv object with time and status.", call. = FALSE)
+  }
+  if (ncol(y) < 2) {
+   stop("Response y must be a Surv object with time and status.", call. = FALSE)
+  }
+
   # X and Y are already clean (no NAs). But Z might have NAs.
   # If Z has NAs, we must drop those rows from X, Y, and Z to stay aligned.
-
   keep_idx <- stats::complete.cases(Z)
 
   if (!all(keep_idx)) {
@@ -547,12 +558,6 @@ fitcoxph.adjMixture <- function(x, y, adjustment, control, ...) {
   # Extract Censoring Status (Standard Surv: status 1=event, 0=censored)
   # Expect cens (1=censored, 0=event)
   # Surv object columns are usually "time" and "status"
-  if (!inherits(y, "Surv") && !is.matrix(y)) {
-    stop("Response y must be a Surv object with time and status.", call. = FALSE)
-  }
-  if (ncol(y) < 2) {
-    stop("Response y must be a Surv object with time and status.", call. = FALSE)
-  }
   status_vec <- as.numeric(y[, "status"])
   cens_vec <- 1 - status_vec
   time_vec <- as.numeric(y[, "time"])
