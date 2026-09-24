@@ -43,7 +43,8 @@ agg # Data input (aggregated counts only)
 |      0 |          0 |        1 |    56 |
 |      0 |          1 |        1 |     3 |
 
-Aggregated HRS-CMS data {.table .table
+\<span style=‘white-space: nowrap; font-weight: bold;’\>Aggregated
+HRS-CMS data\</span\> {.table .table
 style="width: max-content !important; max-width: none !important; margin-bottom: 20px;"}
 
 The dataset includes the following variables:
@@ -69,7 +70,8 @@ data.frame(`Mismatch rate` = round(mm_rate, 4))
 |--------------:|
 |        0.1643 |
 
-Overall linkage mismatch rate {.table .table
+\<span style=‘white-space: nowrap; font-weight: bold;’\>Overall linkage
+mismatch rate\</span\> {.table .table
 style="width: max-content !important; max-width: none !important; margin-bottom: 20px;"}
 
 The observed mismatch rate motivates the use of statistical methods that
@@ -99,7 +101,8 @@ as.data.frame.matrix(ctab)
 | 0   | 327 |   8 |
 | 1   |   9 |  15 |
 
-Naive contingency table in counts {.table .table
+\<span style=‘white-space: nowrap; font-weight: bold;’\>Naive
+contingency table in counts\</span\> {.table .table
 style="width: max-content !important; max-width: none !important; margin-bottom: 20px;"}
 
 ``` r
@@ -114,7 +117,8 @@ round(as.data.frame.matrix(ctab_prop), 4)
 | 0   | 0.9109 | 0.0223 |
 | 1   | 0.0251 | 0.0418 |
 
-Naive contingency table in proportions {.table .table
+\<span style=‘white-space: nowrap; font-weight: bold;’\>Naive
+contingency table in proportions\</span\> {.table .table
 style="width: max-content !important; max-width: none !important; margin-bottom: 20px;"}
 
 The naive table summarizes the observed joint distribution of HRS
@@ -144,7 +148,8 @@ as.data.frame.matrix(ctab_exact)
 | 0   | 271 |   5 |
 | 1   |   9 |  15 |
 
-Exact-match contingency table in counts {.table .table
+\<span style=‘white-space: nowrap; font-weight: bold;’\>Exact-match
+contingency table in counts\</span\> {.table .table
 style="width: max-content !important; max-width: none !important; margin-bottom: 20px;"}
 
 ``` r
@@ -159,7 +164,8 @@ round(as.data.frame.matrix(ctab_exact_prop), 4)
 | 0   | 0.9033 | 0.0167 |
 | 1   | 0.0300 | 0.0500 |
 
-Exact-match contingency table in proportions {.table .table
+\<span style=‘white-space: nowrap; font-weight: bold;’\>Exact-match
+contingency table in proportions\</span\> {.table .table
 style="width: max-content !important; max-width: none !important; margin-bottom: 20px;"}
 
 This table shows the joint distribution of HRS self-reports and CMS
@@ -208,7 +214,8 @@ round(as.data.frame.matrix(adjusted_table$phat), 4)
 | 0   | 0.9139 | 0.0170 |
 | 1   | 0.0197 | 0.0494 |
 
-Adjusted contingency table in proportions {.table .table
+\<span style=‘white-space: nowrap; font-weight: bold;’\>Adjusted
+contingency table in proportions\</span\> {.table .table
 style="width: max-content !important; max-width: none !important; margin-bottom: 20px;"}
 
 We also demonstrate an alternative lower mismatch rate (not all
@@ -237,7 +244,8 @@ round(as.data.frame.matrix(adjusted_table_lower$phat), 4)
 | 0   | 0.9132 | 0.0194 |
 | 1   | 0.0222 | 0.0452 |
 
-Adjusted contingency table using lower mismatch rate {.table .table
+\<span style=‘white-space: nowrap; font-weight: bold;’\>Adjusted
+contingency table using lower mismatch rate\</span\> {.table .table
 style="width: max-content !important; max-width: none !important; margin-bottom: 20px;"}
 
 These adjusted tables estimate the joint distribution of the two nursing
@@ -299,7 +307,8 @@ data.frame(
 | Chi-square | 147.0581 |
 | Kappa      |   0.6625 |
 
-Evaluation metrics for the adjusted contingency table {.table .table
+\<span style=‘white-space: nowrap; font-weight: bold;’\>Evaluation
+metrics for the adjusted contingency table\</span\> {.table .table
 style="width: max-content !important; max-width: none !important; margin-bottom: 20px;"}
 
 These metrics summarize the behavior of the `postlink` adjustment

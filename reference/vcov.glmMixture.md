@@ -53,57 +53,57 @@ fit <- plglm(
 
 vcov(fit)
 #>                                     coef (Intercept)
-#> coef (Intercept)                          2.46975902
-#> coef poly(unit_yob, 3, raw = TRUE)1     -23.52175723
-#> coef poly(unit_yob, 3, raw = TRUE)2      50.32131256
-#> coef poly(unit_yob, 3, raw = TRUE)3     -28.84771322
-#> dispersion                               13.50918917
-#> m.coef (Intercept)                        0.34449875
-#> m.coef commf                             -0.09520238
-#> m.coef comml                             -0.41118201
+#> coef (Intercept)                           0.5706938
+#> coef poly(unit_yob, 3, raw = TRUE)1       -5.2361970
+#> coef poly(unit_yob, 3, raw = TRUE)2       11.5372246
+#> coef poly(unit_yob, 3, raw = TRUE)3       -7.0462799
+#> dispersion                                -0.6942789
+#> m.coef (Intercept)                         0.1119627
+#> m.coef commf                              -0.0322021
+#> m.coef comml                              -0.1508786
 #>                                     coef poly(unit_yob, 3, raw = TRUE)1
-#> coef (Intercept)                                            -23.5217572
-#> coef poly(unit_yob, 3, raw = TRUE)1                         330.8987262
-#> coef poly(unit_yob, 3, raw = TRUE)2                        -799.9390974
-#> coef poly(unit_yob, 3, raw = TRUE)3                         492.3118825
-#> dispersion                                                 -176.5971120
-#> m.coef (Intercept)                                           -4.1178131
-#> m.coef commf                                                 -0.4020898
-#> m.coef comml                                                  5.6864113
+#> coef (Intercept)                                             -5.2361970
+#> coef poly(unit_yob, 3, raw = TRUE)1                          73.9942884
+#> coef poly(unit_yob, 3, raw = TRUE)2                        -189.1367509
+#> coef poly(unit_yob, 3, raw = TRUE)3                         124.2453630
+#> dispersion                                                    9.3269443
+#> m.coef (Intercept)                                           -1.1843453
+#> m.coef commf                                                 -0.1058184
+#> m.coef comml                                                  1.8711390
 #>                                     coef poly(unit_yob, 3, raw = TRUE)2
-#> coef (Intercept)                                              50.321313
-#> coef poly(unit_yob, 3, raw = TRUE)1                         -799.939097
-#> coef poly(unit_yob, 3, raw = TRUE)2                         2084.357322
-#> coef poly(unit_yob, 3, raw = TRUE)3                        -1356.437057
-#> dispersion                                                   319.984050
-#> m.coef (Intercept)                                             7.291627
-#> m.coef commf                                                   4.228244
-#> m.coef comml                                                 -13.515778
+#> coef (Intercept)                                              11.537225
+#> coef poly(unit_yob, 3, raw = TRUE)1                         -189.136751
+#> coef poly(unit_yob, 3, raw = TRUE)2                          527.564297
+#> coef poly(unit_yob, 3, raw = TRUE)3                         -363.681651
+#> dispersion                                                   -15.515215
+#> m.coef (Intercept)                                             1.233147
+#> m.coef commf                                                   1.791217
+#> m.coef comml                                                  -3.406404
 #>                                     coef poly(unit_yob, 3, raw = TRUE)3
-#> coef (Intercept)                                            -28.8477132
-#> coef poly(unit_yob, 3, raw = TRUE)1                         492.3118825
-#> coef poly(unit_yob, 3, raw = TRUE)2                       -1356.4370569
-#> coef poly(unit_yob, 3, raw = TRUE)3                         931.4044404
-#> dispersion                                                    0.1667223
-#> m.coef (Intercept)                                           -4.5079215
-#> m.coef commf                                                 -4.3081749
-#> m.coef comml                                                 11.3205245
-#>                                       dispersion m.coef (Intercept)
-#> coef (Intercept)                      13.5091892          0.3444988
-#> coef poly(unit_yob, 3, raw = TRUE)1 -176.5971120         -4.1178131
-#> coef poly(unit_yob, 3, raw = TRUE)2  319.9840498          7.2916269
-#> coef poly(unit_yob, 3, raw = TRUE)3    0.1667223         -4.5079215
-#> dispersion                          2018.5407733        -15.5338192
-#> m.coef (Intercept)                   -15.5338192          6.1090919
-#> m.coef commf                           1.3092814         -4.1172117
-#> m.coef comml                          31.3783994         -5.2864219
-#>                                     m.coef commf m.coef comml
-#> coef (Intercept)                     -0.09520238   -0.4111820
-#> coef poly(unit_yob, 3, raw = TRUE)1  -0.40208978    5.6864113
-#> coef poly(unit_yob, 3, raw = TRUE)2   4.22824403  -13.5157782
-#> coef poly(unit_yob, 3, raw = TRUE)3  -4.30817490   11.3205245
-#> dispersion                            1.30928145   31.3783994
-#> m.coef (Intercept)                   -4.11721170   -5.2864219
-#> m.coef commf                          5.02343393    0.2860827
-#> m.coef comml                          0.28608274   10.0709274
+#> coef (Intercept)                                             -7.0462799
+#> coef poly(unit_yob, 3, raw = TRUE)1                         124.2453630
+#> coef poly(unit_yob, 3, raw = TRUE)2                        -363.6816507
+#> coef poly(unit_yob, 3, raw = TRUE)3                         257.9355737
+#> dispersion                                                   -0.3502309
+#> m.coef (Intercept)                                            0.6959974
+#> m.coef commf                                                 -2.5538254
+#> m.coef comml                                                  1.1363067
+#>                                      dispersion m.coef (Intercept) m.coef commf
+#> coef (Intercept)                     -0.6942789          0.1119627   -0.0322021
+#> coef poly(unit_yob, 3, raw = TRUE)1   9.3269443         -1.1843453   -0.1058184
+#> coef poly(unit_yob, 3, raw = TRUE)2 -15.5152148          1.2331471    1.7912170
+#> coef poly(unit_yob, 3, raw = TRUE)3  -0.3502309          0.6959974   -2.5538254
+#> dispersion                          120.2448040        -10.7999342    9.7312601
+#> m.coef (Intercept)                  -10.7999342          9.9230118   -7.5922150
+#> m.coef commf                          9.7312601         -7.5922150    8.0617133
+#> m.coef comml                          8.7681912         -8.8896034    3.7141259
+#>                                     m.coef comml
+#> coef (Intercept)                      -0.1508786
+#> coef poly(unit_yob, 3, raw = TRUE)1    1.8711390
+#> coef poly(unit_yob, 3, raw = TRUE)2   -3.4064039
+#> coef poly(unit_yob, 3, raw = TRUE)3    1.1363067
+#> dispersion                             8.7681912
+#> m.coef (Intercept)                    -8.8896034
+#> m.coef commf                           3.7141259
+#> m.coef comml                          13.2713805
 ```

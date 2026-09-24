@@ -130,7 +130,7 @@ print(sum_fit)
 #> ---
 #> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> 
-#> Average Estimated Correct Match Rate: 0.4527 
+#> Average Estimated Correct Match Rate: 0.4426 
 #> Events: 113  / Total: 200 
 #> Iterations: 15 
 #> 

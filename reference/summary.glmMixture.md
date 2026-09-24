@@ -92,21 +92,21 @@ summary(fit)
 #> 
 #> Outcome Model Coefficients:
 #>                                Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)                      57.753      1.572  36.749   <2e-16 ***
-#> poly(unit_yob, 3, raw = TRUE)1  -43.760     18.191  -2.406   0.0162 *  
-#> poly(unit_yob, 3, raw = TRUE)2  114.904     45.655   2.517   0.0119 *  
-#> poly(unit_yob, 3, raw = TRUE)3  -57.142     30.519  -1.872   0.0613 .  
+#> (Intercept)                     57.7528     0.7554  76.449  < 2e-16 ***
+#> poly(unit_yob, 3, raw = TRUE)1 -43.7603     8.6020  -5.087 3.84e-07 ***
+#> poly(unit_yob, 3, raw = TRUE)2 114.9040    22.9688   5.003 5.96e-07 ***
+#> poly(unit_yob, 3, raw = TRUE)3 -57.1416    16.0604  -3.558 0.000379 ***
 #> 
 #> Mismatch Model Coefficients:
-#>             Estimate Std. Error z value Pr(>|z|)   
-#> (Intercept)    7.562      2.472   3.059  0.00222 **
-#> commf         -6.731      2.241  -3.003  0.00267 **
-#> comml         -8.974      3.173  -2.828  0.00469 **
+#>             Estimate Std. Error z value Pr(>|z|)  
+#> (Intercept)    7.562      3.150   2.400   0.0164 *
+#> commf         -6.731      2.839  -2.371   0.0178 *
+#> comml         -8.974      3.643  -2.463   0.0138 *
 #> ---
 #> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> 
 #> (Dispersion parameter for gaussian family taken to be 373.1)
 #> 
-#> Average Correct Match Probability: 0.951 
+#> Average Correct Match Probability: 0.9506 
 #> 
 ```

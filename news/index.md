@@ -1,5 +1,18 @@
 # Changelog
 
+## **postlink 0.1.3**
+
+#### Bug Fixes
+
+- For GLM Mixture adjustment, updated the safe matches logic for
+  standard errors and use hgamma_eval\$fun in w_beta_sigma_hess
+  computation for Gaussian family.
+- Update the match.prob return value to be based on pcur instead of hs.
+
+#### Documentation
+
+- Update the formatting of references in README.
+
 ## **postlink 0.1.2**
 
 #### Bug Fixes
@@ -12,6 +25,8 @@
 
 ## **postlink 0.1.1**
 
+CRAN release: 2026-09-04
+
 #### New Features
 
 - Updated the `priors` argument for the Bayesian Mixture functions
@@ -21,7 +36,7 @@
   so that intercept priors and slope coefficient priors are now
   decoupled.
 
-#### Architecture & S3 Methods
+#### Design & S3 Methods
 
 - Refactored S3 class assignment system to remove false inheritance from
   base `glm`, `lm`, and `coxph` classes. Fitted objects now use

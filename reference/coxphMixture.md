@@ -212,7 +212,7 @@ summary(fit)
 #> ---
 #> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> 
-#> Average Estimated Correct Match Rate: 0.8789 
+#> Average Estimated Correct Match Rate: 0.8651 
 #> Events: 144  / Total: 200 
 #> Iterations: 24 
 #> 

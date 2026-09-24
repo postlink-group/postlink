@@ -55,9 +55,9 @@ fit <- plglm(Weight ~ Height + Physhlth + Menthlth + Exerany,
 
 confint(fit)
 #>                     2.5 %      97.5 %
-#> (Intercept) -1.591870e+02 -78.6166068
-#> Height       5.126909e-01   0.6633492
-#> Physhlth     9.775369e-03   0.6347669
-#> Menthlth    -2.309039e-01   0.4939175
-#> Exerany     -8.566838e+00  -0.3345667
+#> (Intercept) -1.594774e+02 -78.3262026
+#> Height       5.121013e-01   0.6639389
+#> Physhlth     9.808049e-03   0.6347342
+#> Menthlth    -2.309497e-01   0.4939633
+#> Exerany     -8.562848e+00  -0.3385568
 ```

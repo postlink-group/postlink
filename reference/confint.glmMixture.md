@@ -67,13 +67,13 @@ fit <- plglm(
 )
 
 confint(fit)
-#>                                           2.5 %     97.5 %
-#> coef (Intercept)                      54.671426  60.834082
-#> coef poly(unit_yob, 3, raw = TRUE)1  -79.426563  -8.093938
-#> coef poly(unit_yob, 3, raw = TRUE)2   25.388787 204.419170
-#> coef poly(unit_yob, 3, raw = TRUE)3 -116.979978   2.696778
-#> dispersion                           285.021138 461.202280
-#> m.coef (Intercept)                     2.715452  12.407800
-#> m.coef commf                         -11.125784  -2.336753
-#> m.coef comml                         -15.196314  -2.751873
+#>                                          2.5 %     97.5 %
+#> coef (Intercept)                     56.271559  59.233949
+#> coef poly(unit_yob, 3, raw = TRUE)1 -60.626160 -26.894341
+#> coef poly(unit_yob, 3, raw = TRUE)2  69.869166 159.938791
+#> coef poly(unit_yob, 3, raw = TRUE)3 -88.631137 -25.652062
+#> dispersion                          351.611444 394.611974
+#> m.coef (Intercept)                    1.385269  13.737983
+#> m.coef commf                        -12.298308  -1.164229
+#> m.coef comml                        -16.116897  -1.831290
 ```

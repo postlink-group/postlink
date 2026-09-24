@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">postlink</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -117,8 +117,8 @@ mismatch status.</p>
 <span><span class="va">agg</span> <span class="co"># Data input (aggregated counts only)</span></span></code></pre></div>
 <table class="table table" style="width: max-content !important; max-width: none !important; margin-bottom: 20px;">
 <caption>
-<span style="white-space: nowrap; font-weight: bold;">Aggregated HRS-CMS
-data</span>
+&lt;span style=‘white-space: nowrap; font-weight: bold;’&gt;Aggregated
+HRS-CMS data&lt;/span&gt;
 </caption>
 <thead><tr>
 <th style="text-align:right;">
@@ -245,8 +245,8 @@ proportion using the aggregated counts:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>`Mismatch rate` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">mm_rate</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table table" style="width: max-content !important; max-width: none !important; margin-bottom: 20px;">
 <caption>
-<span style="white-space: nowrap; font-weight: bold;">Overall linkage
-mismatch rate</span>
+&lt;span style=‘white-space: nowrap; font-weight: bold;’&gt;Overall
+linkage mismatch rate&lt;/span&gt;
 </caption>
 <thead><tr>
 <th style="text-align:right;">
@@ -282,8 +282,8 @@ all records were correctly matched.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame.matrix</a></span><span class="op">(</span><span class="va">ctab</span><span class="op">)</span></span></code></pre></div>
 <table class="table table" style="width: max-content !important; max-width: none !important; margin-bottom: 20px;">
 <caption>
-<span style="white-space: nowrap; font-weight: bold;">Naive contingency
-table in counts</span>
+&lt;span style=‘white-space: nowrap; font-weight: bold;’&gt;Naive
+contingency table in counts&lt;/span&gt;
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -326,8 +326,8 @@ table in counts</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame.matrix</a></span><span class="op">(</span><span class="va">ctab_prop</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <table class="table table" style="width: max-content !important; max-width: none !important; margin-bottom: 20px;">
 <caption>
-<span style="white-space: nowrap; font-weight: bold;">Naive contingency
-table in proportions</span>
+&lt;span style=‘white-space: nowrap; font-weight: bold;’&gt;Naive
+contingency table in proportions&lt;/span&gt;
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -386,8 +386,8 @@ a comparison table based only on records without linkage mismatches.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame.matrix</a></span><span class="op">(</span><span class="va">ctab_exact</span><span class="op">)</span></span></code></pre></div>
 <table class="table table" style="width: max-content !important; max-width: none !important; margin-bottom: 20px;">
 <caption>
-<span style="white-space: nowrap; font-weight: bold;">Exact-match
-contingency table in counts</span>
+&lt;span style=‘white-space: nowrap; font-weight: bold;’&gt;Exact-match
+contingency table in counts&lt;/span&gt;
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -430,8 +430,8 @@ contingency table in counts</span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame.matrix</a></span><span class="op">(</span><span class="va">ctab_exact_prop</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <table class="table table" style="width: max-content !important; max-width: none !important; margin-bottom: 20px;">
 <caption>
-<span style="white-space: nowrap; font-weight: bold;">Exact-match
-contingency table in proportions</span>
+&lt;span style=‘white-space: nowrap; font-weight: bold;’&gt;Exact-match
+contingency table in proportions&lt;/span&gt;
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -510,8 +510,8 @@ the observed mismatch rate.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame.matrix</a></span><span class="op">(</span><span class="va">adjusted_table</span><span class="op">$</span><span class="va">phat</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <table class="table table" style="width: max-content !important; max-width: none !important; margin-bottom: 20px;">
 <caption>
-<span style="white-space: nowrap; font-weight: bold;">Adjusted
-contingency table in proportions</span>
+&lt;span style=‘white-space: nowrap; font-weight: bold;’&gt;Adjusted
+contingency table in proportions&lt;/span&gt;
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -567,8 +567,8 @@ non-exact matches are mismatches):</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame.matrix</a></span><span class="op">(</span><span class="va">adjusted_table_lower</span><span class="op">$</span><span class="va">phat</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <table class="table table" style="width: max-content !important; max-width: none !important; margin-bottom: 20px;">
 <caption>
-<span style="white-space: nowrap; font-weight: bold;">Adjusted
-contingency table using lower mismatch rate</span>
+&lt;span style=‘white-space: nowrap; font-weight: bold;’&gt;Adjusted
+contingency table using lower mismatch rate&lt;/span&gt;
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -657,8 +657,8 @@ mismatches.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <table class="table table" style="width: max-content !important; max-width: none !important; margin-bottom: 20px;">
 <caption>
-<span style="white-space: nowrap; font-weight: bold;">Evaluation metrics
-for the adjusted contingency table</span>
+&lt;span style=‘white-space: nowrap; font-weight: bold;’&gt;Evaluation
+metrics for the adjusted contingency table&lt;/span&gt;
 </caption>
 <thead><tr>
 <th style="text-align:left;">

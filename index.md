@@ -210,21 +210,23 @@ confint(fit)
 
 ## **References**
 
-Chambers, R. (2009). Regression analysis of probability-linked data. ,
-4, 1-15.
+Chambers, R. (2009). Regression analysis of probability-linked data.
+*Official Statistics Research Series*, 4, 1-15.
 
 Chambers, R. L., Fabrizi, E., Ranalli, M. G., Salvati, N., & Wang, S.
-(2023). Robust regression using probabilistically linked data. , 15(2),
-e1596.
+(2023). Robust regression using probabilistically linked data. *Wiley
+Interdisciplinary Reviews: Computational Statistics*, 15(2), e1596.
 
 Gutman, R., Sammartino, C., Green, T., & Montague, B. (2016). Error
 adjustments for file linking methods using encrypted unique client
 identifier (eUCI) with application to recently released prisoners who
-are HIV+. , 35(1), 115–129.
+are HIV+. *Statistics in Medicine*, 35(1), 115–129.
 
 Slawski, M., West, B. T., Bukke, P., Wang, Z., Diao, G., & Ben-David, E.
 (2025). A general framework for regression with mismatched data based on
-mixture modelling. , 188(3), 896-919.
+mixture modelling. *Journal of the Royal Statistical Society Series A:
+Statistics in Society*, 188(3), 896-919.
 
 Vo, T. H., Garès, V., Zhang, L. C., Happe, A., Oger, E., Paquelet, S., &
-Chauvet, G. (2024). Cox regression with linked data. , 43(2), 296-314.
+Chauvet, G. (2024). Cox regression with linked data. *Statistics in
+Medicine*, 43(2), 296-314.
