@@ -1,18 +1,5 @@
 # Changelog
 
-## **postlink 0.1.3**
-
-#### Bug Fixes
-
-- For GLM Mixture adjustment, updated the safe matches logic for
-  standard errors and use hgamma_eval\$fun in w_beta_sigma_hess
-  computation for Gaussian family.
-- Update the match.prob return value to be based on pcur instead of hs.
-
-#### Documentation
-
-- Update the formatting of references in README.
-
 ## **postlink 0.1.2**
 
 #### Bug Fixes
@@ -22,6 +9,14 @@
   compilers.
 - Increased minimum dependency requirements for `rstan` and
   `StanHeaders` to `>= 2.26.0`.
+- For GLM Mixture adjustment, updated the safe matches logic for
+  standard errors and use hgamma_eval\$fun in w_beta_sigma_hess
+  computation for Gaussian family.
+- Update the match.prob return value to be based on pcur instead of hs.
+
+#### Documentation
+
+- Update the formatting of references in README.
 
 ## **postlink 0.1.1**
 

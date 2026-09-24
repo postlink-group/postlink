@@ -63,5 +63,5 @@ vmat <- vcov(fit)
 print(vmat)
 #>                    age    treatment
 #> age        0.001386645 -0.004720918
-#> treatment -0.004720918  0.160148790
+#> treatment -0.004720918  0.160148788
 ```
