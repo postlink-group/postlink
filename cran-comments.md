@@ -1,9 +1,9 @@
 
 
 ## Submission Notes
-This is an update to version 0.1.2 addressing the installation failure flagged on R-devel (macOS and Linux environments) regarding deprecated Stan array declarations.
+This is an update from version 0.1.1 to version 0.1.2 addressing the installation failure flagged on R-devel (macOS and Linux environments) regarding deprecated Stan array declarations.
 
-## Changes in 0.1.3
+## Changes in 0.1.2
 * Updated all array declarations across `.stan` files in `inst/stan/` to use the `array[N] type var;` syntax required by `stanc3`.
 * Bumped minimum required versions of `rstan` and `StanHeaders` to `>= 2.26.0` in `DESCRIPTION`.
 * Regenerated C++ model headers via `rstantools`.
