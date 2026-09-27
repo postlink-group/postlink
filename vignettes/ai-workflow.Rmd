@@ -1,0 +1,458 @@
+---
+title: "AI-Assisted Workflow for postlink"
+author: "Isabella Liu"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    theme: flatly
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{AI-Assisted Workflow for postlink}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  eval     = FALSE,
+  message  = FALSE,
+  warning  = FALSE
+)
+```
+
+## Overview
+
+The **postlink** package provides two AI-assisted functions for interpreting
+and reporting post-linkage data analyses:
+
+| Function | Purpose |
+|---|---|
+| `explain()` | Plain-language interpretation of one or more fitted models |
+| `generate_report()` | Structured analysis report (Data / Methods / Results / References) |
+| `postlink_set_key()` | Store an API key in `~/.Renviron` using base R |
+| `postlink_set_provider()` | Choose the LLM backend (Anthropic, OpenAI, Gemini, Ollama) |
+
+Both `explain()` and `generate_report()` are **AI-agnostic**: they support
+multiple LLM providers and automatically detect which to use based on the API
+key available in the environment.
+
+---
+
+## 1. Setup and Configuration
+
+### 1.1 Install dependencies
+
+```{r install}
+install.packages(c("httr2", "rmarkdown"))
+devtools::install_github("postlink-group/postlink")
+```
+
+### 1.2 Configure the LLM backend
+
+The `provider`, `api_key`, and `model` are parameters of `explain()` and
+`generate_report()` — no separate setup functions are needed.
+
+**Option A: Pass the key directly (quickest for testing)**
+
+```{r key-direct}
+library(postlink)
+
+explain(fit_adj, api_key = "sk-ant-your-key-here")
+generate_report(fit_adj, api_key = "sk-ant-your-key-here")
+```
+
+**Option B: Set an environment variable (recommended for regular use)**
+
+Set once per session, or add to `~/.Renviron` so it loads automatically:
+
+```{r key-env}
+# Set for the current session
+Sys.setenv(ANTHROPIC_API_KEY = "sk-ant-your-key-here")
+
+# Or add to ~/.Renviron for all future sessions (use a text editor):
+# ANTHROPIC_API_KEY=sk-ant-your-key-here
+
+# Then just call without api_key argument:
+explain(fit_adj)
+```
+
+**Supported providers:**
+
+```{r providers}
+# Anthropic Claude (default — used if ANTHROPIC_API_KEY is set)
+explain(fit_adj, provider = "anthropic", api_key = "sk-ant-...")
+
+# OpenAI
+explain(fit_adj, provider = "openai", api_key = "sk-...")
+
+# Google Gemini
+explain(fit_adj, provider = "gemini", api_key = "AIza...")
+
+# Local Ollama (no key needed — make sure Ollama is running: ollama serve)
+explain(fit_adj, provider = "ollama", model = "llama3")
+```
+
+The provider is auto-detected from whichever environment variable is set.
+Pass `provider` explicitly to override.
+
+### 1.3 Load the package and data
+
+```{r load}
+library(postlink)
+
+# Full LIFE-M dataset (~156k linked Ohio birth and death certificate records)
+url        <- "https://github.com/postlink-group/postlink/releases/download/v0.1.0/lifem.rds"
+lifem_full <- readRDS(url(url, "rb"))
+
+cat("Records:", nrow(lifem_full), "\n")
+cat("Columns:", paste(names(lifem_full), collapse = ", "), "\n")
+```
+
+---
+
+## 2. Fit the Post-Linkage Models
+
+Following the structure of the
+[LIFE-M longevity analysis vignette](https://postlink-group.github.io/postlink/articles/longevity-analysis.html),
+we fit three models for comparison:
+
+- **Naive**: standard GLM, no linkage error correction
+- **Hand-Linked Only**: GLM restricted to hand-verified matches (~1.4% of records)
+- **Adjusted**: postlink EM mixture model correcting for linkage error
+
+### 2.1 Naive model
+
+```{r fit-naive}
+fit_naive <- glm(
+  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+  data   = lifem_full,
+  family = gaussian()
+)
+```
+
+### 2.2 Hand-linked only model
+
+```{r fit-hl}
+lifem_hl <- lifem_full[lifem_full$hndlnk, ]
+cat("Hand-linked records:", nrow(lifem_hl), "\n")  # ~2,159
+
+fit_hl <- glm(
+  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+  data   = lifem_hl,
+  family = gaussian()
+)
+```
+
+### 2.3 Adjusted model (postlink EM mixture)
+
+```{r fit-adj}
+adj <- adjMixture(
+  linked.data  = lifem_full,
+  m.formula    = ~ commf + comml,   # name commonness covariates
+  m.rate       = 0.05,              # mismatch rate upper bound
+  safe.matches = hndlnk             # hand-linked records fixed at P(match) = 1
+)
+
+fit_adj <- plglm(
+  age_at_death ~ poly(unit_yob, 3, raw = TRUE),
+  family     = "gaussian",
+  adjustment = adj
+)
+```
+
+---
+
+## 3. explain()
+
+`explain()` accepts either a single model or a **named list of models**.
+When a list is provided, the LLM automatically compares results across all
+models and explains what the differences reveal about the impact of linkage
+error correction.
+
+### 3.1 Single model
+
+```{r explain-single}
+explain(
+  fit_adj,
+  context = "This study uses LIFE-M linked Ohio birth and death certificates
+             (birth cohorts 1883-1906) to examine the relationship between
+             year of birth and age at death. Records were linked using first
+             and last name commonness scores; expected mismatch rate ~5%."
+)
+```
+
+**Example output:**
+
+```
+--- postlink: explain() ---
+
+The analysis used an EM Mixture Model (Slawski et al., 2025) to correct for
+record linkage errors, explicitly modelling each linked record pair as either a
+true match or a false link and iterating to recover regression coefficients
+applicable to correctly matched records only; with a mean posterior correct match
+probability of 0.90 and successful EM convergence, the implied ~10% mismatch
+rate has been accounted for in the estimates reported here. The model regresses
+the outcome on a cubic polynomial in year of birth (unit_yob), and all four
+coefficients are highly statistically significant, each with |z| far exceeding 2.
+The large and alternating signs of the three polynomial terms (linear: −51.17,
+quadratic: +140.54, cubic: −76.92) together describe a non-linear, S-shaped or
+wave-like relationship between birth year and the outcome, meaning the outcome
+does not change at a constant rate across birth cohorts but instead accelerates
+and decelerates at different points in the birth-year range. The intercept of
+58.63 represents the model's baseline fitted value at the origin of the
+polynomial, though its standalone interpretation depends on how unit_yob is
+scaled. These corrected estimates reflect associations between birth year and the
+outcome among true record matches, and should not be interpreted as causal
+without additional substantive justification.
+
+[AI-generated. Verify before use.]
+```
+
+### 3.2 Multi-model comparison
+
+When `fit` is a named list, comparison mode is triggered automatically.
+
+```{r explain-multi}
+explain(
+  list(
+    "Naive (All Records)" = fit_naive,
+    "Hand-Linked Only"    = fit_hl,
+    "Adjusted (postlink)" = fit_adj
+  ),
+  context = "This study uses LIFE-M linked Ohio birth and death certificates
+             (birth cohorts 1883-1906) to examine the relationship between
+             year of birth and age at death."
+)
+```
+
+**Example output:**
+
+```
+--- postlink: explain() — Model Comparison ---
+
+The Naive model uses the full probabilistically linked dataset (n = 156,453)
+without any correction for linkage errors, while the Hand-Linked model applies
+the same unadjusted approach to a small gold-standard subset (n = 2,159)
+verified through manual linkage, and the Adjusted model applies an EM mixture
+model to the full linked dataset to correct for linkage error contamination.
+Comparing coefficients, the Naive and Hand-Linked models produce broadly similar
+estimates — for example, the cubic term is −72.94 and −59.92 respectively —
+though the Hand-Linked estimates carry substantially larger standard errors
+reflecting its much smaller sample size. The Adjusted model consistently produces
+coefficients of greater magnitude than the Naive model across all polynomial terms
+(e.g., the linear term shifts from −46.70 to −51.17, the quadratic from 130.41
+to 140.54, and the cubic from −72.94 to −76.92), while simultaneously achieving
+smaller standard errors than either unadjusted model. This pattern is
+characteristic of linkage error correction: false matches introduce outcome
+misclassification that attenuates associations toward the null, so the EM
+adjustment recovers effect estimates closer to the true underlying relationship
+while the larger full-sample size preserves precision. The Hand-Linked model
+serves as a useful qualitative benchmark, and its coefficients trend in the same
+direction as the Adjusted model relative to the Naive, lending credibility to the
+correction.
+
+[AI-generated. Verify before use.]
+```
+
+---
+
+## 4. generate_report()
+
+`generate_report()` also accepts a single model or a named list. When a list
+is provided, a **Model Comparison** table is automatically included in the
+Results section.
+
+### 4.1 Single model report
+
+```{r report-single}
+generate_report(fit_adj, output_format = "text")
+```
+
+**Example output (with list of three models):**
+
+```
+postlink Analysis Report
+========================================
+August 30, 2026
+
+## Data
+
+The analysis used 156,453 records. The outcome variable is **age_at_death**.
+Model formula: `age_at_death ~ poly(unit_yob, 3, raw = TRUE)`.
+
+## Methods
+
+Linkage error was accounted for using **postlink** (R package, v0.1.0; Bukke et
+al., 2026). The outcome (age_at_death) was modelled using Gaussian (linear)
+regression with formula `age_at_death ~ poly(unit_yob, 3, raw = TRUE)`. Linkage
+error correction used an EM-based two-component mixture model (Slawski et al.,
+2025). Each record pair is modelled as either a correct match (C = 1) or a false
+link (C = 0). The EM algorithm alternates between estimating posterior correct
+match probabilities (E-step) and updating the regression parameters for true
+matches (M-step). The EM algorithm converged. The mean posterior correct match
+probability was 0.9 (65.6% of records exceeded 0.9), implying an estimated
+mismatch rate of approximately 10%.
+
+### Mismatch Model Coefficients
+
+| Term        | 95% CI Lower | 95% CI Upper |
+|-------------|--------------|--------------|
+| (Intercept) |  4.9355      |  6.7751      |
+| commf       |  0.3946      |  2.5015      |
+| comml       | -7.7461      | -6.4727      |
+
+## Results
+
+> The narrative below was drafted by an AI language model using exact numerical
+> outputs from the model. Review and edit before submitting or publishing.
+
+The EM mixture model, which down-weights false links across the full linked sample
+(n = 156,453), yielded a significant cubic relationship between year of birth and
+the outcome across all polynomial terms (all p < 0.05). The adjusted intercept
+was 58.63 (95% CI: 58.34, 58.91), with linear, quadratic, and cubic year-of-birth
+coefficients of −51.17 (95% CI: −54.20, −48.13), 140.54 (95% CI: 132.95,
+148.12), and −76.92 (95% CI: −82.01, −71.83), respectively. Compared to the
+naive unadjusted estimates, the EM-corrected coefficients show meaningfully
+amplified polynomial terms — the linear term shifted from −46.70 to −51.17, the
+quadratic from 130.41 to 140.54, and the cubic from −72.94 to −76.92 —
+indicating that false links in the naive model attenuated the estimated trajectory
+of the outcome across birth cohorts. The adjusted estimates align more closely
+with those from the hand-linked validation sample (n = 2,159) in directional
+pattern, demonstrating the value of the EM adjustment in recovering signal
+obscured by linkage error.
+
+### Model Comparison
+
+| Term | Naive | Hand-Linked | Adjusted |
+|------|-------|-------------|----------|
+| (Intercept) | 58.4994 (0.2149) | 57.6558 (1.2603) | 58.6292 (0.1451) |
+| poly(unit_yob, 3, raw = TRUE)1 | -46.7007 (1.7897) | -44.2281 (11.5935) | -51.1659 (1.5498) |
+| poly(unit_yob, 3, raw = TRUE)2 | 130.4127 (3.9923) | 118.5657 (27.9187) | 140.5362 (3.8685) |
+| poly(unit_yob, 3, raw = TRUE)3 | -72.9382 (2.5188) | -59.9173 (18.4589) | -76.9233 (2.5964) |
+| n | 156,453 | 2,159 | 156,453 |
+
+### Adjusted Model — Coefficient Table
+
+| Term | Estimate | SE | z | p-value | 95% CI Lower | 95% CI Upper |
+|------|----------|----|---|---------|--------------|--------------|
+| (Intercept) | 58.6292 | 0.1451 | 404.061 | 0 * | 58.3448 | 58.9136 |
+| poly(unit_yob, 3, raw = TRUE)1 | -51.1659 | 1.5498 | -33.015 | 0 * | -54.2034 | -48.1284 |
+| poly(unit_yob, 3, raw = TRUE)2 | 140.5362 | 3.8685 | 36.328 | 0 * | 132.9541 | 148.1183 |
+| poly(unit_yob, 3, raw = TRUE)3 | -76.9233 | 2.5964 | -29.627 | 0 * | -82.0122 | -71.8345 |
+
+* p < 0.05
+
+## References
+
+- postlink R package (v0.1.0). Bukke, P., Kamat, G., Cui, J., Gutman, R., &
+  Slawski, M. https://postlink-group.github.io/postlink/
+- Slawski, M., West, B. T., Bukke, P., Wang, Z., Diao, G., & Ben-David, E.
+  (2025). A general framework for regression with mismatched data based on
+  mixture modelling. Journal of the Royal Statistical Society Series A,
+  188(3), 896-919.
+```
+
+### 4.2 Full report with comparison
+
+This is the recommended usage. It matches the LIFE-M vignette structure.
+
+```{r report-full, eval=FALSE}
+generate_report(
+  list(
+    "Naive (All Records)" = fit_naive,
+    "Hand-Linked Only"    = fit_hl,
+    "Adjusted"            = fit_adj
+  ),
+  output_file   = "articles/lifem_ai_report.html",
+  output_format = "html",
+  context = list(
+    study            = "This study examines the relationship between year of
+                        birth and age at death using linked vital records from
+                        the LIFE-M project.",
+    dataset          = "LIFE-M Ohio birth and death certificates, 1883-1906",
+    n_total          = 156453,
+    outcome_label    = "age at death (years)",
+    predictor_label  = "year of birth",
+    linkage_description = "Records were linked using first and last name
+                           commonness scores. Hand-linked records (~1.4%)
+                           were treated as confirmed correct matches.
+                           Expected mismatch rate among machine-linked
+                           records is approximately 5%."
+  )
+)
+```
+
+> The generated HTML report has been pre-built and is stored in the repository.
+> **[View the generated report →](articles/lifem_ai_report.html)**
+
+> To regenerate it yourself (requires an API key):
+> ```r
+> # Run the code block above with eval=TRUE
+> ```
+
+### 4.3 R Markdown output
+
+```{r report-rmd}
+generate_report(
+  list(
+    "Naive"       = fit_naive,
+    "Hand-Linked" = fit_hl,
+    "Adjusted"    = fit_adj
+  ),
+  output_file   = "lifem_report.Rmd",
+  output_format = "rmd",
+  render        = TRUE
+)
+```
+
+---
+
+## 5. Report Structure
+
+The generated report contains four sections:
+
+| Section | Content | Source |
+|---|---|---|
+| **Data** | Sample size, outcome, predictor | `fit` + `context` |
+| **Methods** | Adjustment method details: algorithm, covariates, constraints, convergence | `fit` directly — no AI |
+| **Results** | Comparison table (if list provided) + coefficient table + AI narrative | Tables from `fit`; narrative from AI |
+| **References** | postlink package + method paper | Auto-populated by method |
+
+---
+
+## 6. Supported LLM Providers
+
+| Provider | Environment Variable | Default Model | Usage |
+|---|---|---|---|
+| Anthropic (default) | `ANTHROPIC_API_KEY` | `claude-sonnet-4-6` | `explain(fit, provider="anthropic")` |
+| OpenAI | `OPENAI_API_KEY` | `gpt-4o` | `explain(fit, provider="openai")` |
+| Google Gemini | `GEMINI_API_KEY` | `gemini-1.5-flash` | `explain(fit, provider="gemini")` |
+| Ollama (local) | none | `llama3` | `explain(fit, provider="ollama", model="llama3")` |
+
+The provider is auto-detected from whichever environment variable is set.
+Pass `provider` explicitly to override, or pass `api_key` directly to skip
+environment variable lookup entirely.
+
+---
+
+## 7. Notes
+
+- **No raw data sent**: Only numerical summaries (coefficients, SEs, n, method
+  details) are sent to the LLM — never the raw linked dataset.
+
+- **Always review AI output**: The LLM is instructed to use only the exact
+  numbers provided, but all generated text should be reviewed before
+  submitting or publishing.
+
+- **Optional dependency**: `httr2` is listed under `Suggests` in the package
+  `DESCRIPTION`. If not installed, a clear error message prompts installation.
+
+- **Current limitations**: The Bayesian method (`adjMixBayes`) has not been
+  fully tested. Cox regression and contingency table models have not been
+  validated yet with these functions.
