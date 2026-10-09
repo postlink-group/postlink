@@ -2,34 +2,60 @@
 % Please edit documentation in R/mixbayes_glm_methods.R
 \name{confint.glmMixBayes}
 \alias{confint.glmMixBayes}
-\title{Credible Intervals for Regression Coefficients from a glmMixBayes Fit}
+\title{Credible Intervals for Parameters from a glmMixBayes Fit}
 \usage{
-\method{confint}{glmMixBayes}(object, parm = NULL, level = 0.95, ...)
+\method{confint}{glmMixBayes}(
+  object,
+  parm = NULL,
+  level = 0.95,
+  block = c("coefficients", "coefficients2", "m.coefficients", "theta", "gamma",
+    "dispersion", "dispersion2"),
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{glmMixBayes} model object.}
 
-\item{parm}{Optional. Names or numeric indices of coefficients for which
-credible intervals should be returned. If \code{NULL}, intervals are
-returned for all coefficients.}
+\item{parm}{Optional. Names or numeric indices of the parameters within the
+selected \code{block} for which credible intervals should be returned. If
+\code{NULL}, intervals are returned for all parameters of the block. When
+\code{block} is not given, a single block name (any of the names accepted
+by \code{block}, e.g. \code{parm = "theta"}, \code{"gamma"} or
+\code{"m.coefficients"}) selects that block (as in
+\code{\link{confint.survMixBayes}}), unless it is also the name of a
+coefficient of component 1.}
 
 \item{level}{Probability level for the credible intervals. Defaults to
 \code{0.95}.}
 
-\item{...}{Not used.}
+\item{block}{Which parameter block to summarize: \code{"coefficients"}
+(component 1, the correct matches; default), \code{"coefficients2"}
+(component 2, the mismatches), \code{"m.coefficients"} (the
+mismatch-indicator model on the logit scale of the mismatch probability, as
+the \code{m.coefficients} of \code{\link{glmMixture}()}), \code{"theta"}
+(the mixing weight, i.e. the probability of a correct match, when
+\code{m.formula} has no covariates), \code{"gamma"} (the logistic
+regression coefficients of the match probability, \code{-m.coefficients},
+when \code{m.formula} has covariates), \code{"dispersion"} or
+\code{"dispersion2"} (Gaussian and Gamma fits). Up to postlink 0.1.2,
+\code{"m.coefficients"} selected the coefficients of component 2.}
+
+\item{...}{Not used; other arguments raise an error.}
 }
 \value{
-A matrix with one row per coefficient and two columns giving the lower and
-upper credible interval bounds. Row names correspond to coefficient names.
+A matrix with one row per parameter and two columns giving the lower and
+upper credible interval bounds (the posterior quantiles), labelled as by
+\code{stats::confint()} (\code{"2.5 \%"} and \code{"97.5 \%"} for
+\code{level = 0.95}). Row names correspond to parameter names.
 }
 \description{
-Computes posterior credible intervals for the regression coefficients in a
-fitted \code{glmMixBayes} model. By default, intervals are returned for all
-coefficients in component 1 of the mixture model. A subset of
-coefficients can be selected using \code{parm}.
+Computes posterior credible intervals for the parameters of a fitted
+\code{glmMixBayes} model. By default, intervals are returned for all
+regression coefficients in component 1 (the correct-match component) of the
+mixture model; \code{block} selects another parameter block and a subset of
+its parameters can be selected using \code{parm}.
 }
 \examples{
-\donttest{
 data(lifem)
 
 # lifem data preprocessing
@@ -40,12 +66,18 @@ lifem_small <- rbind(
   head(subset(lifem, hndlnk == 0), 20)
 )
 
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
-
+# priors on the scale of the outcome (age in years) and of the slopes of the
+# cubic polynomial: the defaults (normal(0, 10) for the intercepts,
+# normal(0, 5) for the slopes) suit outcomes and covariates of order one
 adj <- adjMixBayes(
   linked.data = lifem_small,
-  priors = list(theta = "beta(2, 2)")
+  priors = list(
+    theta = "beta(2, 2)",
+    intercept1 = "normal(60, 20)",
+    intercept2 = "normal(60, 20)",
+    beta1 = "normal(0, 100)",
+    beta2 = "normal(0, 100)"
+  )
 )
 
 fit <- plglm(
@@ -60,6 +92,12 @@ fit <- plglm(
 )
 
 confint(fit)
-}
+
+# credible interval of the probability of a correct match
+confint(fit, block = "theta")
+
+# the same on the logit scale of the mismatch probability, as the
+# m.coefficients of adjMixture() fits
+confint(fit, block = "m.coefficients")
 
 }

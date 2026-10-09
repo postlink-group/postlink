@@ -45,7 +45,7 @@ by the \code{\link[survival]{Surv}} function.}
 An object representing the fitted model. The specific class and structure of the
 returned object depend directly on the \code{adjustment} method provided:
 \itemize{
-\item If \code{adjustment} is of class \code{adjMixBayes}, returns an object of class \code{\link{survregMixBayes}}.
+\item If \code{adjustment} is of class \code{adjMixBayes}, returns an object of class \code{survMixBayes} (see \code{\link{survregMixBayes}}).
 }
 The returned object is a list containing the original \code{adjustment} object
 under the \code{adjustment} element.
@@ -89,7 +89,7 @@ fit <- plsurvreg(
   Surv(time, status) ~ trt,
   dist = "weibull",
   adjustment = adj,
-  control = list(iterations = 2000, burnin.iterations = 500)
+  control = list(iterations = 6000, burnin.iterations = 1000, seed = 1)
 )
 }
 }

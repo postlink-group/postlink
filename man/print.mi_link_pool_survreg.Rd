@@ -21,7 +21,6 @@ The input \code{x}, invisibly.
 Print Pooled Cox Regression Results
 }
 \examples{
-\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)
@@ -59,6 +58,5 @@ pooled_obj <- mi_with(
 )
 
 print(pooled_obj, digits = 4)
-}
 
 }

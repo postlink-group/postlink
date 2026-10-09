@@ -23,7 +23,7 @@
 #' An object representing the fitted model. The specific class and structure of the
 #' returned object depend directly on the `adjustment` method provided:
 #' \itemize{
-#'   \item If `adjustment` is of class `adjMixBayes`, returns an object of class \code{\link{survregMixBayes}}.
+#'   \item If `adjustment` is of class `adjMixBayes`, returns an object of class \code{survMixBayes} (see \code{\link{survregMixBayes}}).
 #' }
 #' The returned object is a list containing the original `adjustment` object
 #' under the \code{adjustment} element.
@@ -62,7 +62,7 @@
 #'   Surv(time, status) ~ trt,
 #'   dist = "weibull",
 #'   adjustment = adj,
-#'   control = list(iterations = 2000, burnin.iterations = 500)
+#'   control = list(iterations = 6000, burnin.iterations = 1000, seed = 1)
 #' )
 #' }
 #' @seealso \code{\link{adjMixBayes}}, \code{\link{survregMixBayes}}
@@ -112,6 +112,10 @@ plsurvreg <- function(formula,
  }
 
  mt <- attr(mf, "terms")
+ if (!is.null(attr(mt, "offset")) && inherits(adjustment, "adjMixBayes")) {
+  stop("offset() terms in the model formula are not supported by the Bayesian mixture models (adjMixBayes).",
+       call. = FALSE)
+ }
  X_mat <- stats::model.matrix(mt, mf)
 
  # Dispatch

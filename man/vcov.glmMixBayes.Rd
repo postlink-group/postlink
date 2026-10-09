@@ -4,22 +4,34 @@
 \alias{vcov.glmMixBayes}
 \title{Posterior Covariance Matrix for glmMixBayes Coefficients}
 \usage{
-\method{vcov}{glmMixBayes}(object, ...)
+\method{vcov}{glmMixBayes}(
+  object,
+  block = c("coefficients", "coefficients2", "m.coefficients", "theta", "gamma",
+    "dispersion", "dispersion2"),
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{glmMixBayes} model object.}
 
-\item{...}{Not used.}
+\item{block}{Which parameter block: \code{"coefficients"} (component 1, the
+correct-match component; default), \code{"coefficients2"} (component 2),
+\code{"m.coefficients"} (the mismatch-indicator model, as in
+\code{\link{glmMixture}()}), \code{"theta"}, \code{"gamma"},
+\code{"dispersion"} or \code{"dispersion2"}; see
+\code{\link{confint.glmMixBayes}}.}
+
+\item{...}{Not used; other arguments raise an error.}
 }
 \value{
-Posterior covariance matrix of the regression coefficients for
-component 1 (the correct-match component).
+Posterior covariance matrix of the parameters of the selected block
+(by default the regression coefficients of component 1), i.e. the
+covariance of their posterior draws.
 }
 \description{
 Posterior Covariance Matrix for glmMixBayes Coefficients
 }
 \examples{
-\donttest{
 data(lifem)
 
 # lifem data preprocessing
@@ -30,12 +42,18 @@ lifem_small <- rbind(
   head(subset(lifem, hndlnk == 0), 20)
 )
 
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
-
+# priors on the scale of the outcome (age in years) and of the slopes of the
+# cubic polynomial: the defaults (normal(0, 10) for the intercepts,
+# normal(0, 5) for the slopes) suit outcomes and covariates of order one
 adj <- adjMixBayes(
   linked.data = lifem_small,
-  priors = list(theta = "beta(2, 2)")
+  priors = list(
+    theta = "beta(2, 2)",
+    intercept1 = "normal(60, 20)",
+    intercept2 = "normal(60, 20)",
+    beta1 = "normal(0, 100)",
+    beta2 = "normal(0, 100)"
+  )
 )
 
 fit <- plglm(
@@ -50,6 +68,8 @@ fit <- plglm(
 )
 
 vcov(fit)
-}
+
+# posterior covariance of the mixing weight
+vcov(fit, block = "theta")
 
 }

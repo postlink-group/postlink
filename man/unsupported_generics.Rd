@@ -8,6 +8,14 @@
 \alias{extractAIC.plmodel}
 \alias{cooks.distance.plglm}
 \alias{rstudent.plglm}
+\alias{fitted.glmMixBayes}
+\alias{residuals.glmMixBayes}
+\alias{df.residual.glmMixBayes}
+\alias{deviance.glmMixBayes}
+\alias{fitted.survMixBayes}
+\alias{residuals.survMixBayes}
+\alias{df.residual.survMixBayes}
+\alias{deviance.survMixBayes}
 \title{Unsupported Generics for postlink Models}
 \usage{
 \method{logLik}{plmodel}(object, ...)
@@ -21,6 +29,22 @@
 \method{cooks.distance}{plglm}(model, ...)
 
 \method{rstudent}{plglm}(model, ...)
+
+\method{fitted}{glmMixBayes}(object, ...)
+
+\method{residuals}{glmMixBayes}(object, ...)
+
+\method{df.residual}{glmMixBayes}(object, ...)
+
+\method{deviance}{glmMixBayes}(object, ...)
+
+\method{fitted}{survMixBayes}(object, ...)
+
+\method{residuals}{survMixBayes}(object, ...)
+
+\method{df.residual}{survMixBayes}(object, ...)
+
+\method{deviance}{survMixBayes}(object, ...)
 }
 \arguments{
 \item{object}{A fitted model object.}
@@ -41,4 +65,16 @@
 Intercepts standard likelihood and residual-based generics that
 are not directly applicable to post-linkage models because the true match
 status remains latent.
+}
+\details{
+\code{fitted()}, \code{residuals()}, \code{df.residual()} and
+\code{deviance()} are refused only for the Bayesian mixture fits
+(\code{glmMixBayes} and \code{survMixBayes} objects, e.g. from
+\code{\link{plglm}()} or \code{\link{plsurvreg}()} with
+\code{\link{adjMixBayes}()}), which have no single allocation of the
+records to correct matches and mismatches: use \code{predict()},
+\code{\link{posterior_draws}()} or \code{\link{mi_with}()} instead. They
+are not refused for the other post-linkage fits: e.g. a
+\code{\link{plglm}()} fit with \code{\link{adjMixture}()} returns its
+fitted values, residuals and residual degrees of freedom.
 }

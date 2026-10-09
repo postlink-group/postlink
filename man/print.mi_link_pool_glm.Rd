@@ -21,7 +21,6 @@ The input \code{x}, invisibly.
 Print Pooled Regression Results
 }
 \examples{
-\donttest{
 data(lifem)
 
 # lifem data preprocessing
@@ -32,12 +31,18 @@ lifem_small <- rbind(
   head(subset(lifem, hndlnk == 0), 20)
 )
 
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
-
+# priors on the scale of the outcome (age in years) and of the slopes of the
+# cubic polynomial: the defaults (normal(0, 10) for the intercepts,
+# normal(0, 5) for the slopes) suit outcomes and covariates of order one
 adj <- adjMixBayes(
   linked.data = lifem_small,
-  priors = list(theta = "beta(2, 2)")
+  priors = list(
+    theta = "beta(2, 2)",
+    intercept1 = "normal(60, 20)",
+    intercept2 = "normal(60, 20)",
+    beta1 = "normal(0, 100)",
+    beta2 = "normal(0, 100)"
+  )
 )
 
 fit <- plglm(
@@ -59,6 +64,5 @@ pooled_fit <- mi_with(
 )
 
 print(pooled_fit, digits = 4)
-}
 
 }

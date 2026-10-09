@@ -18,26 +18,62 @@
 \item{object}{A \code{glmMixBayes} model object containing posterior draws of
 the latent match indicators.}
 
-\item{data}{A data.frame with all candidate records in the same row order as used in the model.}
+\item{data}{A data.frame with the records used in the model. For fits from
+\code{plglm()} / \code{plsurvreg()} this is normally the \code{linked.data}
+of the adjustment object: its rows are matched to the analysed records by
+row name, so records dropped by \code{subset} or \code{na.action} are
+handled correctly. Otherwise \code{data} must contain exactly the analysed
+records, in the order used by the model.}
 
-\item{formula}{Model formula for refitting on each draw (required).}
+\item{formula}{Model formula for refitting on each draw. If omitted, the
+outcome formula of a \code{plglm()} fit is used (taken from the stored
+model frame, or from a formula written directly in the call).
+Data-dependent terms such as \code{poly()}, \code{scale()} or
+\code{splines::ns()} keep in every refit the basis computed once from
+all analysed records in \code{data} (for the stored outcome formula, the
+basis of the fit, computed from the records of its model frame), so that
+the pooled coefficients refer to a single basis, as those of a fit to all
+records do, rather than to a basis recomputed from the records of each
+draw. Only the terms whose prediction call R records (the
+\code{"predvars"} of the terms, as used by \code{predict()}) are fixed:
+top-level calls such as \code{poly()}, \code{scale()},
+\code{splines::ns()} or \code{splines::bs()}. A data-dependent call
+nested in another one, such as \code{I(scale(x)^2)} or
+\code{log(scale(x) + 3)}, is evaluated from the records of each draw, as
+\code{predict()} would evaluate it; compute such variables in
+\code{data} beforehand.}
 
-\item{family}{A \code{stats::family()} object for the refitted model. If not
-supplied, the function chooses a default family based on \code{object$family}.}
+\item{family}{A \code{stats::family()} object (or a family function, or its
+name) for the refitted model. If not supplied, the family and link of the
+mixture components are used: \code{gaussian()}, \code{poisson()},
+\code{binomial()} or \code{Gamma(link = "log")}. The name \code{"gamma"}
+(in any case, e.g. \code{"Gamma"}) gives \code{Gamma(link = "log")}, as in
+\code{\link{glmMixture}()}. A family with a different link (e.g. the
+family function \code{Gamma}, whose default link is the inverse) puts the
+pooled coefficients on a different scale from
+\code{object$estimates$coefficients}. Gaussian models with the identity
+link are refitted with \code{lm()}, all others with \code{glm()}.}
 
 \item{min_n}{Minimum number of records required to fit the model for a given
 posterior draw. The default is \code{p + 1}, where \code{p} is the number
 of columns in the model matrix.}
 
 \item{quietly}{If \code{TRUE}, draws that lead to fitting errors are skipped
-without printing the full error message.}
+without printing the full error message. A warning reports how many draws
+were not used.}
 
 \item{...}{Additional arguments passed through (currently unused).}
 }
 \value{
 An object of class \code{c("mi_link_pool_glm", "mi_link_pool")}
-containing pooled coefficient estimates, standard errors, confidence
-intervals, and related summary information.
+containing pooled coefficient estimates (\code{coef}), their covariance
+matrix (\code{vcov}), standard errors (\code{se}), 95\% confidence
+intervals (\code{ci95}), the within- and between-draw covariances
+(\code{Ubar}, \code{B}), the fraction of missing information
+(\code{lambda}), the degrees of freedom (\code{df}), the number and indices
+of the draws used (\code{m}, \code{kept_draws}), and the refitted model:
+\code{refit} (\code{"lm"} or \code{"glm"}), \code{family}, \code{link} and
+the \code{call} of the mixture fit.
 }
 \description{
 Use posterior draws of the latent match indicators from \code{glmMixBayes()}
@@ -48,10 +84,10 @@ Each retained posterior draw defines one subset of records classified as
 correct matches. The function fits the specified \code{lm()} or \code{glm()}
 model to that subset, extracts the estimated coefficients and their covariance
 matrix, and combines the results across draws using multiple-imputation
-pooling rules.
+pooling rules. At least two draws must be usable, since the between-draw
+variance cannot be estimated from one; fewer raise an error.
 }
 \examples{
-\donttest{
 data(lifem)
 
 # lifem data preprocessing
@@ -62,12 +98,18 @@ lifem_small <- rbind(
   head(subset(lifem, hndlnk == 0), 20)
 )
 
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
-
+# priors on the scale of the outcome (age in years) and of the slopes of the
+# cubic polynomial: the defaults (normal(0, 10) for the intercepts,
+# normal(0, 5) for the slopes) suit outcomes and covariates of order one
 adj <- adjMixBayes(
   linked.data = lifem_small,
-  priors = list(theta = "beta(2, 2)")
+  priors = list(
+    theta = "beta(2, 2)",
+    intercept1 = "normal(60, 20)",
+    intercept2 = "normal(60, 20)",
+    beta1 = "normal(0, 100)",
+    beta2 = "normal(0, 100)"
+  )
 )
 
 fit <- plglm(
@@ -89,6 +131,5 @@ pooled_fit <- mi_with(
 )
 
 print(pooled_fit)
-}
 
 }

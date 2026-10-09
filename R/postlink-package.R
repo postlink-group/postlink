@@ -31,7 +31,7 @@
 #'   data (e.g., using match scores) via the EM algorithm.
 #'   \item \code{\link{adjMixBayes}()}: Specifies a Bayesian mixture model approach,
 #'   enabling parameter estimation and multiple imputation of latent match statuses
-#'   using Stan.
+#'   via a Gibbs sampler implemented in C++.
 #' }
 #'
 #' \strong{Phase 2: Estimation & Inference}
@@ -82,8 +82,6 @@
 #' Cox regression with linked data. \emph{Statistics in Medicine}, 43(2), 296-314. \doi{10.1002/sim.9960}
 #'
 #' @useDynLib postlink, .registration = TRUE
-#' @import Rcpp
+#' @importFrom Rcpp evalCpp
 #' @import methods
-#' @importFrom rstantools rstan_config
-#' @importFrom RcppParallel RcppParallelLibs
 "_PACKAGE"

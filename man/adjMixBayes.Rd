@@ -4,21 +4,133 @@
 \alias{adjMixBayes}
 \title{Secondary Analysis Constructor Based on Bayesian Mixture Modeling}
 \usage{
-adjMixBayes(linked.data = NULL, priors = NULL)
+adjMixBayes(
+  linked.data = NULL,
+  priors = NULL,
+  m.formula = ~1,
+  m.rate = NULL,
+  m.rate.sd = 0.1,
+  safe.matches = NULL
+)
 }
 \arguments{
-\item{linked.data}{A data.frame containing the linked dataset.}
+\item{linked.data}{A data.frame containing the linked dataset. It is required
+for fitting models with \code{\link{plglm}()} or \code{\link{plsurvreg}()},
+which take the outcome, the covariates, the linkage covariates of
+\code{m.formula} and the safe matches from it.}
 
-\item{priors}{A named \code{list} (or \code{NULL}) of prior specifications.
-Because the Stan models are pre-compiled, these strings are parsed into numeric
-hyperparameters and passed to the model's data block. Any missing entries are
-automatically filled with symmetric defaults dynamically during the model fitting phase.
+\item{priors}{A named \code{list} (or \code{NULL}) of prior specifications
+written as distribution strings (e.g. \code{"normal(0, 5)"}). These strings
+are checked when the object is created and parsed into numeric
+hyperparameters when the model is fitted. Any missing entries are
+automatically filled with defaults during the model fitting phase; see the
+section \emph{Prior distributions} of \code{\link{glmMixBayes}} and
+\code{\link{survregMixBayes}} for the supported distributions and the
+defaults. Priors given at fit time, e.g.
+\code{plglm(..., priors = list(...))} or \code{control = list(priors = ...)},
+replace the ones stored in the adjustment object.
 
-For GLM models, intercept and slope priors are decoupled. Use
+For all models, intercept and slope priors are decoupled. Use
 \code{intercept1}/\code{intercept2} for the intercept of each component and
 \code{beta1}/\code{beta2} for the slope coefficients. This is particularly
 useful when the mismatch component slopes should be shrunk toward zero while
-allowing the intercept to remain unrestricted.}
+allowing the intercept to remain unrestricted. Component-specific entries
+need the component number: names such as \code{intercept} or \code{beta}
+are not recognised and are ignored with a warning, given when the object
+is created (or, for entries given at fit time or added to the object
+later, when the model is fitted). When the design matrix of the outcome model has no intercept
+column (e.g. \code{y ~ 0 + x}), every column receives the
+\code{beta1}/\code{beta2} prior and \code{intercept1}/\code{intercept2}
+are not used (with a warning at fit time).}
+
+\item{m.formula}{A one-sided formula specifying the model for the conditional
+probability of a correct match given auxiliary linkage variables found in
+\code{linked.data} (e.g., \code{~ commf + comml}). The default (\code{~1})
+assumes a constant match probability \eqn{\theta}{theta} across all
+observations. When covariates are supplied, the match probability of each
+observation is modeled via a logistic regression
+\eqn{\theta_n = \mathrm{inv\_logit}(Z_n \gamma)}{theta_n = inv_logit(Z_n * gamma)}.
+The formula must keep its intercept and must not contain \code{offset()}
+terms. The \eqn{\gamma}{gamma} vector is decoupled into an intercept, with
+prior \code{gamma_intercept} (by default derived from \code{m.rate} or from
+the \code{theta} prior), and slopes, with prior \code{gamma_slope} (default
+\code{normal(0, 2.5)}); both must be \code{normal(mu, sd)}. The linkage
+covariates are centred at fit time at their mean over the records not
+flagged as safe matches, so that the \code{gamma_intercept} prior, whether
+derived or given, refers to a record with average linkage covariates (the
+centre is stored as \code{z_center} in the fit, and the reported
+\eqn{\gamma}{gamma} refers to the original covariates). For the default
+slope prior to be sensible, continuous covariates should be approximately on
+a unit scale; otherwise standardize them or supply
+\code{priors = list(gamma_slope = "normal(0, sd)")}. Records whose linkage
+covariates are missing are dropped at fit time with a warning.}
+
+\item{m.rate}{An optional numeric scalar strictly between 0 and 1 giving a
+prior estimate of the proportion of false links (mismatch rate) among the
+records that are not flagged in \code{safe.matches}.
+Together with \code{m.rate.sd}, it informs the prior on the match
+probability \eqn{\theta}{theta} by moment matching on the probability
+scale: \eqn{E[\theta] = 1 - \mathrm{m.rate}}{E[theta] = 1 - m.rate} and
+\eqn{SD[\theta] = \mathrm{m.rate.sd}}{SD[theta] = m.rate.sd}; the
+mismatch rate is then estimated from the data under this prior. These
+moments hold exactly with the default \code{m.formula = ~1}; with
+covariates in \code{m.formula} the intercept of \eqn{\gamma}{gamma}
+receives a normal prior on the logit scale (see \code{m.rate.sd}), whose
+probability-scale mean and standard deviation are close to these values
+only for a moderate \code{m.rate.sd} (for \code{m.rate = 0.05} the
+probability-scale standard deviation is about 0.077 for
+\code{m.rate.sd = 0.0475} and 0.27 for the default 0.1). This
+differs from \code{\link{adjMixture}()}, where \code{m.rate} is a
+constraint: \code{plglm()} and \code{plcoxph()} use it as an upper bound
+on the estimated mismatch rate (with covariates in \code{m.formula}, at
+the mean of the linkage covariates over the records not flagged as safe
+matches), and \code{plctable()} uses it as the known mismatch rate. Here,
+with covariates in \code{m.formula}, the prior derived from \code{m.rate}
+applies to the match probability of a record with average linkage
+covariates (the mean over the records not flagged as safe matches, the
+point used by \code{adjMixture()}): it is placed on the intercept of
+\eqn{\gamma}{gamma} for the centred covariates. A \code{theta} entry (or, with covariates, a
+\code{gamma_intercept} entry) in \code{priors} takes precedence over
+\code{m.rate}, with a message; with covariates, a \code{gamma_intercept}
+entry also takes precedence over a \code{theta} entry (with a message).}
+
+\item{m.rate.sd}{A positive numeric value (default \code{0.1}) giving the
+prior standard deviation of \eqn{\theta}{theta} on the probability scale
+that accompanies \code{m.rate}; when \code{m.rate} is used (no explicit
+\code{theta} or, with covariates in \code{m.formula},
+\code{gamma_intercept} prior), it must satisfy
+\eqn{\mathrm{m.rate.sd}^2 < \mathrm{m.rate}(1-\mathrm{m.rate})}{m.rate.sd^2 < m.rate * (1 - m.rate)}.
+With the default \code{m.formula = ~1}, \code{(m.rate, m.rate.sd)} is
+converted to a \code{beta(a, b)} prior on \eqn{\theta}{theta}; with
+covariates in \code{m.formula}, the intercept of \eqn{\gamma}{gamma}
+receives a normal prior with the exact logit-scale mean and standard
+deviation of that beta distribution. Smaller values give a more
+concentrated prior. For small mismatch rates the default is large: a
+shape parameter of the beta distribution is then below 1, so that its
+density is unbounded at 0 or 1 (with covariates, the normal prior on the
+logit scale is then much more dispersed than \code{m.rate.sd} suggests:
+for \code{m.rate = 0.05} and the default \code{m.rate.sd}, its
+probability-scale standard deviation is about 0.27). Both shape
+parameters exceed 1, and the density is bounded, when \code{m.rate.sd} is
+below
+\eqn{\sqrt{\min(m^2(1-m)/(1+m),\, m(1-m)^2/(2-m))}}{sqrt(min(m^2 (1 - m) / (1 + m), m (1 - m)^2 / (2 - m)))}
+with \eqn{m}{m} = \code{m.rate} (for \code{m.rate = 0.05}, at most
+0.04755); a warning is issued at fit time otherwise, which states this
+bound rounded down. A bounded density does not mean a mode
+near \code{1 - m.rate}: near the bound the density of the beta prior for
+a small \code{m.rate} rises up to \eqn{\theta = 1}{theta = 1} or very
+close to it (for \code{m.rate = 0.05} the prior is then about
+\code{beta(19, 1)}), and a mode near
+\code{1 - m.rate} needs a smaller value (e.g. \code{m.rate.sd = 0.02} for
+\code{m.rate = 0.05}, which gives a mode of about 0.96).
+\code{m.rate.sd} has no effect without \code{m.rate}.}
+
+\item{safe.matches}{An optional logical (or 0/1) vector of length
+\code{nrow(linked.data)} indicating records that are known to be correct
+matches (\code{TRUE}), for example hand-linked records. These records are
+always assigned to the correct-match component and do not inform the
+match probability model. Alternatively, the name of such a column in
+\code{linked.data} can be supplied, unquoted or as a character string.}
 }
 \value{
 An object of class \code{c("adjMixBayes", "adjustment")}. To minimize
@@ -35,9 +147,25 @@ Posterior inference is carried out via data augmentation or multiple
 imputation.
 }
 \details{
-Explicit provision of \code{linked.data} is strongly recommended for
-reproducibility and to ensure the adjustment object fully encapsulates
-the necessary data for downstream model fitting.
+\code{linked.data} must be supplied for the adjustment object to be used
+with \code{plglm()} or \code{plsurvreg()}: the fitting methods take the
+model variables from it and align the \code{m.formula} covariates and
+\code{safe.matches} with the rows of the outcome model through its row
+names; they refuse to fit an object created without data. Weights and
+offsets are not supported by the Bayesian mixture models: \code{offset()}
+terms in the model formula of \code{plglm()} or \code{plsurvreg()}, and
+\code{weights} or \code{offset} arguments, raise an error.
+
+The fitted objects use the names of the frequentist mixture fits of
+\code{\link{adjMixture}()}: \code{coefficients} for the outcome model of the
+correct matches, \code{m.coefficients} for the mismatch-indicator model of
+\code{m.formula} (on the logit scale of the mismatch probability, with the
+same sign as in \code{adjMixture()}) and \code{match.prob} for the
+probability that each record is a correct match; the outcome model of the
+mismatches (component 2) is stored as \code{coefficients2}. The section
+\emph{Correspondence with adjMixture()} of \code{\link{glmMixBayes}} and
+\code{\link{survregMixBayes}} lists all correspondences and differences
+(e.g. the meaning of \code{m.rate}).
 }
 \examples{
 data(lifem)
@@ -50,17 +178,35 @@ lifem_small <- rbind(
   head(subset(lifem, hndlnk == 0), 20)
 )
 
-# Construct the Bayesian mixture adjustment object
+# Construct the Bayesian mixture adjustment object. The priors are on the
+# scale of the outcome analysed with lifem (age at death in years, regressed
+# on a polynomial of the year of birth, as in ?plglm): the default priors
+# suit outcomes of order one. beta2 = "normal(0, 0.01)" says that the
+# mismatches show no trend in the year of birth.
+age_priors <- list(
+  intercept1 = "normal(60, 20)", intercept2 = "normal(60, 20)",
+  beta1 = "normal(0, 100)", beta2 = "normal(0, 0.01)"
+)
 adj_bayes2 <- adjMixBayes(
   linked.data = lifem_small,
-  priors = list(
-    intercept2 = "normal(0, 10)",
-    beta2 = "normal(0, 0.01)",
-    theta = "beta(2, 2)"
-  )
+  priors = c(age_priors, theta = "beta(2, 2)")
 )
 
 class(adj_bayes2)
+
+# Known correct matches, linkage covariates for the match probability and a
+# prior estimate of the mismatch rate (with a prior SD small enough for a
+# 5\% mismatch rate)
+adj_bayes3 <- adjMixBayes(
+  linked.data = lifem_small,
+  priors = age_priors,
+  m.formula = ~ commf + comml,
+  m.rate = 0.05,
+  m.rate.sd = 0.02,
+  safe.matches = hndlnk
+)
+
+adj_bayes3
 
 }
 \references{

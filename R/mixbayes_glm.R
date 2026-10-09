@@ -1,82 +1,646 @@
 #' Bayesian Two-Component Mixture Generalized Linear Model
 #'
 #' Fits a Bayesian two-component mixture generalized linear model (GLM)
-#' using Stan. Each observation is assumed to arise from one of two latent
-#' components with component-specific regression coefficients.
+#' with a Gibbs sampler implemented in C++. Each observation is assumed to
+#' arise from one of two latent components with component-specific regression
+#' coefficients: component 1 represents correctly linked records and
+#' component 2 mismatched records.
 #'
 #' The function supports Gaussian, Poisson, Binomial, and Gamma outcome
 #' families and returns posterior samples of the component-specific
-#' regression parameters and mixture weight.
+#' regression parameters, the latent match indicators, and the mixture weight
+#' (or the coefficients of the mismatch-indicator model). The names of the
+#' returned elements follow \code{\link{glmMixture}()}; see the section
+#' \emph{Correspondence with adjMixture()}.
 #'
 #' @param X A numeric design matrix (N x K), typically from \code{model.matrix()}
-#'   upstream. Missing values are not allowed.
+#'   upstream. Missing and infinite values are not allowed. When the first
+#'   column is an intercept (a column of ones) it receives the intercept prior
+#'   and the other columns the slope prior; otherwise every column receives
+#'   the slope prior (\code{intercept1} and \code{intercept2} entries of
+#'   \code{priors} are then not used, with a warning). The coefficients are
+#'   named after the columns; unnamed columns (e.g. of \code{cbind(1, x)}) are
+#'   named \code{"(Intercept)"} (a column of ones, also when it is not the
+#'   first column, which then receives the slope prior like the others) or
+#'   \code{"X<j>"}, \code{j} being the position of the column (\code{"Z<j>"}
+#'   for unnamed columns of \code{Z}).
 #' @param y A response vector of length N. For \code{"gaussian"} and \code{"gamma"},
-#'   \code{y} should be numeric; for \code{"poisson"} and \code{"binomial"}, \code{y}
-#'   should be integer-valued (or coercible without loss).
-#' @param family One of \code{"gaussian"}, \code{"poisson"}, \code{"binomial"}, or \code{"gamma"}.
-#'   Controls the component-specific likelihood.
-#' @param priors A named \code{list} (or \code{NULL}) of prior specifications.
-#'   Because the Stan models are pre-compiled, these strings are parsed into numeric
-#'   hyperparameters and passed to the model's data block. Any missing entries are
-#'   automatically filled with symmetric defaults via
-#'   \code{fill_defaults(priors, p_family = family, model_type = "glm")}.
-#'
-#'   Intercept and slope priors are decoupled. Use \code{intercept1}/\code{intercept2}
-#'   for the intercept of each component and \code{beta1}/\code{beta2} for the slope
-#'   coefficients. By default, intercept priors are \code{normal(0, 10)} (weakly
-#'   informative), while slope priors follow the family-specific defaults.
-#' @param control A named \code{list} of MCMC tuning parameters.
+#'   \code{y} must be numeric (strictly positive for \code{"gamma"}); for
+#'   \code{"poisson"}, non-negative integers; for \code{"binomial"}, 0/1 values,
+#'   a logical vector or a two-level factor (the second level is the event, as
+#'   in \code{glm()}). Two-column (successes, failures) responses are not
+#'   supported.
+#' @param family One of \code{"gaussian"}, \code{"poisson"}, \code{"binomial"}
+#'   or \code{"gamma"}, or the corresponding family object or family function
+#'   (\code{Gamma} for \code{"gamma"}). The components use the identity
+#'   (gaussian), log (poisson), logit (binomial) and log (gamma) links. A family
+#'   object with a different link is refused, except that the default
+#'   \code{"inverse"} link of \code{stats::Gamma()} is replaced by the log link
+#'   with a warning (use \code{Gamma(link = "log")} to avoid it).
+#' @param priors A named \code{list} (or \code{NULL}) of prior specifications
+#'   written as distribution strings with the Stan parameterisation, e.g.
+#'   \code{"normal(0, 5)"} (mean, standard deviation) or \code{"gamma(2, 0.1)"}
+#'   (shape, rate). Entries that are not supplied take the defaults listed in
+#'   the section \emph{Prior distributions}, which also lists the distributions
+#'   accepted for each parameter. When \code{priors} is \code{NULL}, an element
+#'   \code{priors} of \code{control} is used if present.
+#' @param control A named \code{list} of MCMC settings.
 #'   Supported elements include:
 #'   \itemize{
-#'     \item \code{iterations}: total number of MCMC iterations per chain
+#'     \item \code{iterations}: total number of MCMC iterations
 #'       (default \code{1e4});
-#'     \item \code{burnin.iterations}: number of warm-up iterations
-#'       (default \code{1e3});
-#'     \item \code{seed}: random seed used for reproducibility;
-#'     \item \code{cores}: number of CPU cores used for sampling
-#'       (default \code{getOption("mc.cores", 1L)}).
+#'     \item \code{burnin.iterations}: number of burn-in iterations discarded
+#'       from the start of the chain (default: half of \code{iterations}, at
+#'       most 1000, i.e. \code{min(1000, floor(iterations / 2))});
+#'     \item \code{thin}: thinning interval applied after burn-in (default \code{1});
+#'     \item \code{seed}: a single integer used to seed R's random number
+#'       generator for reproducibility (the caller's random number stream is
+#'       restored afterwards);
+#'     \item \code{pilots}, \code{pilot.iterations}: number of short pilot
+#'       chains started from different configurations (default \code{5}) and
+#'       their length (default \code{200}); the main chain continues from the
+#'       pilot with the highest average log posterior, which protects against
+#'       settling in a minor mode of the mixture posterior. Set
+#'       \code{pilots = 0} to disable;
+#'     \item \code{collapse}: \code{TRUE} or \code{FALSE}; update \code{theta}
+#'       with the latent indicators integrated out (default \code{TRUE},
+#'       improves mixing);
+#'     \item \code{init}: optional named list of starting values:
+#'       \code{beta1}, \code{beta2} (length K), \code{theta} (in (0, 1); without
+#'       \code{Z}) or \code{gamma} (length M, for the original columns of
+#'       \code{Z}; with \code{Z}), and \code{disp1},
+#'       \code{disp2} (the residual standard deviations for \code{"gaussian"},
+#'       the shape parameters for \code{"gamma"}). When starting values are
+#'       supplied no pilot chains are run (\code{pilots} is then recorded as 0)
+#'       and the starting state is not reoriented (see \emph{Label
+#'       switching}); data-driven starting values are used otherwise;
+#'     \item \code{verbose}: \code{TRUE} or \code{FALSE}; print sampling
+#'       progress and report an exchange of the component labels before or
+#'       after sampling (default \code{FALSE}).
 #'   }
 #'   Values supplied through \code{...} override entries in \code{control}.
+#'   The element \code{cores} is accepted for backward compatibility and
+#'   ignored, since the sampler runs a single chain; other unknown elements are
+#'   ignored with a warning.
+#' @param Z Optional numeric matrix (N x M) of auxiliary linkage covariates for
+#'   a logistic regression model of the match probability,
+#'   \eqn{\theta_n = \mathrm{inv\_logit}(Z_n \gamma)}{theta_n = inv_logit(Z_n gamma)}.
+#'   When \code{NULL} (default) a single mixing weight \code{theta} is used.
+#'   The first column of \code{Z} must be an intercept (a column of ones); it
+#'   receives the \code{gamma_intercept} prior and the other columns the
+#'   \code{gamma_slope} prior. The sampler centres the other columns at their
+#'   mean over the records not flagged as safe matches (over all records when
+#'   every record is safe; stored as \code{z_center}), so the
+#'   \code{gamma_intercept} prior refers to a record with average linkage
+#'   covariates, the point at which \code{\link{adjMixture}()} applies
+#'   \code{m.rate}. The likelihood does not depend on this centring, the
+#'   slopes are unchanged, and the draws of \code{gamma} are reported for the
+#'   original columns of \code{Z}.
+#' @param safe.matches Optional logical or 0/1 vector of length N flagging
+#'   records that are known to be correct matches (the argument of the same
+#'   name of \code{\link{adjMixBayes}()} and \code{\link{glmMixture}()}; the
+#'   abbreviation \code{safe} is accepted). These records are fixed in
+#'   component 1 and do not inform the match probability, which then refers to
+#'   the records that are not flagged.
+#' @param m.rate Optional prior estimate of the mismatch rate in (0, 1). When
+#'   no explicit \code{theta} (or \code{gamma_intercept}) prior is supplied,
+#'   \code{(m.rate, m.rate.sd)} are converted to a Beta prior on \code{theta}
+#'   with mean \code{1 - m.rate} and standard deviation \code{m.rate.sd}
+#'   (moment matching), or, when \code{Z} is given, to a normal prior on the
+#'   intercept of \code{gamma} with the exact logit-scale mean and standard
+#'   deviation of that Beta distribution; this intercept refers to the
+#'   centred linkage covariates (see \code{Z}), so the prior describes the
+#'   match probability of a record with average linkage covariates. Its
+#'   probability-scale mean and standard deviation are close to
+#'   \code{1 - m.rate} and \code{m.rate.sd} only for a moderate
+#'   \code{m.rate.sd} (see \code{\link{adjMixBayes}}).
+#' @param m.rate.sd Prior standard deviation of \code{theta} on the probability
+#'   scale accompanying \code{m.rate} (default \code{0.1}); when \code{m.rate}
+#'   is used it must satisfy \code{m.rate.sd^2 < m.rate * (1 - m.rate)}. When
+#'   a shape parameter of the implied Beta distribution is below 1 its density
+#'   is unbounded at 0 or 1 (with \code{Z}, the probability-scale standard
+#'   deviation of the normal prior on the logit scale then differs from
+#'   \code{m.rate.sd}, and is much larger for small mismatch rates; the
+#'   warning states it), and a warning is issued. Both shape parameters exceed 1 when \code{m.rate.sd} is below a
+#'   bound that the warning states, rounded down (for \code{m.rate = 0.05},
+#'   at most 0.04755; see \code{\link{adjMixBayes}}); a mode near
+#'   \code{1 - m.rate} needs a smaller value.
 #' @param ... Optional arguments that override elements of
 #'   \code{control}. For example,
-#'   \code{iterations = 4000}, \code{burnin.iterations = 1000},
-#'   \code{seed = 123}, or \code{cores = 2}.
+#'   \code{iterations = 4000}, \code{burnin.iterations = 1000}, or
+#'   \code{seed = 123}. Modelling arguments such as \code{weights} and
+#'   \code{offset} are not supported and raise an error.
 #'
-#' @return An object of class \code{"glmMixBayes"} containing (at least):
+#' @return An object of class \code{"glmMixBayes"} containing:
 #' \describe{
-#'   \item{\code{m_samples}}{Posterior draws of aligned latent component
-#'   labels (matrix of size draws × N), where component 1 corresponds to the
-#'   correct-match component and component 2 to the incorrect-match component.}
+#'   \item{\code{m_samples}}{Posterior draws of the latent component labels
+#'   (integer matrix of size draws x N; relabelled under the majority
+#'   convention, see \emph{Label switching}), where component 1
+#'   corresponds to the correct-match component and component 2 to the
+#'   incorrect-match component.
+#'   Its columns are named after the rows of \code{X} when \code{X} has row names.}
 #'
 #'   \item{\code{estimates$coefficients}}{Posterior draws of regression
-#'   coefficients for the correct-match component (component 1; draws × K).}
+#'   coefficients for the correct-match component (component 1; draws x K).}
 #'
-#'   \item{\code{estimates$m.coefficients}}{Posterior draws of regression
-#'   coefficients for the incorrect-match component (component 2; draws × K).}
+#'   \item{\code{estimates$coefficients2}}{Posterior draws of regression
+#'   coefficients for the incorrect-match component (component 2; draws x K).
+#'   Up to postlink 0.1.2 they were stored as \code{estimates$m.coefficients}.}
 #'
-#'   \item{\code{estimates$dispersion}}{Posterior draws of the dispersion
-#'   parameter for the correct-match component (component 1; family-specific).}
+#'   \item{\code{estimates$m.coefficients}}{Posterior draws of the coefficients
+#'   of the mismatch-indicator model (draws x M), on the scale and with the sign
+#'   of the \code{m.coefficients} of \code{\link{glmMixture}()}: a record that
+#'   is not flagged as a safe match is a mismatch with probability
+#'   \eqn{\mathrm{plogis}(Z_n^\top \mathrm{m.coefficients})}{plogis(Z_n' m.coefficients)}.
+#'   With \code{Z} they equal \code{-gamma} (columns named after the columns of
+#'   \code{Z}); without \code{Z} they form the single column
+#'   \code{"(Intercept)"}, equal to \code{qlogis(1 - theta)}.}
 #'
-#'   \item{\code{estimates$m.dispersion}}{Posterior draws of the dispersion
-#'   parameter for the incorrect-match component (component 2; family-specific).}
+#'   \item{\code{estimates$theta}}{Posterior draws of the mixing weight of the
+#'   correct-match component, i.e. the probability that a record not flagged as
+#'   a safe match is a correct match (when \code{Z} is \code{NULL}).}
+#'
+#'   \item{\code{estimates$gamma}}{Posterior draws of the coefficients of the
+#'   logistic regression of the match probability,
+#'   \eqn{\theta_n = \mathrm{inv\_logit}(Z_n \gamma)}{theta_n = inv_logit(Z_n gamma)}
+#'   (draws x M; when \code{Z} is supplied), for the original (uncentred)
+#'   columns of \code{Z}. \code{gamma = -m.coefficients}; the priors
+#'   \code{gamma_intercept} and \code{gamma_slope} refer to this scale, the
+#'   intercept prior after centring the linkage covariates at \code{z_center}.}
+#'
+#'   \item{\code{estimates$dispersion}}{Posterior draws of the GLM dispersion
+#'   of component 1: the residual variance \eqn{\sigma^2}{sigma^2} for
+#'   \code{"gaussian"} (the prior is placed on the standard deviation
+#'   \code{sigma1}) and \eqn{1/\phi}{1/phi} for \code{"gamma"} (the prior is
+#'   placed on the shape \code{phi1}). Not present for Poisson and binomial fits.}
+#'
+#'   \item{\code{estimates$dispersion2}}{The same for component 2 (up to
+#'   postlink 0.1.2 \code{estimates$m.dispersion}).}
 #'
 #'   \item{\code{family}}{The GLM family used in the model.}
 #'
 #'   \item{\code{call}}{The matched function call.}
+#'
+#'   \item{\code{match.prob}}{Posterior probability that each record is a
+#'   correct match: the proportion of stored draws that allocate the record to
+#'   component 1 (1 for safe matches). Named after the rows of \code{X} when
+#'   \code{X} has row names (for fits from \code{plglm()}, the analysed records).}
+#'
+#'   \item{\code{use_logistic}}{\code{TRUE} when the match probability was
+#'   modelled with the covariates \code{Z}.}
+#'
+#'   \item{\code{priors}}{Named character vector with the prior of every
+#'   parameter actually used, including the defaults and the priors derived
+#'   from \code{m.rate}; \code{intercept1} and \code{intercept2} are left
+#'   out when \code{X} has no intercept column (every column then receives
+#'   the \code{beta1} / \code{beta2} prior). With \code{Z}, the
+#'   \code{gamma_intercept} prior applies to the intercept of the centred
+#'   linkage covariates, i.e. to a record whose linkage covariates equal
+#'   \code{z_center}.}
+#'
+#'   \item{\code{z_center}}{With \code{Z}: the means of the non-intercept
+#'   columns of \code{Z} over the records not flagged as safe matches (over all
+#'   records when every record is safe), at which the sampler centred them.
+#'   The intercept of the centred model is
+#'   \code{gamma[, 1] + gamma[, -1] \%*\% z_center}.}
+#'
+#'   \item{\code{diagnostics}}{A list with \code{accept_joint} (acceptance rates
+#'   of the joint moves with the indicators integrated out over the sweeps
+#'   after the burn-in; \code{NA} when they were off), \code{joint_burnin}
+#'   (the number of burn-in draws collected to estimate the proposal of the
+#'   joint moves, \code{collected}, and the number they need, \code{needed};
+#'   the moves are off with fewer, e.g. after a short burn-in),
+#'   \code{accept} (acceptance rates of
+#'   the Metropolis-Hastings updates of \code{beta1}, \code{beta2} and
+#'   \code{gamma} over the sweeps after the burn-in, the window of
+#'   \code{accept_joint}, or over all sweeps when \code{burnin.iterations = 0};
+#'   1 for the exact Gaussian update and \code{NA} for
+#'   \code{gamma} without \code{Z}), \code{orientation} (the rule that identifies
+#'   component 1, decided before sampling: \code{"safe matches"},
+#'   \code{"match-rate prior"} or \code{"majority component"}; under the
+#'   last one component 1 holds the minority of the records only when the
+#'   component-specific priors make the labelling with component 1 as the
+#'   majority much less probable, which refuses the exchange of the labels
+#'   of the starting state, \code{orient_refused}, or of the aligned draws
+#'   after sampling, and a warning then says so),
+#'   \code{pre_oriented} (\code{TRUE} when the labels of the starting state
+#'   of the main chain were exchanged: towards the more probable labelling
+#'   under the match-rate prior, so that component 1 held the majority of the
+#'   records under the majority convention), \code{orient_refused} (\code{TRUE}
+#'   when, under the majority convention, that exchange was not made because
+#'   the component-specific priors make the labelling with component 1 as the
+#'   majority much less probable), \code{orient_lp_change} (the estimated log
+#'   ratio of the posterior probabilities of the exchanged and the original
+#'   labelling of the starting state; \code{NA} when no exchange was
+#'   considered), \code{orient_check} (the check chains run when that
+#'   estimate is below -2 under the majority convention: the average log
+#'   posterior over the second half of the chain started from the selected
+#'   pilot state with the labels exchanged, \code{exchanged}, and of the one
+#'   started without exchange, \code{kept}, the \code{margin} by which the
+#'   first must stay below the second for the exchange to be refused, and the
+#'   average share of the records allocated to component 1 in the first,
+#'   \code{share1}; \code{NA} when no check chains were run; see
+#'   \emph{Label switching}), \code{relabelled}
+#'   (\code{TRUE} when the draws were relabelled after sampling, as they
+#'   always are under the majority convention),
+#'   \code{n_swapped} (number of draws whose labels were exchanged after
+#'   sampling; 0 when the draws were not relabelled), \code{ecr_share} (share
+#'   of the stored draws whose labels the \code{ECR-ITERATIVE-1} algorithm,
+#'   applied to the records not flagged as safe matches, exchanges or would
+#'   exchange; see \emph{Label switching}), \code{other_labelling} (the
+#'   estimated share of the posterior probability held by the labelling with
+#'   the two components exchanged, relative to the two labellings, from the
+#'   stored draws: 0.5 when only the majority convention tells the components
+#'   apart, i.e. for identical component-specific priors and a symmetric
+#'   prior on the match probability; \code{NA} with safe matches, which
+#'   identify the labels; see \emph{Label switching}), \code{lp} (the log
+#'   posterior of each reported draw, up to a constant, with the latent
+#'   indicators integrated out; for a draw whose labels were exchanged after
+#'   sampling, the log posterior of the relabelled draw, which differs from
+#'   that of the draw as sampled when the component-specific priors differ),
+#'   \code{pilot_lp} (the
+#'   average log posterior over the last sweeps of each pilot chain; the main
+#'   chain starts from the state of the highest one), \code{settings} (the
+#'   MCMC settings used), \code{n_safe} (the number of known correct matches),
+#'   \code{ess} (the effective sample size of every parameter, named as
+#'   the columns of \code{\link{posterior_draws}()}) and \code{rhat} (the
+#'   single-chain split R-hat of the coefficients of component 1, of
+#'   \code{theta} or, with \code{Z}, of the mismatch-model coefficients, of
+#'   the dispersion of component 1 and of \code{lp}, named in the same way;
+#'   \code{NA} for constant draws, \code{Inf} when each half of the draws is
+#'   constant but the two halves differ; see \emph{Sampling algorithm}).}
 #' }
+#' Fits obtained through \code{\link{plglm}()} additionally contain the
+#' adjustment object (\code{adjustment}), the row names of the analysed records
+#' (\code{obs_names}) and the elements added by \code{plglm()}.
+#' Posterior draws are stored in chain order (after burn-in and thinning);
+#' \code{\link{posterior_draws}()} and \code{coda::as.mcmc()} return them as a
+#' single matrix or \pkg{coda} object.
+#'
+#' @section Prior distributions:
+#' Prior strings follow the Stan parameterisation. The accepted distributions
+#' and the defaults are:
+#' \itemize{
+#'   \item \code{intercept1}, \code{intercept2} (intercepts of components 1
+#'     and 2) and \code{beta1}, \code{beta2} (slopes): \code{normal(mu, sd)}.
+#'     Defaults: \code{normal(0, 10)} for the intercepts, \code{normal(0, 5)}
+#'     for the slopes, except \code{beta1 = normal(0, 2.5)} for
+#'     \code{"binomial"}.
+#'   \item \code{sigma1}, \code{sigma2} (residual standard deviations,
+#'     \code{"gaussian"}; default \code{cauchy(0, 2.5)}) and \code{phi1},
+#'     \code{phi2} (shape parameters, \code{"gamma"}; the component mean is
+#'     \eqn{\exp(X\beta)}{exp(X beta)} and the variance mean^2 / phi; default
+#'     \code{gamma(2, 0.1)}): \code{normal}, \code{cauchy} and
+#'     \code{student_t(nu, mu, sd)} (all truncated at zero),
+#'     \code{gamma(shape, rate)}, \code{exponential(rate)},
+#'     \code{lognormal(meanlog, sdlog)} or \code{inv_gamma(shape, scale)}.
+#'   \item \code{theta} (probability that a record is a correct match):
+#'     \code{beta(a, b)}; default \code{beta(1, 1)}, or the moment-matched
+#'     Beta prior implied by \code{m.rate} and \code{m.rate.sd}.
+#'   \item With \code{Z}: \code{gamma_intercept} and \code{gamma_slope}, both
+#'     \code{normal(mu, sd)}. The intercept prior applies to the intercept of
+#'     the linkage covariates centred at their mean over the records not
+#'     flagged as safe matches (see \code{Z}), i.e. to the logit of the match
+#'     probability of a record with average linkage covariates, whether it is
+#'     the default, derived from \code{m.rate} or given by the user. The
+#'     default intercept prior has the exact mean and
+#'     standard deviation of \eqn{\mathrm{logit}(\theta)}{logit(theta)} under the
+#'     \code{theta} prior (for \code{beta(1, 1)}: \code{normal(0, 1.81)}); the
+#'     default slope prior is \code{normal(0, 2.5)}, so continuous linkage
+#'     covariates should be roughly on a unit scale. The name \code{gamma} is
+#'     accepted as an alias of \code{gamma_slope}.
+#' }
+#' Unrecognised names are ignored with a warning (component-specific entries
+#' need their component number: \code{intercept1}, not \code{intercept});
+#' unsupported distributions and invalid arguments raise an error. When both
+#' \code{gamma_slope} and its alias \code{gamma} are given, \code{gamma} is
+#' not used, and with \code{Z} an explicit \code{gamma_intercept} prior takes
+#' precedence over a \code{theta} prior; a message reports either case. The
+#' priors actually used are returned in the \code{priors} element of the fit,
+#' as written: an \code{exponential(rate)} prior is stored as such and used
+#' as the same distribution, \code{gamma(1, rate)}.
+#'
+#' The default priors are fixed: they are not rescaled to the data. They suit
+#' covariates and outcomes of order one (for example standardised continuous
+#' covariates). For an outcome such as age in years, or covariates measured in
+#' large units, give priors on the scale of the data (e.g.
+#' \code{intercept1 = "normal(60, 20)"}) or standardise the variables;
+#' otherwise the priors pull the estimates towards zero or, when the data
+#' carry little information relative to the prior (e.g. a Gaussian outcome in
+#' very large units, whose residual standard deviation then absorbs the
+#' outcome, or a covariate in very small units), dominate them. Two checks
+#' of the coefficients of the correct-match component report this in one
+#' warning per fit. Before sampling, the outcome model is fitted without the
+#' mixture (with \code{stats::glm.fit()}, or \code{stats::lm.fit()} for
+#' \code{"gaussian"}): to the safe matches when there are at least
+#' \code{p + 5} of them, \code{p} being the number of columns of \code{X},
+#' and otherwise, or when that fit fails or warns, to all records, ignoring
+#' the linkage errors. A coefficient
+#' with a default prior (one whose \code{intercept1} or \code{beta1} entry
+#' was not supplied) is flagged when this estimate lies more than 3 prior
+#' standard deviations from the prior mean, and the warning says whether its
+#' posterior standard deviation stayed above 0.9 times the prior standard
+#' deviation (the prior then dominates the estimate, even when the posterior
+#' mean has moved several prior standard deviations away from the prior
+#' mean). A coefficient with a supplied prior (even one equal to the default)
+#' is flagged only after sampling, when its prior dominates the estimate in
+#' this sense although the estimate without the mixture lies more than 3
+#' prior standard deviations from the prior mean and, allowing for its
+#' standard error, more than 3 times the square root of the prior variance
+#' plus the squared standard error: the data then contradict the prior,
+#' whereas an informative prior may dominate data that carry little
+#' information. After sampling, a coefficient with any prior is also flagged
+#' when its posterior mean lies more than 3 prior standard deviations from its
+#' prior mean. The comparisons with the fit without the mixture are skipped
+#' when the fit to all records fails or warns as well (e.g. under separation
+#' in logistic models; a fit to an outcome without variation counts as
+#' failed), and the one for default priors is reported even when the fit
+#' stops because the log posterior is not finite in any stored draw
+#' (typically for an outcome or covariates on extreme scales). Neither check
+#' covers coefficients that are small relative to their prior, for which the
+#' default priors are merely vague.
+#'
+#' @section Sampling algorithm:
+#'
+#' Posterior inference uses data augmentation (Gutman et al., 2016). Within
+#' each sweep the component parameters are updated given the latent match
+#' indicators (Gaussian regression coefficients from their conjugate normal
+#' conditional; other coefficient blocks with an independence
+#' Metropolis-Hastings step whose proposal is a multivariate t-distribution
+#' centred at the mode of the conditional posterior, i.e. a Laplace
+#' approximation; dispersion parameters by slice sampling on the log scale),
+#' the mixing weight is updated with the indicators integrated out, and the
+#' indicators are then drawn exactly from their conditional distribution.
+#' Because the coefficients and the indicators are strongly dependent when
+#' each record carries little information (e.g. binary outcomes), every sweep
+#' also proposes joint moves of all continuous parameters (coefficients of both
+#' components, the mixing weight or \code{gamma}, and the dispersions) with the
+#' indicators integrated out: a random-walk and an independence
+#' Metropolis-Hastings proposal whose location and covariance are estimated
+#' from the burn-in draws and fixed while draws are stored (a partially
+#' collapsed Gibbs sampler; van Dyk and Park, 2008). Their acceptance rates are
+#' stored in \code{diagnostics$accept_joint}; the moves are off when the
+#' burn-in is too short to estimate the proposal. A
+#' warning is issued when a Metropolis-Hastings acceptance rate falls below
+#' 0.2 (see \code{diagnostics$accept}), which typically indicates a weakly
+#' identified component; more informative priors, more iterations or known
+#' correct matches then help. Both \code{diagnostics$accept} and
+#' \code{diagnostics$accept_joint} refer to the sweeps after the burn-in
+#' (\code{accept} to all sweeps when \code{burnin.iterations = 0}, for which
+#' the joint moves are off); the warning requires at least 50 such sweeps,
+#' since rates over fewer are too imprecise. \code{summary()} notes when the
+#' joint moves were off because the burn-in was too short.
+#'
+#' The effective sample size of every parameter is
+#' stored in \code{diagnostics$ess}. When it is below 100 for a coefficient of
+#' component 1, \code{theta} or, with \code{Z}, a mismatch-model coefficient
+#' (\code{m.coefficients}, whose effective sample sizes are those of
+#' \code{gamma}), a warning is issued for runs with
+#' at least 1000 iterations after the burn-in (whatever the thinning), and
+#' \code{summary()} adds a note for any run
+#' (mixtures of logistic regressions mix more slowly than the other families
+#' and may need more iterations). The effective sample size cannot much
+#' exceed the number of stored draws, so the warning also advises a heavily
+#' thinned run (fewer than 200 stored draws) to reduce \code{thin}. The
+#' sampler runs a single chain, whose
+#' rank-normalised split R-hat (Vehtari et al., 2021; the larger of the bulk
+#' and the folded version, computed from the two halves of the stored draws,
+#' as \code{rstan::Rhat()} does for one chain) is stored in
+#' \code{diagnostics$rhat} for the coefficients of component 1,
+#' \code{theta} or the mismatch-model coefficients, the dispersion of
+#' component 1 and \code{lp}. When a value exceeds 1.05 a warning is issued
+#' for runs with at least 1000 iterations after the burn-in and at least 200
+#' stored draws (with fewer, nearly independent draws exceed 1.05 by chance
+#' too often), and \code{summary()} adds a note for any run (saying that the
+#' split R-hat is noisy when fewer than 200 draws were stored). A single-chain
+#' R-hat detects
+#' drift within the run (e.g. a chain that is still moving away from its
+#' starting values, or that switches modes once), but not a mode that the
+#' chain never visited: compare fits with several seeds (e.g. with
+#' \code{coda::gelman.diag(coda::mcmc.list(coda::as.mcmc(fit1),
+#' coda::as.mcmc(fit2)), multivariate = FALSE)}; the multivariate statistic
+#' is not defined for fits with linkage covariates, whose draws hold the same
+#' parameter twice, as \code{gamma} and as \code{m.coefficients = -gamma}).
+#' The tables of \code{summary()} show the Monte Carlo standard error, the
+#' effective sample size and the split R-hat of these parameters.
 #'
 #' @section Label switching:
 #'
-#' Mixture models are invariant to permutations of component labels,
-#' which can lead to label switching in MCMC output. To ensure
-#' interpretable posterior summaries, this function applies a
-#' post-processing step that aligns component labels across
-#' posterior draws.
+#' A mixture posterior is invariant to exchanging the labels of the two
+#' components when nothing in the model tells them apart, so a sampler can
+#' visit two labellings of the same fit (label switching). Component 1 is
+#' reported as the correct-match component. What identifies it is decided
+#' before sampling, by the first of the following rules that applies, and
+#' stored in \code{diagnostics$orientation}:
+#' \enumerate{
+#'   \item \code{"safe matches"}: known correct matches (\code{safe.matches})
+#'     are fixed in component 1 by the sampler, which identifies the labels.
+#'     The draws are reported as sampled.
+#'   \item \code{"match-rate prior"}: the prior on the match probability is
+#'     not symmetric under exchanging the labels: a \code{theta} prior
+#'     \code{beta(a, b)} with \code{a != b} (e.g. the prior derived from
+#'     \code{m.rate} for any \code{m.rate} other than 0.5) or, with \code{Z},
+#'     a \code{gamma_intercept} prior (for the centred linkage covariates) or
+#'     a \code{gamma_slope} prior with a non-zero mean. This prior makes one
+#'     labelling more probable than the other, and component 1 is the
+#'     correct-match component of the more probable one. A Gibbs chain stays
+#'     in the labelling it starts in, which the pilot chains can reach more or
+#'     less at random when both labellings fit the data, so the sampler
+#'     estimates, from the last sweeps of the selected pilot chain (at the
+#'     starting state when \code{pilots = 0}), the log ratio of the posterior
+#'     probabilities of the exchanged and the original labelling
+#'     (\code{diagnostics$orient_lp_change}), and exchanges the labels of the
+#'     starting state of the main chain when it is positive
+#'     (\code{diagnostics$pre_oriented}; starting values given in
+#'     \code{control$init} are never reoriented). The draws are reported as
+#'     sampled. The prior identifies the labels only as far as it makes the
+#'     other labelling improbable: after sampling, the share of the posterior
+#'     probability held by the other labelling is estimated from the stored
+#'     draws (\code{diagnostics$other_labelling}), and a warning is issued
+#'     when it exceeds 0.05 (the prior identifies the components only weakly,
+#'     e.g. for \code{m.rate} close to 0.5 or a large \code{m.rate.sd}, so
+#'     that component 1 may describe the mismatches) and, worded more
+#'     strongly, when it exceeds 0.5 (the chain stayed in the less probable
+#'     labelling).
+#'   \item \code{"majority component"}: otherwise component 1 is taken to be
+#'     the component that holds the majority of the records. Before the main
+#'     chain, once the pilot chains have selected its starting state, the
+#'     sampler exchanges the labels of that state when fewer than half of the
+#'     records are allocated to component 1 on average over the last sweeps
+#'     of the selected pilot chain (\code{diagnostics$pre_oriented}). When
+#'     \code{pilots = 0} the initial allocation decides, which only
+#'     approximates the labelling that the chain reaches (the relabelling
+#'     after sampling, described below, makes up for it). Starting values
+#'     given in \code{control$init} are respected and never reoriented.
+#'     Exchanging the labels changes the posterior only through the
+#'     component-specific priors, so the sampler first estimates, from
+#'     the last sweeps of the selected pilot chain (at the starting state when
+#'     \code{pilots = 0}), the log ratio of the posterior probabilities of
+#'     the exchanged and the original labelling
+#'     (\code{diagnostics$orient_lp_change}; exactly 0 when the
+#'     component-specific priors are identical), and exchanges the labels
+#'     when it is at least -2. Below -2 (the exchanged labelling looks more
+#'     than about 7 times less probable) this estimate does not decide alone,
+#'     since it refers to the mirror image of the region visited by the pilot
+#'     chain, while a chain started there can move on to another mode of the
+#'     same labelling: two check chains of \code{pilot.iterations} sweeps are
+#'     run from the selected pilot state, one with the labels exchanged and
+#'     one without (\code{diagnostics$orient_check}). The labels are not
+#'     exchanged (\code{diagnostics$orient_refused}) when, over the second
+#'     half of its sweeps, the chain started with the labels exchanged
+#'     returned to the original labelling, or its average log posterior
+#'     stayed below that of the other chain by more than \code{max(2, 2 * se)},
+#'     where \code{se} is the Monte Carlo standard error of the difference of
+#'     the two averages (close to 0 for chains that mix well, a few units for
+#'     slowly mixing ones). Without pilot chains the estimate decides alone.
+#'     When the exchange is refused, the component-specific priors identify
+#'     the labels and component 1 can hold the minority of the records: a
+#'     chain started in the exchanged labelling would stay in a much less
+#'     probable mode, or leave it. This happens, for example, with
+#'     \code{beta2 = "normal(0, 0.5)"} or tighter (the mismatches have
+#'     practically no slope) when the correct matches, with a slope of 2, are
+#'     the minority. For the \code{"binomial"} defaults
+#'     (\code{beta1 = normal(0, 2.5)}, \code{beta2 = normal(0, 5)}) moving a
+#'     slope \code{b} from component 2 to component 1 changes the estimate by
+#'     \code{-0.06 * b^2}, so it falls below -2 once the squared slopes of
+#'     the majority exceed those of the minority by more than about 33 (many
+#'     covariates or large slopes); the check chains then usually find a mode
+#'     of comparable posterior probability with component 1 as the majority,
+#'     and the labels are exchanged. After sampling, the draws are
+#'     relabelled: the labels are aligned across draws with the
+#'     \code{ECR-ITERATIVE-1} relabeling algorithm (Papastamoulis &
+#'     Iliopoulos, 2010), and exchanged in every draw if component 2 holds the
+#'     majority of the aligned allocations (with \code{verbose = TRUE} a
+#'     message reports this), unless the component-specific priors make the
+#'     labelling with component 1 as the majority much less probable: as for
+#'     the starting state, the log ratio of the posterior probabilities of the
+#'     exchanged and the aligned labelling, here estimated from the aligned
+#'     draws, must be at least -2. Both steps rename the components of a draw
+#'     without changing the fit it describes, so that component 1 is the
+#'     majority component in every reported draw (unless that exchange is
+#'     refused), also when the chain switched between the two labellings
+#'     (e.g. a mixture of logistic regressions with weakly separated
+#'     components). When every
+#'     component-specific prior is the same for both components
+#'     (\code{intercept1} and \code{intercept2}, \code{beta1} and
+#'     \code{beta2}, \code{sigma1} and \code{sigma2}, \code{phi1} and
+#'     \code{phi2}), as for the defaults of every family except
+#'     \code{"binomial"}, relabelling leaves the posterior unchanged and the
+#'     exchange is never refused. When the
+#'     component-specific priors differ, as for the \code{"binomial"} defaults
+#'     (\code{beta1 = normal(0, 2.5)}, \code{beta2 = normal(0, 5)}) or for
+#'     component priors that you supply, a relabelled draw was sampled with
+#'     the components the other way round: its component 1 was sampled under
+#'     the component-2 priors, and its log posterior differs from that of the
+#'     draw as sampled. When the exchange of the labels of the starting state
+#'     or of the aligned draws is refused, the component-specific priors
+#'     identify the labels, and component 1 holds the minority of the
+#'     records.
+#' }
+#' \code{diagnostics$relabelled} records whether the draws were relabelled
+#' after sampling and \code{diagnostics$n_swapped} the number of relabelled
+#' draws (0 when they were not relabelled). \code{diagnostics$lp} is the log
+#' posterior of the reported draws (for a relabelled draw, that of the draw
+#' with its components renamed), and \code{priors} holds the priors of the
+#' components as sampled.
 #'
-#' First, an optional global swap of labels (1 and 2) is performed
-#' if component 2 is more frequent overall. Then, labels are
-#' aligned across draws using the \code{ECR-ITERATIVE-1}
-#' relabeling algorithm.
+#' In every case \code{diagnostics$ecr_share} is the share of the stored draws
+#' whose labels \code{ECR-ITERATIVE-1}, applied to the records not flagged as
+#' safe matches, exchanges (or would exchange). When the draws are reported as
+#' sampled and this share exceeds 0.1, a warning reports that the chain visited
+#' both labellings of the mixture: the posterior is multimodal or the
+#' components are weakly separated, and more informative priors, safe matches,
+#' more iterations or starting values help. The reported draws then mix both
+#' labellings, so posterior means and intervals of the component-specific
+#' parameters and of \code{theta} average over the two components and should
+#' not be interpreted. Warnings are also issued when, under the majority rule,
+#' component 1 holds fewer than half of the records on average because the
+#' component-specific priors refused the exchange of the labels of the
+#' starting state or of the aligned draws (the message explains the refusal
+#' and, for the \code{"binomial"} defaults, which are not meant to identify
+#' the components, recommends \code{m.rate} or safe matches);
+#' when, under the majority rule with component-specific priors that differ,
+#' after the labels of the starting state were exchanged, the average log
+#' posterior of the stored draws as sampled lies below that of the selected
+#' pilot chain,
+#' allowing for the change of level between the check chains (or else the
+#' estimated change), by more than 5 or twice the standard deviation of the
+#' log posterior of the stored draws, whichever is larger (the chain is then
+#' probably trapped in a minor mode); and when
+#' the safe matches anchor a component 1 that holds only a minority of the
+#' other records although the prior does not make correct matches the
+#' minority (the safe matches are then possibly atypical of the correct
+#' matches). The native implementation of
+#' \code{ECR-ITERATIVE-1} also avoids a pivot defect of
+#' \code{label.switching::ecr.iterative.1} for records allocated to component
+#' 2 in every draw.
+#'
+#' @section Correspondence with adjMixture():
+#' The Bayesian fit (\code{\link{adjMixBayes}()}, \code{glmMixBayes()}) and the
+#' frequentist mixture fit (\code{\link{adjMixture}()}, \code{\link{glmMixture}()})
+#' use the same names for the same quantities:
+#'
+#' | Quantity | `adjMixture()` | `adjMixBayes()` |
+#' |:---|:---|:---|
+#' | Correct-match outcome model | `coefficients` | `estimates$coefficients` (draws) |
+#' | Mismatch-indicator model | `m.coefficients` | `estimates$m.coefficients` (draws) |
+#' | Mismatch outcome model | none (marginal density of y) | `estimates$coefficients2`, `dispersion2` |
+#' | Per-record match probability | `match.prob` | `match.prob` |
+#' | Average match rate (`summary()`) | all records | all records; records not flagged as safe |
+#' | `m.rate` | upper bound or known rate | centre of a beta prior (SD `m.rate.sd`) |
+#' | `m.rate` with covariates | at the mean of `Z` (non-safe records) | at the mean of `Z` (non-safe records) |
+#' | `safe.matches` | fixed correct matches | fixed correct matches; identify the labels |
+#' | Uncertainty | standard errors, Wald intervals | posterior SDs, quantile intervals |
+#' | Allocation draws | none | `m_samples` (1 = correct match, 2 = mismatch) |
+#' | Refits on the allocations | none | `mi_with()` |
+#'
+#' In detail:
+#' \itemize{
+#'   \item The \code{coefficients} of \code{glmMixture()} are estimates; the
+#'     Bayesian fit stores posterior draws, whose means \code{coef()} returns.
+#'   \item The mismatch-indicator model of \code{m.formula} has the same scale
+#'     and sign in both fits: a record not flagged as a safe match is a
+#'     mismatch with probability \code{plogis(Z \%*\% m.coefficients)}. The
+#'     Bayesian \code{estimates$gamma} is \code{-m.coefficients}, the scale of
+#'     the \code{gamma_intercept} and \code{gamma_slope} priors; with
+#'     \code{m.formula = ~1}, \code{estimates$theta} is
+#'     \code{1 - plogis(m.coefficients)}, the probability of a correct match.
+#'   \item The EM fit has no outcome model for the mismatches: it uses the
+#'     marginal density of the outcome. The Bayesian fit models them as
+#'     component 2 (\code{estimates$coefficients2}, \code{estimates$dispersion2}).
+#'   \item The Bayesian \code{match.prob} is the posterior probability that a
+#'     record is a correct match: the share of the stored draws that allocate
+#'     the record to component 1 (1 for safe matches). \code{glmMixture()} and
+#'     \code{coxphMixture()} of postlink 0.1.2 return the prior probability
+#'     (1 for safe matches); from the next release, as on GitHub main, they
+#'     return the posterior probability, as the Bayesian fit does.
+#'   \item The \code{summary()} of the EM fit averages \code{match.prob} over all
+#'     records, safe matches counted as 1. The Bayesian \code{summary()} shows
+#'     this average and the average over the records not flagged as safe
+#'     matches, which \code{theta} and \code{gamma} describe.
+#'   \item \code{m.rate} is an upper bound on the mismatch rate in
+#'     \code{plglm()} and \code{plcoxph()} with \code{adjMixture()} (the known
+#'     mismatch rate in \code{plctable()}); in \code{adjMixBayes()} it is the
+#'     centre of a beta prior on the mismatch rate with standard deviation
+#'     \code{m.rate.sd}, and the rate is estimated from the data under this
+#'     prior. With covariates in \code{m.formula}, both apply at the mean of
+#'     the linkage covariates over the records not flagged as safe matches: the
+#'     EM bound, and the Bayesian prior derived from \code{m.rate}, which is
+#'     placed on the intercept of \code{gamma} for the linkage covariates
+#'     centred at that mean (\code{z_center}; the reported \code{gamma} refers
+#'     to the original covariates).
+#'   \item \code{safe.matches} are fixed as correct matches in both fits; in the
+#'     Bayesian fit they also identify which component describes the correct
+#'     matches (see \emph{Label switching}).
+#'   \item The EM fit reports standard errors (\code{vcov()}, \code{summary()})
+#'     and Wald intervals (\code{confint()}); the Bayesian fit reports posterior
+#'     standard deviations (\code{vcov()}; column \code{"Std. Error"} of
+#'     \code{summary()}) and posterior quantile intervals (\code{confint()}).
+#'   \item Only the Bayesian fit has draws of the allocations
+#'     (\code{m_samples}: 1 = correct match, 2 = mismatch), which
+#'     \code{\link{mi_with}()} uses to refit the outcome model to the records
+#'     allocated to the correct matches.
+#' }
 #'
 #' @references
 #' Gutman, R., Sammartino, C., Green, T., & Montague, B. (2016).
@@ -91,14 +655,26 @@
 #' (Statistical Methodology)}, 62(4), 795--809.
 #' \doi{10.1111/1467-9868.00265}
 #'
-#' Papastamoulis, P. (2016).
-#' \emph{label.switching}: An R package for dealing with the label switching
-#' problem in MCMC outputs.
-#' \emph{Journal of Statistical Software}, 69(1), 1--24.
-#' \doi{10.18637/jss.v069.c01}
+#' Papastamoulis, P., & Iliopoulos, G. (2010).
+#' An artificial allocations based solution to the label switching problem
+#' in Bayesian analysis of mixtures of distributions.
+#' \emph{Journal of Computational and Graphical Statistics}, 19(2), 313--331.
+#' \doi{10.1198/jcgs.2010.09008}
+#'
+#' Neal, R. M. (2003). Slice sampling. \emph{The Annals of Statistics},
+#' 31(3), 705--767. \doi{10.1214/aos/1056562461}
+#'
+#' van Dyk, D. A. and Park, T. (2008). Partially collapsed Gibbs samplers:
+#' theory and methods. \emph{Journal of the American Statistical
+#' Association}, 103(482), 790--796. \doi{10.1198/016214508000000409}
+#'
+#' Vehtari, A., Gelman, A., Simpson, D., Carpenter, B., & Bürkner, P.-C.
+#' (2021). Rank-normalization, folding, and localization: an improved
+#' \eqn{\widehat{R}}{R-hat} for assessing convergence of MCMC (with
+#' discussion). \emph{Bayesian Analysis}, 16(2), 667--718.
+#' \doi{10.1214/20-BA1221}
 #'
 #' @examples
-#' \donttest{
 #' data(lifem)
 #'
 #' # lifem data preprocessing
@@ -109,265 +685,311 @@
 #'   head(subset(lifem, hndlnk == 0), 20)
 #' )
 #'
+#' # design matrix with named columns: the intercept and a cubic polynomial of
+#' # the year of birth (unit_yob, rescaled to [0, 1])
 #' x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
+#' colnames(x) <- c("(Intercept)", "unit_yob", "unit_yob^2", "unit_yob^3")
 #' y <- lifem_small$age_at_death
 #'
+#' # priors on the scale of the outcome (age in years) and of the slopes of the
+#' # cubic polynomial: the defaults (normal(0, 10) for the intercepts,
+#' # normal(0, 5) for the slopes) suit outcomes and covariates of order one
 #' fit <- glmMixBayes(
 #'   X = x,
 #'   y = y,
 #'   family = "gaussian",
+#'   priors = list(intercept1 = "normal(60, 20)", intercept2 = "normal(60, 20)",
+#'                 beta1 = "normal(0, 100)", beta2 = "normal(0, 100)"),
 #'   control = list(
 #'     iterations = 200,
 #'     burnin.iterations = 100,
 #'     seed = 123
 #'   )
 #' )
-#' }
+#'
+#' fit$priors
 #'
 #' @export
-#' @importFrom rstan sampling
-#' @import label.switching
 glmMixBayes <- function(X, y, family = "gaussian", priors = NULL,
                         control = list(iterations = 1e4,
-                                       burnin.iterations = 1e3,
-                                       seed = sample.int(.Machine$integer.max, 1),
-                                       cores = getOption("mc.cores", 1L)),
+                                       seed = sample.int(.Machine$integer.max, 1)),
+                        Z = NULL, safe.matches = NULL,
+                        m.rate = NULL, m.rate.sd = 0.1,
                         ...) {
 
+ # unsupported modelling arguments are refused by name, before `...` is
+ # evaluated
+ .refuse_modelling_args(.dots_names(...))
  dcontrols <- list(...)
- iterations <- if ("iterations" %in% names(dcontrols)) {
-  dcontrols$iterations
- } else if ("iterations" %in% names(control)) {
-  control$iterations
- } else {
-  1e4
+ mcmc <- .mixbayes_settings(dcontrols, control)
+ if (is.null(priors) && is.list(control) && !is.null(control$priors)) priors <- control$priors
+ if (!missing(m.rate.sd) && !is.null(m.rate.sd) && is.null(m.rate)) {
+  warning("'m.rate.sd' has no effect unless 'm.rate' is supplied.", call. = FALSE)
  }
 
- burnin.iterations <- if ("burnin.iterations" %in% names(dcontrols)) {
-  dcontrols$burnin.iterations
- } else if ("burnin.iterations" %in% names(control)) {
-  control$burnin.iterations
- } else {
-  1e3
+ family <- .normalize_glm_family(family)
+
+ # Minimal input checks (formula/data checks handled upstream); unnamed
+ # columns are named "(Intercept)" (a column of ones) or "X<j>"
+ .check_design(X)
+ X <- .normalize_design_names(X)
+ y_fit <- .normalize_glm_y(y, family, nrow(X))
+
+ # match-probability model: scalar theta (Path A) or logistic regression on Z (Path B)
+ use_logistic <- !is.null(Z)
+ safe <- .normalize_safe(safe.matches, nrow(X))
+ if (use_logistic) {
+  .check_Z(Z, nrow(X), safe)
+  Z <- .normalize_design_names(Z, prefix = "Z")
+ }
+ .check_all_safe(safe)
+
+ # Path B: the sampler uses the linkage covariates centred at their mean over
+ # the records not flagged as safe matches, so that the gamma_intercept prior
+ # refers to a record with average linkage covariates; starting values of
+ # gamma are given on the original covariates
+ z_center <- NULL
+ Z_fit <- Z
+ if (use_logistic) {
+  z_center <- .z_center(Z, safe)
+  Z_fit <- .center_Z(Z, z_center)
+  mcmc$init <- .center_init_gamma(mcmc$init, z_center)
  }
 
- # normalize family input
- if (inherits(family, "family")) family <- family$family
- family <- tolower(trimws(as.character(family)[1]))
+ # Priors: parse strings into hyperparameters, then expand for the sampler
+ # (without an intercept column, intercept1 / intercept2 are not used)
+ has_intercept <- .has_intercept_column(X)
+ priors <- .drop_unused_intercept_priors(priors, has_intercept, X)
+ prior_flat <- prepare_mixbayes_priors(priors, family, model_type = "glm",
+                                       use_logistic = use_logistic,
+                                       m.rate = m.rate, m.rate.sd = m.rate.sd)
+ engine_priors <- build_engine_priors(prior_flat, family, "glm",
+                                      K = ncol(X), M = if (use_logistic) ncol(Z) else 0L,
+                                      intercept = has_intercept)
 
- seed <- if ("seed" %in% names(dcontrols)) {
-  dcontrols$seed
- } else if ("seed" %in% names(control)) {
-  control$seed
- } else {
-  sample.int(.Machine$integer.max, 1)
- }
+ # What identifies component 1 (see 'Label switching'): decided before
+ # sampling, since under the majority convention the sampler orients its
+ # starting state
+ rule <- .label_rule(engine_priors, safe)
 
- cores <- if ("cores" %in% names(dcontrols)) {
-  dcontrols$cores
- } else if ("cores" %in% names(control)) {
-  control$cores
- } else {
-  getOption("mc.cores", 1L)
- }
+ # Prior-scale check (see .check_prior_data_conflict()): the coefficients of
+ # the correct-match component are compared with a fit without the mixture
+ # (to the safe matches, or to all records ignoring the linkage errors),
+ # before sampling for those with a default prior, after sampling also for
+ # those with a supplied prior that dominates the estimate
+ default_cols <- .default_prior_columns(priors, ncol(X), has_intercept)
+ naive <- .naive_coefficients(X, y_fit, family, safe = safe)
 
- if (!(family %in% c("gaussian", "poisson", "binomial", "gamma"))) {
-  stop("Error: the family should be gaussian, poisson, binomial, or gamma", call. = FALSE)
- }
-
- # Minimal input checks (formula/data checks handled upstream)
- if (!is.matrix(X) || !is.numeric(X)) stop("`X` must be a numeric matrix.", call. = FALSE)
- if (!is.numeric(y) || length(y) != nrow(X)) stop("`y` must be numeric with length nrow(X).", call. = FALSE)
- if (anyNA(X) || anyNA(y)) stop("NA values found in X or y", call. = FALSE)
-
- # stan data (coerce for count/binary families if needed)
- stan_y <- y
- if (family %in% c("poisson", "binomial")) {
-  stan_y <- as.integer(y)
-  if (anyNA(stan_y)) stop("`y` could not be safely coerced to integer for family = '", family, "'.", call. = FALSE)
- }
-
- # Pre-compiled Stan Pipeline
- # Parse prior strings into a named list of numeric values using our helper
- prior_data <- prepare_stan_priors(priors, family, model_type = "glm")
-
- # Combine core data with parsed prior data
- stan_data <- c(
-  list(N = nrow(X), K = ncol(X), X = X, y = stan_y),
-  prior_data
- )
-
- # Identify pre-compiled model from rstantools' internal stanmodels object
- model_name <- paste0("glmMixBayes_", family)
-
- # Sample instantly from the pre-compiled C++ DLL
- fit <- rstan::sampling(
-  stanmodels[[model_name]],
-  data   = stan_data,
-  iter   = iterations,
-  warmup = burnin.iterations,
-  chains = 1,
-  seed   = seed,
-  cores  = cores
- )
-
- posterior <- rstan::extract(fit)
- z_samples <- posterior$z
+ # Run the C++ Gibbs sampler; when it stops because no stored draw has a
+ # finite log posterior, the prior-scale check is reported first (an outcome
+ # or covariates on extreme scales typically cause both)
+ posterior <- run_mixbayes_engine(family, X, y_fit, NULL, Z_fit, safe, engine_priors, mcmc,
+                                  pre_orient = rule$pre_orient,
+                                  on_lp_stop = function() {
+                                   .check_prior_data_conflict(NULL, engine_priors, help = "glmMixBayes",
+                                                              default = default_cols, naive = naive,
+                                                              coef_names = colnames(X))
+                                  })
 
  ##### Label switching adjustment #####
+ pairs <- list(beta = list(posterior$beta1, posterior$beta2))
+ if (family %in% c("gaussian", "gamma")) pairs$disp <- list(posterior$disp1, posterior$disp2)
 
- # --- 0) Optional global pre-alignment by majority label -----------------------
- count_label2 <- sum(z_samples == 2L, na.rm = TRUE)
- total_labels <- length(z_samples)  # S * N
- if (is.finite(count_label2) && count_label2 > total_labels / 2) {
-  message("Global label swap performed: label 2 dominates label 1.")
-
-  # Flip z: 1 -> 2, 2 -> 1
-  z_samples <- structure(3L - z_samples, dim = dim(z_samples))
-
-  # Swap component-specific parameters inside `posterior` if they exist
-  swap_if_present <- function(lst, a, b) {
-   if (all(c(a, b) %in% names(lst))) {
-    tmp <- lst[[a]]
-    lst[[a]] <- lst[[b]]
-    lst[[b]] <- tmp
-   }
-   lst
-  }
-  posterior <- swap_if_present(posterior, "beta1", "beta2")
-  posterior <- swap_if_present(posterior, "sigma1", "sigma2")  # gaussian
-  posterior <- swap_if_present(posterior, "phi1",   "phi2")    # gamma
- }
-
-
- if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
-  old_seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-  on.exit(assign(".Random.seed", old_seed, envir = .GlobalEnv), add = TRUE)
- } else {
-  on.exit(rm(list = ".Random.seed", envir = .GlobalEnv), add = TRUE)
- }
-
- set.seed(seed)
-
- # --- 1) Iterative ECR alignment of labels across MCMC draws -------------------
- ls_out <- label.switching::label.switching(
-  method = "ECR-ITERATIVE-1",
-  z      = z_samples,
-  K      = 2
+ aligned <- align_mixture_labels(
+  z     = posterior$z,
+  pairs = pairs,
+  theta = if (!use_logistic) posterior$theta else NULL,
+  gamma = if (use_logistic) posterior$gamma else NULL,
+  safe  = safe,
+  orientation = rule$orientation,
+  relabel = rule$orientation == "majority component",
+  expect_majority = .prior_majority(prior_flat, use_logistic),
+  verbose = mcmc$verbose,
+  start = .orientation_start(posterior, mcmc,
+                             default_priors = .default_component_priors(prior_flat, family, "glm")),
+  help = "glmMixBayes",
+  exchange_lp = posterior$exchange_lp
  )
- perm <- ls_out$permutations[["ECR-ITERATIVE-1"]]
+ # log posterior of the reported (possibly relabelled) draws, and the
+ # estimated share of the posterior probability of the other labelling, which
+ # under the match-rate prior must be small for the labels to be identified
+ reported_lp <- .relabel_lp(posterior$lp, posterior$exchange_lp, aligned$swapped)
+ other_share <- .other_labelling_share(reported_lp$exchange_lp)
+ .check_label_mass(other_share, rule$orientation, aligned$ecr_share, help = "glmMixBayes")
 
- # Map z by the inverse permutation for each draw
- map_z <- function(z, perm) {
-  if (!is.matrix(z)) stop("`z` must be an S x N matrix.", call. = FALSE)
-  S <- nrow(z); K <- ncol(perm)
-  if (K != 2L || nrow(perm) != S) stop("`perm` must be an S x 2 matrix of permutations.", call. = FALSE)
-  for (i in seq_len(S)) {
-   inv <- integer(K)
-   inv[perm[i, ]] <- seq_len(K)
-   z[i, ] <- inv[z[i, ]]
-  }
-  z
- }
- z_samples <- map_z(z_samples, perm)
-
- # Helper to permute paired component-specific parameters
- perm_pair <- function(a1, a2, perm) {
-  if (!is.numeric(a1) || !is.numeric(a2)) stop("Inputs must be numeric.", call. = FALSE)
-
-  d1 <- dim(a1); d2 <- dim(a2)
-
-  # Convert a1/a2 into S x p matrices (p = product of remaining dims)
-  if (is.null(d1)) {
-   S <- length(a1); p <- 1L
-   A1 <- matrix(a1, ncol = 1L)
-  } else {
-   S <- d1[1]
-   p <- as.integer(length(a1) / S)
-   if (!is.finite(S) || S < 1 || !is.finite(p) || p < 1) {
-    stop("Invalid draws/shape for component parameter.", call. = FALSE)
-   }
-   A1 <- matrix(a1, nrow = S)
-  }
-
-  if (is.null(d2)) {
-   if (length(a2) != S) stop("Shapes differ between component parameters.", call. = FALSE)
-   A2 <- matrix(a2, ncol = 1L)
-  } else {
-   if (d2[1] != S) stop("Shapes differ between component parameters.", call. = FALSE)
-   A2 <- matrix(a2, nrow = S)
-  }
-
-  if (!identical(dim(A1), dim(A2))) stop("Shapes differ between component parameters.", call. = FALSE)
-  if (!is.matrix(perm) || nrow(perm) != S || ncol(perm) != 2L) {
-   stop("`perm` must be an S x 2 matrix (one permutation per draw).", call. = FALSE)
-  }
-
-  arr <- array(NA_real_, dim = c(S, 2L, ncol(A1)))
-  arr[, 1L, ] <- A1
-  arr[, 2L, ] <- A2
-  arrp <- label.switching::permute.mcmc(arr, permutations = perm)[[1]]
-
-  out1 <- arrp[, 1L, , drop = TRUE]
-  out2 <- arrp[, 2L, , drop = TRUE]
-  if (ncol(A1) == 1L) {
-   out1 <- as.numeric(out1); out2 <- as.numeric(out2)
-  } else {
-   out1 <- matrix(out1, nrow = S); out2 <- matrix(out2, nrow = S)
-  }
-  list(`1` = out1, `2` = out2)
- }
-
- if (is.null(posterior$z) || is.null(posterior$beta1) || is.null(posterior$beta2)) {
-  stop("Missing expected parameters in posterior", call. = FALSE)
- }
-
- beta1.p <- posterior$beta1
- beta2.p <- posterior$beta2
- tmp <- perm_pair(beta1.p, beta2.p, perm)
- beta1.p <- tmp[[1]]
- beta2.p <- tmp[[2]]
-
- if (family == "gamma") {
-  tmp <- perm_pair(posterior$phi1, posterior$phi2, perm)
-  phi1.p <- tmp[[1]]
-  phi2.p <- tmp[[2]]
- }
-
- if (family == "gaussian") {
-  tmp <- perm_pair(posterior$sigma1, posterior$sigma2, perm)
-  sigma1.p <- tmp[[1]]
-  sigma2.p <- tmp[[2]]
- }
+ beta1.p <- aligned$pairs$beta[[1L]]
+ beta2.p <- aligned$pairs$beta[[2L]]
+ accept <- .relabel_accept(posterior$accept, aligned$flipped)
+ .check_acceptance(accept, n_sweeps = mcmc$iterations - mcmc$burnin.iterations)
 
  # Set coefficient names from X if available
  cn <- colnames(X)
- if (!is.null(cn) && is.matrix(beta1.p) && ncol(beta1.p) == length(cn)) {
+ if (!is.null(cn) && ncol(beta1.p) == length(cn)) {
   colnames(beta1.p) <- cn
   colnames(beta2.p) <- cn
  }
+ # beta1.p is compared with the component-1 prior (relabelled draws, sampled
+ # in the other labelling, describe the same majority component); one warning
+ # combines the prior-scale check and the posterior check
+ .check_prior_data_conflict(beta1.p, engine_priors, help = "glmMixBayes",
+                            default = default_cols, naive = naive)
+ # the orientation of the starting state under component priors that differ
+ # must not have left the main chain far below the selected pilot chain
+ .check_orientation_lp(posterior, rule$exchangeable, rule$orientation)
 
- out <- list(
-  m_samples = z_samples,
-  estimates = list(
-   coefficients   = beta1.p,
-   m.coefficients = beta2.p
-  ),
-  family = family,
-  call = match.call()
+ # component 1 (correct matches), component 2 (mismatches) and the
+ # mismatch-indicator model, named as in glmMixture()
+ est <- list(
+  coefficients  = beta1.p,
+  coefficients2 = beta2.p
  )
-
+ if (use_logistic) {
+  # back to the original linkage covariates
+  gamma.p <- .uncenter_gamma(aligned$gamma, z_center)
+  zn <- colnames(Z)
+  if (!is.null(zn) && is.matrix(gamma.p) && ncol(gamma.p) == length(zn)) {
+   colnames(gamma.p) <- zn
+  }
+  est$m.coefficients <- .mismatch_coef_draws(gamma = gamma.p)
+  est$gamma <- gamma.p
+ } else {
+  est$m.coefficients <- .mismatch_coef_draws(theta = aligned$theta)
+  est$theta <- aligned$theta
+ }
  if (family == "gamma") {
-  out$estimates$dispersion   <- 1 / phi1.p
-  out$estimates$m.dispersion <- 1 / phi2.p
+  est$dispersion  <- 1 / aligned$pairs$disp[[1L]]
+  est$dispersion2 <- 1 / aligned$pairs$disp[[2L]]
  }
  if (family == "gaussian") {
-  out$estimates$dispersion   <- sigma1.p^2
-  out$estimates$m.dispersion <- sigma2.p^2
+  est$dispersion  <- aligned$pairs$disp[[1L]]^2
+  est$dispersion2 <- aligned$pairs$disp[[2L]]^2
  }
+
+ # drop the other references to the S x N allocation matrix first, so that
+ # naming its columns does not copy it
+ z_draws <- aligned$z
+ aligned$z <- NULL
+ posterior$z <- NULL
+ if (!is.null(rownames(X))) colnames(z_draws) <- rownames(X)
+
+ out <- list(
+  m_samples = z_draws,
+  estimates = est,
+  family = family,
+  call = match.call(),
+  match.prob = .match_prob(z_draws),
+  use_logistic = use_logistic,
+  priors = .prior_strings(prior_flat, family, "glm", use_logistic, intercept = has_intercept),
+  diagnostics = list(
+   accept      = accept,
+   accept_joint = posterior$accept_collapsed,
+   joint_burnin = posterior$joint_burnin,
+   n_swapped   = sum(aligned$swapped),
+   relabelled  = aligned$relabelled,
+   pre_oriented = isTRUE(posterior$pre_oriented),
+   orient_refused = isTRUE(posterior$orient_refused),
+   orient_lp_change = posterior$orient_lp_change,
+   orient_check = posterior$orient_check,
+   ecr_share   = aligned$ecr_share,
+   other_labelling = other_share,
+   lp          = reported_lp$lp,
+   pilot_lp    = as.numeric(posterior$pilot_lp),
+   settings    = mcmc[c("iterations", "burnin.iterations", "thin", "seed", "pilots", "pilot.iterations", "collapse")],
+   orientation = aligned$orientation,
+   n_safe      = sum(safe)
+  )
+ )
+ if (use_logistic) out$z_center <- z_center
+ # effective sample sizes and single-chain split R-hat; runs with fewer than
+ # 1000 iterations after the burn-in are exploratory (no warnings, notes in
+ # summary()), whatever the thinning
+ out$diagnostics$ess <- .mixbayes_ess(out)
+ out$diagnostics$rhat <- .mixbayes_rhat(out)
+ n_sweeps <- mcmc$iterations - mcmc$burnin.iterations
+ .check_ess(out$diagnostics$ess, nrow(z_draws), n_sweeps)
+ .check_rhat(out$diagnostics$rhat, nrow(z_draws), n_sweeps)
 
  class(out) <- "glmMixBayes"
  out
+}
+
+# Normalise the `family` argument of glmMixBayes(): a string, a family object
+# or a family function. The engine uses fixed links (identity, log, logit,
+# log); other links are refused, except the default inverse link of
+# stats::Gamma(), which is replaced by the log link with a warning.
+.normalize_glm_family <- function(family) {
+ if (is.function(family)) {
+  family <- tryCatch(family(), error = function(e) {
+   stop("`family` must be a character string, a family object or a family function.", call. = FALSE)
+  })
+ }
+ link <- NULL
+ if (inherits(family, "family")) {
+  link <- family$link
+  family <- family$family
+ }
+ if (!is.character(family) || length(family) != 1L || is.na(family)) {
+  stop("`family` must be a single character string or a family object.", call. = FALSE)
+ }
+ family <- tolower(trimws(family))
+ if (!(family %in% c("gaussian", "poisson", "binomial", "gamma"))) {
+  stop("Error: the family should be gaussian, poisson, binomial, or gamma", call. = FALSE)
+ }
+ canonical <- c(gaussian = "identity", poisson = "log", binomial = "logit", gamma = "log")
+ if (!is.null(link) && !identical(link, canonical[[family]])) {
+  if (family == "gamma" && identical(link, "inverse")) {
+   warning("The Bayesian mixture model uses the log link for the gamma family; the 'inverse' link ",
+           "of the supplied family object is not used. Supply Gamma(link = \"log\") to avoid this warning.",
+           call. = FALSE)
+  } else {
+   stop(sprintf("The Bayesian mixture model supports only the %s link for family '%s' (got '%s').",
+                canonical[[family]], family, link), call. = FALSE)
+  }
+ }
+ family
+}
+
+# Validate and normalise the response of glmMixBayes().
+.normalize_glm_y <- function(y, family, N) {
+ if (is.matrix(y) || is.data.frame(y)) {
+  if (NCOL(y) != 1L) {
+   stop("`y` must be a vector: two-column (successes, failures) responses are not supported.", call. = FALSE)
+  }
+  y <- if (is.data.frame(y)) y[[1L]] else y[, 1L]
+ }
+ if (is.factor(y)) {
+  if (family != "binomial") stop("A factor response is only supported for family = 'binomial'.", call. = FALSE)
+  if (nlevels(y) != 2L) {
+   stop("A factor response must have exactly two levels (the second level is the event, as in glm()).",
+        call. = FALSE)
+  }
+  y <- as.integer(y) - 1L
+ } else if (is.logical(y)) {
+  y <- as.integer(y)
+ }
+ if (!is.numeric(y)) {
+  stop("`y` must be numeric", if (family == "binomial") " (or logical, or a two-level factor)", ".",
+       call. = FALSE)
+ }
+ if (length(y) != N) stop("`y` must have length nrow(X).", call. = FALSE)
+ if (!all(is.finite(y))) stop("`y` must not contain missing or infinite values.", call. = FALSE)
+
+ y_fit <- as.numeric(y)
+ if (family %in% c("poisson", "binomial")) {
+  y_int <- suppressWarnings(as.integer(round(y_fit)))
+  if (anyNA(y_int) || any(abs(y_int - y_fit) > 1e-8)) {
+   stop("`y` could not be safely coerced to integer for family = '", family, "'.", call. = FALSE)
+  }
+  if (any(y_int < 0L)) stop("`y` must be non-negative for family = '", family, "'.", call. = FALSE)
+  if (family == "binomial" && any(y_int > 1L)) {
+   stop("`y` must be binary (0/1) for family = 'binomial'.", call. = FALSE)
+  }
+  y_fit <- as.numeric(y_int)
+ }
+ if (family == "gamma" && any(y_fit <= 0)) {
+  stop("`y` must be strictly positive for family = 'gamma'.", call. = FALSE)
+ }
+ unname(y_fit)
 }
 
 # S3 dispatch method for the postlink internal generic fitglm()
@@ -375,68 +997,25 @@ glmMixBayes <- function(X, y, family = "gaussian", priors = NULL,
 #' @export
 fitglm.adjMixBayes <- function(x, y, family, adjustment, control, priors = NULL, ...) {
 
- # 1. Validation and Data Retrieval
- full_data <- adjustment$data_ref$data
- if (is.null(full_data)) {
-  stop("The 'adjustment' object does not contain linked data. ",
-       "Please recreate the object with 'linked.data' provided.", call. = FALSE)
- }
+ # Linked data, row alignment, prior hierarchy (function argument > `...` >
+ # control$priors > adjustment$priors) and linkage information (covariates of
+ # the match-probability model, known correct matches, prior mismatch rate)
+ .refuse_modelling_args(.dots_names(...))
+ inp <- .mixbayes_fit_inputs(x, y, adjustment, control, priors, list(...))
 
- # 2. Align Adjustment Data to Outcome Model (X, Y) via row names
- subset_names <- rownames(x)
-
- if (is.null(subset_names)) {
-  if (nrow(x) != nrow(full_data)) {
-   stop("Row mismatch: Model matrix 'x' has no row names and its length (", nrow(x),
-        ") differs from the adjustment data (", nrow(full_data), "). ",
-        "Ensure 'linked.data' matches the data passed to the upstream wrapper.", call. = FALSE)
-  }
-  idx_map <- seq_len(nrow(full_data))
- } else {
-  idx_map <- match(subset_names, rownames(full_data))
-  if (anyNA(idx_map)) {
-   stop("Row mismatch: Some observations in the model matrix could not be matched ",
-        "to the adjustment data. This usually happens if the upstream 'data' ",
-        "differs from the data used to create the adjustment object.", call. = FALSE)
-  }
- }
-
- # 3. Ensure no missingness in x/y
- if (anyNA(x) || anyNA(y)) {
-  stop("NA values found in x or y. Upstream wrapper should remove missingness.", call. = FALSE)
- }
-
- # 4. Extract priors using hierarchy (function arg > dots > control > adjustment)
- dots <- list(...)
- final_priors <- priors
-
- if (is.null(final_priors) && "priors" %in% names(dots)) {
-  final_priors <- dots$priors
-  dots$priors <- NULL
- }
- if (is.null(final_priors) && !is.null(control) && is.list(control) && "priors" %in% names(control)) {
-  final_priors <- control$priors
- }
- if (is.null(final_priors)) {
-  final_priors <- adjustment$priors
- }
-
- # 5. Dispatch to computational engine
  fit <- do.call(
   glmMixBayes,
   c(
-   list(X = x, y = y, family = family, priors = final_priors, control = control),
-   dots
+   list(X = inp$x, y = inp$y, family = family, priors = inp$priors, control = control,
+        Z = inp$link$Z, safe.matches = inp$link$safe,
+        m.rate = inp$link$m.rate, m.rate.sd = inp$link$m.rate.sd),
+   inp$dots
   )
  )
 
- # 6. Post-processing
  fit$adjustment <- adjustment
  fit$call <- match.call()
-
- if (!is.null(subset_names)) {
-  fit$obs_names <- subset_names
- }
+ if (!is.null(inp$obs_names)) fit$obs_names <- inp$obs_names
 
  fit
 }

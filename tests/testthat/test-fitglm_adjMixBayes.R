@@ -1,17 +1,16 @@
 # tests/testthat/test-fitglm_adjMixBayes.R
 # Unit-style tests for internal dispatch + data alignment for Bayesian engine.
-# This file DOES NOT run Stan MCMC. It mocks glmMixBayes().
+# This file DOES NOT run MCMC. It mocks glmMixBayes().
 
 local_edition(3)
 
 test_that("Basic Dispatch (Bayes): fitglm dispatches to fitglm.adjMixBayes and passes correct data to engine", {
- skip_on_cran()
 
  # Capture arguments passed to the mocked engine
  mock_env <- new.env(parent = emptyenv())
  mock_env$args <- NULL
 
- # Mock glmMixBayes inside the package namespace to avoid real Stan sampling
+ # Mock glmMixBayes inside the package namespace to avoid real sampling
  testthat::local_mocked_bindings(
   glmMixBayes = function(X, y, family, control, ...) {
    mock_env$args <- list(
@@ -24,10 +23,10 @@ test_that("Basic Dispatch (Bayes): fitglm dispatches to fitglm.adjMixBayes and p
     estimates = list(
      coefficients   = matrix(0, nrow = 2, ncol = ncol(X),
                              dimnames = list(NULL, colnames(X))),
-     m.coefficients = matrix(0, nrow = 2, ncol = ncol(X),
+     coefficients2  = matrix(0, nrow = 2, ncol = ncol(X),
                              dimnames = list(NULL, colnames(X))),
      dispersion     = rep(1, 2),
-     m.dispersion   = rep(1, 2)
+     dispersion2    = rep(1, 2)
     )
    )
    class(out) <- "glmMixBayes"
@@ -81,7 +80,6 @@ test_that("Basic Dispatch (Bayes): fitglm dispatches to fitglm.adjMixBayes and p
 })
 
 test_that("Row Alignment (Bayes): fitglm.adjMixBayes subsets linked.data to match x rows", {
- skip_on_cran()
 
  mock_env <- new.env(parent = emptyenv())
  mock_env$args <- NULL
@@ -94,10 +92,10 @@ test_that("Row Alignment (Bayes): fitglm.adjMixBayes subsets linked.data to matc
     estimates = list(
      coefficients   = matrix(0, nrow = 2, ncol = ncol(X),
                              dimnames = list(NULL, colnames(X))),
-     m.coefficients = matrix(0, nrow = 2, ncol = ncol(X),
+     coefficients2  = matrix(0, nrow = 2, ncol = ncol(X),
                              dimnames = list(NULL, colnames(X))),
      dispersion   = rep(1, 2),
-     m.dispersion = rep(1, 2)
+     dispersion2  = rep(1, 2)
     )
    )
    class(out) <- "glmMixBayes"
@@ -142,7 +140,6 @@ test_that("Row Alignment (Bayes): fitglm.adjMixBayes subsets linked.data to matc
 })
 
 test_that("Input Validation (Bayes): fitglm errors if adjustment is not adjMixBayes", {
- skip_on_cran()
 
  set.seed(3)
  df <- data.frame(
@@ -160,6 +157,49 @@ test_that("Input Validation (Bayes): fitglm errors if adjustment is not adjMixBa
    family = stats::gaussian(),
    adjustment = list(not = "an adjustment"),
    control = list(iterations = 10, burnin.iterations = 5, seed = 3, cores = 1)
-  )
+  ),
+  "no applicable method"
  )
+})
+
+test_that("fitglm.adjMixBayes passes Z, safe.matches, m.rate and m.rate.sd aligned with the modelled rows", {
+ captured <- new.env(parent = emptyenv())
+ testthat::local_mocked_bindings(
+  glmMixBayes = function(X, y, family, control, ...) {
+   captured$args <- list(X = X, y = y, dots = list(...))
+   structure(list(
+    m_samples = matrix(1L, 2, nrow(X)),
+    estimates = list(
+     coefficients   = matrix(0, 2, ncol(X), dimnames = list(NULL, colnames(X))),
+     coefficients2  = matrix(0, 2, ncol(X), dimnames = list(NULL, colnames(X)))
+    )
+   ), class = "glmMixBayes")
+  },
+  .package = "postlink"
+ )
+ set.seed(1)
+ n <- 30
+ d <- data.frame(y = rnorm(n), x = rnorm(n), z = rnorm(n), safe = rbinom(n, 1, 0.3) == 1)
+ d$y[c(2, 9, 20)] <- NA
+ adj <- adjMixBayes(linked.data = d, m.formula = ~ z, safe.matches = safe, m.rate = 0.2, m.rate.sd = 0.05)
+ plglm(y ~ x, family = "gaussian", adjustment = adj, control = list(iterations = 10, burnin.iterations = 5))
+ keep <- !is.na(d$y)
+ dots <- captured$args$dots
+ expect_equal(as.vector(dots$Z), as.vector(cbind(1, d$z[keep])))
+ expect_equal(dim(dots$Z), c(sum(keep), 2L))
+ expect_equal(colnames(dots$Z), c("(Intercept)", "z"))
+ expect_identical(dots$safe.matches, as.integer(d$safe[keep]))
+ expect_equal(dots$m.rate, 0.2)
+ expect_equal(dots$m.rate.sd, 0.05)
+ expect_equal(unname(captured$args$y), d$y[keep])
+ expect_equal(rownames(captured$args$X), rownames(d)[keep])
+
+ # without linkage information nothing is passed on
+ plglm(y ~ x, family = "gaussian", adjustment = adjMixBayes(linked.data = d),
+       control = list(iterations = 10, burnin.iterations = 5))
+ dots <- captured$args$dots
+ expect_null(dots$Z)
+ expect_null(dots$safe.matches)
+ expect_null(dots$m.rate)
+ expect_null(dots$m.rate.sd)
 })

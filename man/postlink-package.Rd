@@ -36,7 +36,7 @@ that treats match status as a latent variable, estimating error rates directly f
 data (e.g., using match scores) via the EM algorithm.
 \item \code{\link{adjMixBayes}()}: Specifies a Bayesian mixture model approach,
 enabling parameter estimation and multiple imputation of latent match statuses
-using Stan.
+via a Gibbs sampler implemented in C++.
 }
 
 \strong{Phase 2: Estimation & Inference}
@@ -99,7 +99,6 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Priyanjali Bukke \email{postlink.group@gmail.com}
   \item Gauri Kamat
   \item Jiahao Cui
   \item Roee Gutman

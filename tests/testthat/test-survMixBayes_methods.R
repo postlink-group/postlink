@@ -1,24 +1,10 @@
 # tests/testthat/test-survMixBayes_methods.R
-# Methods tests for Bayesian survreg mixture (real Stan MCMC)
+# Methods tests for Bayesian survreg mixture (real MCMC via the C++ Gibbs sampler)
 # Refactored into 4 test_that blocks + helper (glmMixture_methods style),
 #
-# NOTE:
-# - Skipped on CRAN.
-# - Opt-in by setting RUN_STAN_TESTS=true.
+# The sampler is fast enough that these tests always run.
 
 local_edition(3)
-
-skip_if_no_stan <- function() {
- skip_on_cran()
- skip_if_not_installed("rstan")
- skip_if_not_installed("label.switching")
- skip_if_not_installed("survival")
- if (!identical(Sys.getenv("RUN_STAN_TESTS"), "true")) {
-  skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
- }
- rstan::rstan_options(auto_write = TRUE)
- options(mc.cores = 1L)
-}
 
 # -------------------------------------------------------------------------
 # Helper: keep data generation consistent with your test-survMixBayes.R
@@ -99,26 +85,24 @@ generate_bayessurv_mixture_data <- function(family = c("gamma", "weibull"),
  )
 }
 
-# Fit ONCE and reuse across tests (avoid running Stan 4 times)
+# Fit ONCE and reuse across tests
 fit_once <- local({
  cache <- NULL
  function() {
   if (!is.null(cache)) return(cache)
 
-  skip_if_no_stan()
   d <- generate_bayessurv_mixture_data(family = "gamma", seed = 321, N = 100)
 
-  cache <<- survregMixBayes(
+  cache <<- suppressMessages(survregMixBayes(
    X = d$X,
    y = d$y,
    dist = "gamma",
    control = list(
     iterations = 2000,
     burnin.iterations = 1000,
-    seed = 101,
-    cores = 1
+    seed = 101
    )
-  )
+  ))
   cache
  }
 })
@@ -205,9 +189,15 @@ test_that("survMixBayes predict() works and mi_with() refits Cox model + pooling
  expect_equal(length(pr$component1), nrow(newx))
  expect_equal(length(pr$component2), nrow(newx))
 
+ # a fit from the engine stores no model terms, so a data frame cannot be used
  expect_error(
   stats::predict(fit, newdata = data.frame(x = 1:5)),
-  "`newdata` must be a numeric matrix",
+  "pass the model matrix as `newdata`",
+  fixed = TRUE
+ )
+ expect_error(
+  stats::predict(fit, newdata = list(x = 1:5)),
+  "`newdata` must be a data frame or a numeric matrix",
   fixed = TRUE
  )
 

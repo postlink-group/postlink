@@ -4,40 +4,76 @@
 \alias{confint.survMixBayes}
 \title{Credible Intervals for Parameters from a survMixBayes Fit}
 \usage{
-\method{confint}{survMixBayes}(object, parm = NULL, level = 0.95, ...)
+\method{confint}{survMixBayes}(object, parm = NULL, level = 0.95, block = NULL, ...)
 }
 \arguments{
 \item{object}{An object of class \code{survMixBayes}.}
 
-\item{parm}{Optional character vector selecting which interval blocks to
-return. For example, \code{"theta"} returns only the credible interval for
-the mixing weight. If \code{NULL}, credible intervals are returned for all
-available parameter blocks.}
+\item{parm}{Optional. Either a character vector of block names selecting
+elements of the returned list: \code{"coef1"}, \code{"coef2"},
+\code{"m.coefficients"} (the mismatch-indicator model, as in
+\code{\link{coxphMixture}()}), \code{"theta"} (constant match probability)
+or \code{"gamma"} (match probability modelled with linkage covariates),
+\code{"shape1"}, \code{"shape2"} and, for Weibull fits, \code{"scale1"},
+\code{"scale2"} (for example, \code{"theta"} returns only the credible
+interval for the mixing weight); the block names accepted by
+\code{block} (e.g. \code{"coefficients"}, \code{"shape"}) select the
+corresponding list elements too. Or names or indices of coefficients of
+component 1, which return the matrix of those rows (unnamed columns of
+\code{X} are named \code{"(Intercept)"} or \code{"X<j>"} by
+\code{survregMixBayes()}; in fits saved by earlier versions, coefficients
+without names are named by their indices). With \code{block},
+names or indices of parameters within that block. If \code{NULL},
+credible intervals are returned for all available parameter blocks;
+unknown names raise an error.}
 
 \item{level}{Probability level for the credible intervals. Defaults to
 \code{0.95}.}
 
-\item{...}{Further arguments (unused).}
+\item{block}{Optional name of one parameter block, returned as a matrix:
+\code{"coefficients"} (component 1), \code{"coefficients2"} (component 2),
+\code{"m.coefficients"}, \code{"theta"}, \code{"gamma"}, \code{"shape"},
+\code{"shape2"}, \code{"scale"} or \code{"scale2"} (the names of
+\code{object$estimates}, as for \code{\link{confint.glmMixBayes}}); the
+list names \code{"coef1"}, \code{"coef2"}, \code{"shape1"} and
+\code{"scale1"} are accepted too.}
+
+\item{...}{Not used; other arguments raise an error.}
 }
 \value{
-A named list of credible intervals. Elements \code{coef1} and
+Without \code{block}, and unless \code{parm} names coefficients of
+component 1, a named list of credible intervals. Elements \code{coef1} and
 \code{coef2} are matrices with one row per regression coefficient and two
 columns giving the lower and upper interval bounds for components 1 and 2,
 respectively, where component 1 is the correct-match component and
 component 2 is the incorrect-match component. Elements such as \code{theta}, \code{shape1},
 \code{shape2}, \code{scale1}, and \code{scale2} are numeric vectors of
 length 2 containing the lower and upper credible interval bounds for the
-corresponding scalar parameters.
+corresponding scalar parameters. When the match probability is modeled
+with covariates (\code{m.formula} in \code{\link{adjMixBayes}}), a
+\code{gamma} matrix (one row per logistic regression coefficient)
+replaces \code{theta}. The last element, \code{m.coefficients}, is the
+matrix of the coefficients of the mismatch-indicator model (on the logit
+scale of the mismatch probability; \code{-gamma}, or
+\code{qlogis(1 - theta)} without covariates). With \code{block}, or with
+coefficient names or indices in \code{parm}, a matrix with one row per
+parameter. Interval bounds are labelled as by \code{stats::confint()}
+(\code{"2.5 \%"} and \code{"97.5 \%"} for \code{level = 0.95}). For
+Weibull fits whose design matrix has an intercept column, the intercept
+rows of \code{coef1} and \code{coef2} refer to the identified intercepts
+\code{(Intercept) + log(scale)} (see \code{\link{survregMixBayes}}).
 }
 \description{
 Computes posterior credible intervals for the regression coefficients,
 mixing weight, and family-specific distribution parameters from a fitted
-\code{survMixBayes} model. The returned intervals are organized by mixture
-component and parameter type. Component 1 corresponds to the correct-match
-component and component 2 to the incorrect-match component.
+\code{survMixBayes} model. By default the intervals of all parameter blocks
+are returned as a named list; \code{block} returns one block as a matrix,
+and \code{parm} with names or indices of coefficients of component 1
+returns those rows as a matrix, as \code{\link{confint.glmMixBayes}} does.
+Component 1 corresponds to the correct-match component and component 2 to
+the incorrect-match component.
 }
 \examples{
-\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)
@@ -74,6 +110,12 @@ confint(fit, level = 0.95)
 
 # Extract credible intervals specifically for the mixing weight
 confint(fit, parm = "theta", level = 0.90)
-}
+
+# One block as a matrix, e.g. the mismatch-indicator model (logit of the
+# mismatch probability, as the m.coefficients of adjMixture() fits)
+confint(fit, block = "m.coefficients")
+
+# Coefficients of component 1 by name, as a matrix
+confint(fit, parm = "trt")
 
 }

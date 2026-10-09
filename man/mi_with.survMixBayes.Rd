@@ -18,16 +18,35 @@
 \item{object}{A \code{survMixBayes} model object containing posterior draws of
 the latent match indicators.}
 
-\item{data}{A data.frame with all candidate records in the same row order as used in the model.}
+\item{data}{A data.frame with the records used in the model. For fits from
+\code{plglm()} / \code{plsurvreg()} this is normally the \code{linked.data}
+of the adjustment object: its rows are matched to the analysed records by
+row name, so records dropped by \code{subset} or \code{na.action} are
+handled correctly. Otherwise \code{data} must contain exactly the analysed
+records, in the order used by the model.}
 
-\item{formula}{Model formula for refitting on each draw (required), typically
-of the form \code{survival::Surv(time, event) ~ ...}.}
+\item{formula}{Model formula for refitting on each draw, typically of the
+form \code{survival::Surv(time, event) ~ ...}. If omitted, the outcome
+formula of a \code{plsurvreg()} fit is used (taken from the stored model
+frame, or from a formula written directly in the call). Data-dependent
+terms such as \code{poly()}, \code{scale()} or \code{splines::ns()} keep
+in every refit the basis computed once from all analysed records in
+\code{data} (for the stored outcome formula, the basis of the fit), as in
+\code{\link{mi_with.glmMixBayes}}. Only top-level terms of this kind are
+fixed (those whose prediction call R records): a data-dependent call
+nested in another one, such as \code{I(scale(x)^2)}, is evaluated from
+the records of each draw, so compute such variables in \code{data}
+beforehand. Penalised \code{pspline()} terms keep
+the boundary knots and number of knots of all records, and are refitted
+in each draw with the penalty arguments as written (\code{df},
+\code{theta}, \code{method}, ...).}
 
 \item{min_n}{Minimum number of records required to fit the model for a given
 posterior draw. The default is \code{p + 2}, where \code{p} is the number
 of non-intercept columns in the model matrix.}
 
-\item{quietly}{If \code{TRUE}, draws that lead to fitting errors are skipped
+\item{quietly}{If \code{TRUE} (a warning then reports how many draws were
+not used), draws that lead to fitting errors are skipped
 without printing the full error message.}
 
 \item{ties}{Method for handling tied event times in \code{survival::coxph()}.
@@ -49,10 +68,20 @@ estimates using multiple-imputation pooling rules.
 Each retained posterior draw defines one subset of records classified as
 correct matches. The function fits the specified \code{survival::coxph()}
 model to that subset, extracts the estimated coefficients and covariance
-matrix, and combines the results across draws using Rubin's rules.
+matrix, and combines the results across draws using Rubin's rules. At
+least two draws must be usable, since the between-draw variance cannot be
+estimated from one; fewer raise an error.
+
+The pooled estimates are therefore Cox log hazard ratios, on the scale of
+\code{\link{coxphMixture}()}, and not the accelerated failure time
+coefficients returned by \code{coef()} and \code{summary()} of the mixture
+fit. For \code{dist = "weibull"} the two describe the same effects with
+opposite signs: the log hazard ratios are about \code{-shape * beta}
+(compare with \code{colMeans(-fit$estimates$shape * fit$estimates$coefficients)}).
+For \code{dist = "gamma"} the components are not proportional hazards
+models, so there is no exact correspondence.
 }
 \examples{
-\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)
@@ -90,6 +119,5 @@ pooled_obj <- mi_with(
 )
 
 print(pooled_obj)
-}
 
 }

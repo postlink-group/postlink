@@ -20,10 +20,8 @@ Generic function for pooling parameter estimates from Bayesian mixture
 models using posterior draws of the latent component indicators.
 }
 \examples{
-\donttest{
 # mi_with() is a generic function for posterior allocation–based pooling.
 # See ?mi_with.glmMixBayes for a complete example illustrating its use
 # with Bayesian GLM mixture models.
-}
 
 }

@@ -11,6 +11,13 @@
 
 \item{...}{Additional arguments.}
 }
+\value{
+A named numeric vector with the posterior means of the regression
+coefficients of component 1 (the correct-match component). For Weibull
+fits whose design matrix has an intercept column, the intercept is the
+identified \code{(Intercept) + log(scale)} (see
+\code{\link{survregMixBayes}}).
+}
 \description{
 Extract Coefficients for survMixBayes
 }

@@ -1,102 +1,603 @@
 #' Bayesian Two-Component Mixture Survival Regression Model
 #'
 #' Fits a Bayesian two-component parametric survival regression model
-#' using Stan. Each observation is assumed to arise from one of two latent
-#' components with component-specific survival regression parameters.
+#' with a Gibbs sampler implemented in C++. Each observation is assumed to
+#' arise from one of two latent components with component-specific survival
+#' regression parameters: component 1 represents correctly linked records and
+#' component 2 mismatched records.
 #'
 #' The function supports \code{"gamma"} and \code{"weibull"} component
 #' distributions, with both components sharing the same family. Right-censored
 #' survival outcomes are supported.
 #'
 #' Posterior draws are returned for the component-specific regression
-#' parameters and mixing weight. To improve interpretability of posterior
-#' summaries, the function applies a post-processing step that aligns
-#' component labels across posterior draws.
+#' parameters and the mixing weight (or the coefficients of the
+#' mismatch-indicator model). Component 1 is the correct-match component:
+#' safe matches, an informative prior on the match probability or, failing
+#' both, the convention that correct matches are the majority identify it (see
+#' \emph{Label switching}). The names of the returned elements
+#' follow \code{\link{glmMixBayes}()} and the frequentist mixture fits; see the
+#' section \emph{Correspondence with adjMixture()}.
 #'
-#' @param X A numeric design matrix (\eqn{N \times K}), typically created by
+#' @param X A numeric design matrix (\eqn{N \times K}{N x K}), typically created by
 #'   \code{model.matrix()}. Each row corresponds to one observation and each
-#'   column to one covariate in the survival model. Missing values are not allowed.
+#'   column to one covariate in the survival model. Missing and infinite values
+#'   are not allowed. When the first column is an intercept (a column of ones)
+#'   it receives the intercept prior and the other columns the slope prior;
+#'   otherwise every column receives the slope prior (\code{intercept1} and
+#'   \code{intercept2} entries of \code{priors} are then not used, with a
+#'   warning). Unnamed columns are named \code{"(Intercept)"} (a column of
+#'   ones, also when it is not the first column, which then receives the slope
+#'   prior like the others) or \code{"X<j>"}, as in \code{\link{glmMixBayes}}.
 #'
-#' @param y A survival response. This can be either a two-column numeric matrix
-#'   with columns \code{time} and \code{event}, where \code{event = 1} indicates
-#'   an observed event and \code{event = 0} indicates right censoring, or a list
-#'   with elements \code{time} and \code{event}. Missing values are not allowed.
+#' @param y A right-censored survival response: a \code{survival::Surv(time, event)}
+#'   object of type \code{"right"}, a two-column numeric matrix with columns
+#'   \code{time} and \code{event}, or a list with elements \code{time} and
+#'   \code{event}. Times must be positive; \code{event} must be coded 1 (event)
+#'   or 0 (right-censored), or be logical. Left-, interval- and
+#'   counting-process-censored responses are not supported. Missing values are
+#'   not allowed.
 #'
 #' @param dist Character string specifying the parametric survival distribution
 #'   used for both mixture components. Supported values are \code{"gamma"} and
-#'   \code{"weibull"}.
+#'   \code{"weibull"}. For the Gamma distribution the mean is
+#'   \eqn{\exp(X\beta)}{exp(X beta)} with shape \code{phi}; for the Weibull
+#'   distribution the scale is \eqn{\mathrm{scale} \cdot \exp(X\beta)}{scale * exp(X beta)}
+#'   with shape \code{shape}. When \code{X} contains an intercept column (a
+#'   column of ones, whatever its name), only the product
+#'   \eqn{\mathrm{scale} \cdot \exp(\beta_0)}{scale * exp(beta_0)} is
+#'   identified by the data: the reported intercepts
+#'   (\code{estimates$coefficients} and \code{coefficients2}) are then the
+#'   identified sums \eqn{\beta_0 + \log(\mathrm{scale})}{beta_0 + log(scale)},
+#'   comparable to the \code{(Intercept)} of \code{survival::survreg()}, while
+#'   the posterior of \code{scale} alone reflects its prior; slopes, shape and
+#'   predictions are unaffected. Without an intercept column the coefficients
+#'   and \code{scale} are reported as sampled. This \code{scale} multiplies
+#'   \eqn{\exp(X\beta)}{exp(X beta)} (the \code{scale} of
+#'   \code{stats::rweibull()}); it is not the \code{Scale} reported by
+#'   \code{survival::survreg()}, which is \code{1 / shape}. The coefficients are
+#'   on the accelerated failure time scale: for the Weibull distribution the
+#'   corresponding log hazard ratios are \code{-shape * beta}.
 #'
-#' @param priors A named \code{list} of prior specifications, or \code{NULL}.
-#'   Since the Stan models are pre-compiled, prior specifications are converted
-#'   into the corresponding numeric hyperparameters and passed to the model as
-#'   data. Any missing entries are automatically filled in using symmetric
-#'   default values via
-#'   \code{fill_defaults(priors, p_family = dist, model_type = "survival")}.
-#'
-#'   Intercept and slope priors are decoupled. Use \code{intercept1}/\code{intercept2}
-#'   for the intercept of each component and \code{beta1}/\code{beta2} for the slope
-#'   coefficients. By default, intercept priors are \code{normal(0, 10)} (weakly
-#'   informative), while slope priors follow the distribution-specific defaults.
+#' @param priors A named \code{list} of prior specifications, or \code{NULL},
+#'   written as distribution strings with the Stan parameterisation, such as
+#'   \code{"normal(0, 5)"} (mean, standard deviation). Entries that are not
+#'   supplied take the defaults listed in the section \emph{Prior distributions},
+#'   which also lists the distributions accepted for each parameter. When
+#'   \code{priors} is \code{NULL}, an element \code{priors} of \code{control} is
+#'   used if present.
 #'
 #' @param control A named \code{list} of control parameters for posterior
 #'   sampling. Defaults are:
 #'   \itemize{
-#'     \item \code{iterations} (default \code{1e4}): total number of iterations per chain;
-#'     \item \code{burnin.iterations} (default \code{1e3}): number of warm-up iterations;
-#'     \item \code{seed} (default: a random integer): random seed for reproducibility;
-#'     \item \code{cores} (default \code{getOption("mc.cores", 1L)}): number of CPU cores used.
+#'     \item \code{iterations} (default \code{1e4}): total number of iterations;
+#'     \item \code{burnin.iterations} (default: half of \code{iterations},
+#'       at most 1000, i.e. \code{min(1000, floor(iterations / 2))}): number
+#'       of burn-in iterations discarded from the start of the chain;
+#'     \item \code{thin} (default \code{1}): thinning interval applied after burn-in;
+#'     \item \code{seed} (default: a random integer): a single integer used to
+#'       seed R's random number generator for reproducibility (the caller's
+#'       random number stream is restored afterwards);
+#'     \item \code{pilots}, \code{pilot.iterations}: number of short pilot
+#'       chains started from different configurations (default \code{5}) and
+#'       their length (default \code{200}); the main chain continues from the
+#'       pilot with the highest average log posterior. Set \code{pilots = 0}
+#'       to disable;
+#'     \item \code{collapse} (default \code{TRUE}): \code{TRUE} or
+#'       \code{FALSE}; update \code{theta} with the latent indicators
+#'       integrated out;
+#'     \item \code{init}: optional named list of starting values:
+#'       \code{beta1}, \code{beta2} (length K), \code{theta} (in (0, 1); without
+#'       \code{Z}) or \code{gamma} (length M, for the original columns of
+#'       \code{Z}; with \code{Z}), \code{disp1},
+#'       \code{disp2} (the shape parameters of the two components) and, for
+#'       \code{dist = "weibull"}, \code{scale1}, \code{scale2}. For
+#'       \code{dist = "weibull"} with an intercept column in \code{X}, the
+#'       intercept entries of \code{beta1} and \code{beta2} are starting values
+#'       of the sampled intercepts (without \code{log(scale1)} or
+#'       \code{log(scale2)}), the parameters on which the \code{intercept1} and
+#'       \code{intercept2} priors are placed, not of the reported identified
+#'       intercepts \code{(Intercept) + log(scale)} (see \code{dist}): to restart
+#'       from a fit, give the reported intercept minus \code{log(scale1)}
+#'       together with that \code{scale1}. When starting
+#'       values are supplied no pilot chains are run (\code{pilots} is then
+#'       recorded as 0) and the starting state is not reoriented (see
+#'       \emph{Label switching});
+#'     \item \code{verbose} (default \code{FALSE}): \code{TRUE} or \code{FALSE};
+#'       print sampling progress and report an exchange of the component
+#'       labels before or after sampling.
 #'   }
 #'   Values supplied through \code{...} override the corresponding entries in
-#'   \code{control}.
+#'   \code{control}. The element \code{cores} is accepted for backward
+#'   compatibility and ignored, since the sampler runs a single chain; other
+#'   unknown elements are ignored with a warning.
+#'
+#' @param Z Optional numeric matrix (N x M) of auxiliary linkage covariates for
+#'   a logistic regression model of the match probability. When \code{NULL}
+#'   (default) a single mixing weight \code{theta} is used. The first column of
+#'   \code{Z} must be an intercept (a column of ones). The other columns are
+#'   centred internally at their mean over the records not flagged as safe
+#'   matches, so that the \code{gamma_intercept} prior refers to a record with
+#'   average linkage covariates; the draws of \code{gamma} are reported for
+#'   the original covariates. See \code{\link{glmMixBayes}}.
+#' @param safe.matches Optional logical or 0/1 vector of length N flagging
+#'   records that are known to be correct matches (the argument of the same
+#'   name of \code{\link{adjMixBayes}()}; the abbreviation \code{safe} is
+#'   accepted). These records are fixed in component 1 and do not inform the
+#'   match probability, which then refers to the records that are not flagged.
+#' @param m.rate Optional prior estimate of the mismatch rate in (0, 1); see
+#'   \code{\link{glmMixBayes}}.
+#' @param m.rate.sd Prior standard deviation of \code{theta} on the probability
+#'   scale accompanying \code{m.rate} (default \code{0.1}); see
+#'   \code{\link{glmMixBayes}}.
 #'
 #' @param ... Optional overrides for elements of \code{control}, such as
-#'   \code{iterations = 4000}, \code{burnin.iterations = 1000},
-#'   \code{seed = 123}, or \code{cores = 2}.
+#'   \code{iterations = 4000}, \code{burnin.iterations = 1000}, or
+#'   \code{seed = 123}. Modelling arguments such as \code{weights} are not
+#'   supported and raise an error.
 #'
-#' @return An object of class \code{"survMixBayes"} containing (at least):
+#' @return An object of class \code{"survMixBayes"} containing:
 #' \describe{
-#'   \item{\code{m_samples}}{Posterior draws of aligned latent component
-#'   labels (matrix of size draws × N), where component 1 corresponds to the
-#'   correct-match component and component 2 to the incorrect-match component.}
+#'   \item{\code{m_samples}}{Posterior draws of the latent component labels
+#'   (integer matrix of size draws x N; relabelled under the majority
+#'   convention, see \emph{Label switching}), where component 1
+#'   corresponds to the correct-match component and component 2 to the
+#'   incorrect-match component.
+#'   Its columns are named after the rows of \code{X} when \code{X} has row names.}
 #'
 #'   \item{\code{estimates$coefficients}}{Posterior draws of regression
-#'   coefficients for the correct-match component (component 1; draws × K).}
+#'   coefficients for the correct-match component (component 1; draws x K).
+#'   For \code{dist = "weibull"} with an intercept column in \code{X}, the
+#'   intercept column holds the identified intercept
+#'   \eqn{\beta_0 + \log(\mathrm{scale})}{beta_0 + log(scale)} (see \code{dist}).}
 #'
-#'   \item{\code{estimates$m.coefficients}}{Posterior draws of regression
-#'   coefficients for the incorrect-match component (component 2; draws × K).}
+#'   \item{\code{estimates$coefficients2}}{Posterior draws of regression
+#'   coefficients for the incorrect-match component (component 2; draws x K;
+#'   for the Weibull distribution with an intercept column, the intercept
+#'   includes \code{log(scale2)}).
+#'   Up to postlink 0.1.2 they were stored as \code{estimates$m.coefficients}.}
+#'
+#'   \item{\code{estimates$m.coefficients}}{Posterior draws of the coefficients
+#'   of the mismatch-indicator model (draws x M), on the scale and with the sign
+#'   of the \code{m.coefficients} of \code{\link{coxphMixture}()} and
+#'   \code{\link{glmMixture}()}: a record that is not flagged as a safe match
+#'   is a mismatch with probability
+#'   \eqn{\mathrm{plogis}(Z_n^\top \mathrm{m.coefficients})}{plogis(Z_n' m.coefficients)}.
+#'   With \code{Z} they equal \code{-gamma}; without \code{Z} they form the
+#'   single column \code{"(Intercept)"}, equal to \code{qlogis(1 - theta)}.}
 #'
 #'   \item{\code{estimates$theta}}{Posterior draws of the mixing weight for the
-#'   correct-match component (component 1; vector of length draws).}
+#'   correct-match component (component 1; vector of length draws; when
+#'   \code{Z} is \code{NULL}).}
 #'
-#'   \item{\code{estimates$shape}}{Posterior draws of the shape parameter for
-#'   the correct-match component (component 1; family-specific).}
+#'   \item{\code{estimates$gamma}}{Posterior draws of the coefficients of the
+#'   logistic regression of the match probability on the logit scale (draws x
+#'   M; when \code{Z} is supplied), for the original (uncentred) columns of
+#'   \code{Z}; \code{gamma = -m.coefficients}.}
 #'
-#'   \item{\code{estimates$m.shape}}{Posterior draws of the shape parameter for
-#'   the incorrect-match component (component 2; family-specific).}
+#'   \item{\code{estimates$shape}}{Posterior draws of the shape parameter of
+#'   component 1: the Gamma shape \code{phi} (variance mean^2 / phi) or the
+#'   Weibull shape.}
 #'
-#'   \item{\code{estimates$scale}}{Posterior draws of the scale parameter for
-#'   the correct-match component (component 1; Weibull only).}
+#'   \item{\code{estimates$shape2}}{The same for component 2 (up to postlink
+#'   0.1.2 \code{estimates$m.shape}).}
 #'
-#'   \item{\code{estimates$m.scale}}{Posterior draws of the scale parameter for
-#'   the incorrect-match component (component 2; Weibull only).}
+#'   \item{\code{estimates$scale}}{Posterior draws of the Weibull scale
+#'   multiplier of component 1 (Weibull only; not the \code{Scale} of
+#'   \code{survreg()}). When \code{X} has an intercept column it is not
+#'   identified separately from the intercept, and its posterior reflects its
+#'   prior; \code{log(scale)} is included in the reported intercept (see
+#'   \code{dist}).}
 #'
-#'   \item{\code{family}}{The survival distribution used in the model.}
+#'   \item{\code{estimates$scale2}}{The same for component 2 (up to postlink
+#'   0.1.2 \code{estimates$m.scale}).}
+#'
+#'   \item{\code{family}, \code{dist}}{The survival distribution used in the model.}
 #'
 #'   \item{\code{call}}{The matched function call.}
+#'
+#'   \item{\code{match.prob}}{Posterior probability that each record is a
+#'   correct match: the proportion of stored draws that allocate the record to
+#'   component 1 (1 for safe matches). Named after the rows of \code{X} when
+#'   \code{X} has row names (for fits from \code{plsurvreg()}, the analysed
+#'   records).}
+#'
+#'   \item{\code{use_logistic}}{\code{TRUE} when the match probability was
+#'   modelled with the covariates \code{Z}.}
+#'
+#'   \item{\code{priors}}{Named character vector with the prior of every
+#'   parameter actually used, including the defaults and the priors derived
+#'   from \code{m.rate} (without \code{intercept1} and \code{intercept2}
+#'   when \code{X} has no intercept column; an \code{exponential(rate)} prior
+#'   is the distribution \code{gamma(1, rate)}). The \code{intercept1}, \code{intercept2},
+#'   \code{scale1} and \code{scale2} priors of Weibull fits apply to the
+#'   sampled parameters, not to the identified intercepts; with \code{Z}, the
+#'   \code{gamma_intercept} prior applies to the intercept of the centred
+#'   linkage covariates (see \code{z_center}).}
+#'
+#'   \item{\code{z_center}}{With \code{Z}: the means of the non-intercept
+#'   columns of \code{Z} over the records not flagged as safe matches (over all
+#'   records when every record is safe), at which the sampler centred them; the
+#'   \code{gamma_intercept} prior refers to a record with these linkage
+#'   covariates.}
+#'
+#'   \item{\code{intercept_includes_logscale}}{For \code{dist = "weibull"}:
+#'   \code{TRUE} when \code{X} has an intercept column, whose reported
+#'   coefficients then include \code{log(scale)} and \code{log(scale2)}.}
+#'
+#'   \item{\code{diagnostics}}{A list with \code{accept_joint} (acceptance rates
+#'   of the joint moves with the indicators integrated out over the sweeps
+#'   after the burn-in; \code{NA} when they were off), \code{joint_burnin}
+#'   (the number of burn-in draws collected to estimate the proposal of the
+#'   joint moves, \code{collected}, and the number they need, \code{needed};
+#'   the moves are off with fewer, e.g. after a short burn-in),
+#'   \code{accept} (Metropolis-Hastings
+#'   acceptance rates of the \code{beta1}, \code{beta2} and \code{gamma}
+#'   updates over the sweeps after the burn-in, the window of
+#'   \code{accept_joint}, or over all sweeps when
+#'   \code{burnin.iterations = 0}), \code{orientation} (the rule that identifies
+#'   component 1, decided before sampling: \code{"safe matches"},
+#'   \code{"match-rate prior"} or \code{"majority component"}; under the
+#'   last one component 1 holds the minority of the records only when the
+#'   component-specific priors make the labelling with component 1 as the
+#'   majority much less probable, which refuses the exchange of the labels
+#'   of the starting state, \code{orient_refused}, or of the aligned draws
+#'   after sampling, and a warning then says so),
+#'   \code{pre_oriented} (\code{TRUE} when the labels of the starting state
+#'   of the main chain were exchanged: towards the more probable labelling
+#'   under the match-rate prior, so that component 1 held the majority of the
+#'   records under the majority convention), \code{orient_refused} (\code{TRUE}
+#'   when, under the majority convention, that exchange was not made because
+#'   the component-specific priors make the labelling with component 1 as the
+#'   majority much less probable), \code{orient_lp_change} (the estimated log
+#'   ratio of the posterior probabilities of the exchanged and the original
+#'   labelling of the starting state; \code{NA} when no exchange was
+#'   considered), \code{orient_check} (the check chains run when that
+#'   estimate is below -2 under the majority convention: the average log
+#'   posterior over the second half of the chain started from the selected
+#'   pilot state with the labels exchanged, \code{exchanged}, and of the one
+#'   started without exchange, \code{kept}, the \code{margin} by which the
+#'   first must stay below the second for the exchange to be refused, and the
+#'   average share of the records allocated to component 1 in the first,
+#'   \code{share1}; \code{NA} when no check chains were run; see
+#'   \emph{Label switching}), \code{relabelled}
+#'   (\code{TRUE} when the draws were relabelled after sampling, as they
+#'   always are under the majority convention),
+#'   \code{n_swapped} (number of draws whose labels were exchanged after
+#'   sampling; 0 when the draws were not relabelled), \code{ecr_share} (share
+#'   of the stored draws whose labels the \code{ECR-ITERATIVE-1} algorithm,
+#'   applied to the records not flagged as safe matches, exchanges or would
+#'   exchange; see \emph{Label switching}), \code{other_labelling} (the
+#'   estimated share of the posterior probability held by the labelling with
+#'   the two components exchanged, relative to the two labellings, from the
+#'   stored draws: 0.5 when only the majority convention tells the components
+#'   apart, i.e. for identical component-specific priors and a symmetric
+#'   prior on the match probability; \code{NA} with safe matches, which
+#'   identify the labels; see \emph{Label switching}), \code{lp} (the log
+#'   posterior of each reported draw, up to a constant, with the latent
+#'   indicators integrated out; for a draw whose labels were exchanged after
+#'   sampling, the log posterior of the relabelled draw, which differs from
+#'   that of the draw as sampled when the component-specific priors differ),
+#'   \code{pilot_lp} (the
+#'   average log posterior over the last sweeps of each pilot chain; the main
+#'   chain starts from the state of the highest one), \code{settings} (the
+#'   MCMC settings used), \code{n_safe} (the number of known correct matches),
+#'   \code{ess} (the effective sample size of every parameter, named as
+#'   the columns of \code{\link{posterior_draws}()}) and \code{rhat} (the
+#'   single-chain split R-hat of the coefficients of component 1, of
+#'   \code{theta} or, with \code{Z}, of the mismatch-model coefficients, of
+#'   the shape of component 1 and of \code{lp}, named in the same way;
+#'   \code{NA} for constant draws, \code{Inf} when each half of the draws is
+#'   constant but the two halves differ; see \emph{Sampling algorithm}).}
 #' }
+#' Fits obtained through \code{\link{plsurvreg}()} additionally contain the
+#' adjustment object (\code{adjustment}), the row names of the analysed records
+#' (\code{obs_names}) and the elements added by \code{plsurvreg()}.
+#'
+#' @section Prior distributions:
+#' Prior strings follow the Stan parameterisation. The accepted distributions
+#' and the defaults are:
+#' \itemize{
+#'   \item \code{intercept1}, \code{intercept2} and \code{beta1}, \code{beta2}
+#'     (intercepts and slopes of components 1 and 2): \code{normal(mu, sd)}.
+#'     Defaults: \code{normal(0, 10)} for the intercepts; \code{normal(0, 5)}
+#'     for the slopes (\code{"gamma"}) or \code{normal(0, 2)} (\code{"weibull"}).
+#'   \item \code{phi1}, \code{phi2} (Gamma shapes; default \code{exponential(1)})
+#'     and \code{shape1}, \code{shape2} (Weibull shapes; default
+#'     \code{gamma(2, 1)}): \code{normal}, \code{cauchy} and
+#'     \code{student_t(nu, mu, sd)} (all truncated at zero),
+#'     \code{gamma(shape, rate)}, \code{exponential(rate)},
+#'     \code{lognormal(meanlog, sdlog)} or \code{inv_gamma(shape, scale)}.
+#'   \item \code{scale1}, \code{scale2} (Weibull scale multipliers; default
+#'     \code{gamma(2, 1)}): \code{gamma}, \code{exponential} or
+#'     \code{lognormal}. The scale is sampled jointly with the regression
+#'     coefficients on the log scale, which requires a prior that is
+#'     log-concave in \code{log(scale)}.
+#'   \item \code{theta}: \code{beta(a, b)}; default \code{beta(1, 1)}, or the
+#'     moment-matched Beta prior implied by \code{m.rate} and \code{m.rate.sd}.
+#'   \item With \code{Z}: \code{gamma_intercept} and \code{gamma_slope}, both
+#'     \code{normal(mu, sd)}, with the defaults described in
+#'     \code{\link{glmMixBayes}}.
+#' }
+#' The default priors are fixed: they are not rescaled to the data, and suit
+#' covariates of order one (for example standardised continuous covariates).
+#' For covariates measured in large or small units give priors on the scale of
+#' the data or standardise them. The coefficients of the correct-match
+#' component are checked as described in \code{\link{glmMixBayes}}, in one
+#' warning per fit: before sampling, a coefficient with a default prior is
+#' flagged when a fit without the mixture
+#' (\code{survival::survreg(dist = "weibull")}, whose slopes are on the
+#' accelerated failure time scale of both distributions, to the safe matches
+#' when there are at least \code{p + 5} of them, and otherwise, or when that
+#' fit fails or warns, to all records, ignoring the linkage errors) lies more
+#' than 3 prior standard deviations from the prior mean (the warning says
+#' whether the prior then dominates the estimate, and it is reported even
+#' when the fit stops because the log posterior is not finite in any stored
+#' draw); after sampling, a coefficient with a supplied prior is flagged when
+#' that prior dominates the estimate although the fit without the mixture
+#' contradicts it, also allowing for its standard error, and a coefficient
+#' with any prior when its posterior mean lies more than 3 prior standard
+#' deviations from its prior mean.
+#'
+#' For the Weibull distribution the intercept and \code{scale} are not
+#' identified separately when \code{X} has an intercept column (see
+#' \code{dist}). The \code{intercept1}/\code{intercept2} and
+#' \code{scale1}/\code{scale2} priors apply to these sampled parameters (and
+#' the warning on prior-data conflicts refers to the sampled intercept, quoting
+#' the posterior mean of the identified intercept next to it), while
+#' \code{coef()}, \code{print()}, \code{summary()}, \code{confint()},
+#' \code{vcov()}, \code{posterior_draws()} and \code{predict()} use the
+#' identified intercept \eqn{\beta_0 + \log(\mathrm{scale})}{beta_0 + log(scale)}.
+#'
+#' @section Sampling algorithm:
+#'
+#' Posterior inference uses data augmentation (Gutman et al., 2016): the
+#' regression coefficients of each component are updated with an
+#' independence Metropolis-Hastings step whose proposal is a multivariate
+#' t-distribution centred at the mode of the conditional posterior (Laplace
+#' approximation), shape parameters are updated by slice sampling on the log
+#' scale, the mixing weight is updated with the latent indicators integrated
+#' out, and the indicators are then drawn exactly from their conditional
+#' distribution. Every sweep also proposes joint moves of all continuous
+#' parameters with the indicators integrated out (random-walk and independence
+#' Metropolis-Hastings proposals estimated from the burn-in and fixed while
+#' draws are stored; see \code{\link{glmMixBayes}} and
+#' \code{diagnostics$accept_joint}). For the Weibull distribution, \code{log(scale)} is sampled
+#' jointly with the regression coefficients, since it is only weakly
+#' identified from the intercept. A warning is issued when a
+#' Metropolis-Hastings acceptance rate over at least 50 sweeps falls below
+#' 0.2; \code{diagnostics$accept}
+#' and \code{diagnostics$accept_joint} refer to the sweeps after the burn-in
+#' (\code{accept} to all sweeps when \code{burnin.iterations = 0}), and
+#' \code{summary()} notes when the joint moves were off because the burn-in
+#' was too short. The effective sample
+#' size of every parameter is stored in \code{diagnostics$ess}. When it is
+#' below 100 for a coefficient of component 1, \code{theta} or, with
+#' \code{Z}, a mismatch-model coefficient (\code{m.coefficients}, whose
+#' effective sample sizes are those of \code{gamma}), a warning is issued for
+#' runs with at least 1000 iterations after the burn-in
+#' (whatever the thinning; a heavily thinned run is also advised to reduce
+#' \code{thin}), and \code{summary()} adds a note for any run. The
+#' single-chain split R-hat (Vehtari et al., 2021; as \code{rstan::Rhat()}
+#' computes it for one chain) of the coefficients of component 1,
+#' \code{theta} or the mismatch-model coefficients, the shape of component 1
+#' and \code{lp} is stored in \code{diagnostics$rhat}; values above 1.05 are
+#' warned about for runs with at least 1000 iterations after the burn-in and
+#' at least 200 stored draws, and noted by \code{summary()} for any run (as
+#' noisy when fewer than 200 draws were stored). It
+#' detects drift within the run but
+#' not a mode that the chain never visited, so compare fits with several
+#' seeds (see \code{\link{glmMixBayes}}). The tables of \code{summary()} show
+#' the Monte Carlo standard error, the effective sample size and the split
+#' R-hat of these parameters.
 #'
 #' @section Label switching:
 #'
-#' Mixture models are invariant to permutations of component labels,
-#' which can lead to label switching in MCMC output. To ensure
-#' interpretable posterior summaries, this function applies a
-#' post-processing step that aligns component labels across
-#' posterior draws.
+#' A mixture posterior is invariant to exchanging the labels of the two
+#' components when nothing in the model tells them apart, so a sampler can
+#' visit two labellings of the same fit (label switching). Component 1 is
+#' reported as the correct-match component. What identifies it is decided
+#' before sampling, by the first of the following rules that applies (the
+#' rules of \code{\link{glmMixBayes}()}), and stored in
+#' \code{diagnostics$orientation}:
+#' \enumerate{
+#'   \item \code{"safe matches"}: known correct matches (\code{safe.matches})
+#'     are fixed in component 1 by the sampler, which identifies the labels.
+#'     The draws are reported as sampled.
+#'   \item \code{"match-rate prior"}: the prior on the match probability is
+#'     not symmetric under exchanging the labels: a \code{theta} prior
+#'     \code{beta(a, b)} with \code{a != b} (e.g. the prior derived from
+#'     \code{m.rate} for any \code{m.rate} other than 0.5) or, with \code{Z},
+#'     a \code{gamma_intercept} prior (for the centred linkage covariates) or
+#'     a \code{gamma_slope} prior with a non-zero mean. This prior makes one
+#'     labelling more probable than the other, and component 1 is the
+#'     correct-match component of the more probable one: the sampler
+#'     exchanges the labels of the starting state of the main chain
+#'     (including the Weibull scales) when the log ratio of the posterior
+#'     probabilities of the exchanged and the original labelling, estimated
+#'     from the last sweeps of the selected pilot chain
+#'     (\code{diagnostics$orient_lp_change}), is positive
+#'     (\code{diagnostics$pre_oriented}). The draws are reported as sampled.
+#'     After sampling, the share of the posterior probability held by the
+#'     other labelling is estimated from the stored draws
+#'     (\code{diagnostics$other_labelling}), and a warning is issued when it
+#'     exceeds 0.05 (the prior identifies the components only weakly, so that
+#'     component 1 may describe the mismatches) and, worded more strongly,
+#'     when it exceeds 0.5 (the chain stayed in the less probable labelling).
+#'   \item \code{"majority component"}: otherwise component 1 is taken to be
+#'     the component that holds the majority of the records. Before the main
+#'     chain, once the pilot chains have selected its starting state, the
+#'     sampler exchanges the labels of that state, including the Weibull
+#'     scales, when fewer than half of the records are allocated to component
+#'     1 on average over the last sweeps of the selected pilot chain
+#'     (\code{diagnostics$pre_oriented}; when \code{pilots = 0} the initial
+#'     allocation decides, which only approximates the labelling that the
+#'     chain reaches). Starting values given in \code{control$init} are
+#'     respected and never reoriented. Exchanging the
+#'     labels changes the posterior only through the component-specific
+#'     priors, so the sampler first estimates, from the last sweeps of the
+#'     selected pilot chain (at the starting state when \code{pilots = 0}),
+#'     the log ratio of the posterior probabilities of the exchanged and the
+#'     original labelling
+#'     (\code{diagnostics$orient_lp_change}; exactly 0 when the
+#'     component-specific priors are identical, as for the defaults), and
+#'     exchanges the labels when it is at least -2. Below -2 (the exchanged
+#'     labelling looks more than about 7 times less probable) this estimate
+#'     does not decide alone, since it refers to the mirror image of the
+#'     region visited by the pilot chain, while a chain started there can
+#'     move on to another mode of the same labelling: two check chains of
+#'     \code{pilot.iterations} sweeps are run from the selected pilot state,
+#'     one with the labels exchanged and one without
+#'     (\code{diagnostics$orient_check}). The labels are not exchanged
+#'     (\code{diagnostics$orient_refused}) when, over the second half of its
+#'     sweeps, the chain started with the labels exchanged returned to the
+#'     original labelling, or its average log posterior stayed below that of
+#'     the other chain by more than \code{max(2, 2 * se)}, where \code{se} is
+#'     the Monte Carlo standard error of the difference of the two averages
+#'     (close to 0 for chains that mix well, a few units for slowly mixing
+#'     ones). Without pilot chains the estimate decides alone. When the
+#'     exchange is refused, the component-specific priors identify the labels
+#'     and component 1 can hold the minority of the records: a chain started
+#'     in the exchanged labelling would stay in a much less probable mode, or
+#'     leave it. This happens, for example, with a tight \code{beta2} prior
+#'     such as \code{"normal(0, 0.01)"} (the mismatches have practically no
+#'     slope) when the correct matches are the minority. After sampling, the
+#'     draws are relabelled: the labels are aligned across draws with the
+#'     \code{ECR-ITERATIVE-1} relabeling algorithm (Papastamoulis & Iliopoulos,
+#'     2010), and exchanged in every draw if component 2 holds the majority of
+#'     the aligned allocations (with \code{verbose = TRUE} a message reports
+#'     this), unless the component-specific priors make the labelling with
+#'     component 1 as the majority much less probable: as for the starting
+#'     state, the log ratio of the posterior probabilities of the exchanged
+#'     and the aligned labelling, here estimated from the aligned draws, must
+#'     be at least -2. Both steps rename the components of a draw without
+#'     changing the fit it describes, so that component 1 is the majority
+#'     component in every reported draw (unless that exchange is refused),
+#'     also when the chain switched between the two labellings. When every
+#'     component-specific prior is the same for both components
+#'     (\code{intercept1} and \code{intercept2}, \code{beta1} and
+#'     \code{beta2}, \code{phi1} and \code{phi2}, \code{shape1} and
+#'     \code{shape2}, \code{scale1} and \code{scale2}), as it is for the
+#'     default priors, relabelling leaves the posterior unchanged and the
+#'     exchange is never refused. When you
+#'     supply component-specific priors that differ, a relabelled draw was
+#'     sampled with the components the other way round: its component 1 was
+#'     sampled under the component-2 priors, and its log posterior differs
+#'     from that of the draw as sampled. When the exchange of the labels of
+#'     the starting state or of the aligned draws is refused, the
+#'     component-specific priors identify the labels, and component 1 holds
+#'     the minority of the records.
+#' }
+#' \code{diagnostics$relabelled} records whether the draws were relabelled
+#' after sampling and \code{diagnostics$n_swapped} the number of relabelled
+#' draws (0 when they were not relabelled). \code{diagnostics$lp} is the log
+#' posterior of the reported draws (for a relabelled draw, that of the draw
+#' with its components renamed), and \code{priors} holds the priors of the
+#' components as sampled.
 #'
-#' First, an optional global swap of labels (1 and 2) is performed
-#' if component 2 is more frequent overall. Then, labels are
-#' aligned across draws using the \code{ECR-ITERATIVE-1}
-#' relabeling algorithm.
+#' In every case \code{diagnostics$ecr_share} is the share of the stored draws
+#' whose labels \code{ECR-ITERATIVE-1}, applied to the records not flagged as
+#' safe matches, exchanges (or would exchange). When the draws are reported as
+#' sampled and this share exceeds 0.1, a warning reports that the chain visited
+#' both labellings of the mixture: the posterior is multimodal or the
+#' components are weakly separated, and more informative priors, safe matches,
+#' more iterations or starting values help. The reported draws then mix both
+#' labellings, so posterior means and intervals of the component-specific
+#' parameters and of \code{theta} average over the two components and should
+#' not be interpreted. Warnings are also issued when, under the majority rule,
+#' component 1 holds fewer than half of the records on average because the
+#' component-specific priors refused the exchange of the labels of the
+#' starting state or of the aligned draws (the message explains the
+#' refusal); when, under the majority rule with component-specific priors
+#' that differ, after the labels of the starting state were exchanged, the
+#' average log posterior of the stored draws as sampled lies below that of
+#' the selected pilot chain,
+#' allowing for the change of level between the check chains (or else the
+#' estimated change), by more than 5 or twice the standard deviation of the
+#' log posterior of the stored draws, whichever is larger (the chain is then
+#' probably trapped in a minor mode); and when
+#' the safe matches anchor a component 1 that holds only a minority of the
+#' other records although the prior does not make correct matches the
+#' minority (the safe matches are then possibly atypical of the correct
+#' matches).
+#'
+#' @section Correspondence with adjMixture():
+#' For survival outcomes the frequentist mixture adjustment
+#' (\code{\link{adjMixture}()} with \code{\link{plcoxph}()}, i.e.
+#' \code{\link{coxphMixture}()}) fits a Cox model, whereas
+#' \code{survregMixBayes()} fits parametric accelerated failure time
+#' components. Otherwise the two fits use the same names for the same
+#' quantities:
+#'
+#' | Quantity | `adjMixture()` | `adjMixBayes()` |
+#' |:---|:---|:---|
+#' | Correct-match outcome model | `coefficients` (log hazard ratios) | `estimates$coefficients` (draws) |
+#' | Mismatch-indicator model | `m.coefficients` | `estimates$m.coefficients` (draws) |
+#' | Mismatch outcome model | none (marginal distribution) | `estimates$coefficients2`, `shape2`, `scale2` |
+#' | Per-record match probability | `match.prob` | `match.prob` |
+#' | Average match rate (`summary()`) | all records | all records; records not flagged as safe |
+#' | `m.rate` | upper bound | centre of a beta prior (SD `m.rate.sd`) |
+#' | `m.rate` with covariates | at the mean of `Z` (non-safe records) | at the mean of `Z` (non-safe records) |
+#' | `safe.matches` | fixed correct matches | fixed correct matches; identify the labels |
+#' | Uncertainty | standard errors, Wald intervals | posterior SDs, quantile intervals |
+#' | Allocation draws | none | `m_samples` (1 = correct match, 2 = mismatch) |
+#' | Refits on the allocations | none | `mi_with()` (Cox models) |
+#'
+#' In detail:
+#' \itemize{
+#'   \item The \code{coefficients} of \code{coxphMixture()} are log hazard
+#'     ratios. The Bayesian fit stores posterior draws of accelerated failure
+#'     time coefficients (\code{coef()} returns their means); for the Weibull
+#'     distribution the corresponding log hazard ratios are
+#'     \code{-shape * beta}.
+#'   \item The mismatch-indicator model of \code{m.formula} has the same scale
+#'     and sign in both fits: a record not flagged as a safe match is a
+#'     mismatch with probability \code{plogis(Z \%*\% m.coefficients)}. The
+#'     Bayesian \code{estimates$gamma} is \code{-m.coefficients}, the scale of
+#'     the \code{gamma_intercept} and \code{gamma_slope} priors; with
+#'     \code{m.formula = ~1}, \code{estimates$theta} is
+#'     \code{1 - plogis(m.coefficients)}, the probability of a correct match.
+#'   \item The EM fit has no outcome model for the mismatches: it uses the
+#'     marginal distribution of the survival outcome. The Bayesian fit models
+#'     them as component 2 (\code{estimates$coefficients2},
+#'     \code{estimates$shape2} and, for the Weibull distribution,
+#'     \code{estimates$scale2}).
+#'   \item The Bayesian \code{match.prob} is the posterior probability that a
+#'     record is a correct match: the share of the stored draws that allocate
+#'     the record to component 1 (1 for safe matches). \code{glmMixture()} and
+#'     \code{coxphMixture()} of postlink 0.1.2 return the prior probability
+#'     (1 for safe matches); from the next release, as on GitHub main, they
+#'     return the posterior probability, as the Bayesian fit does.
+#'   \item The \code{summary()} of the EM fit averages \code{match.prob} over all
+#'     records, safe matches counted as 1. The Bayesian \code{summary()} shows
+#'     this average and the average over the records not flagged as safe
+#'     matches, which \code{theta} and \code{gamma} describe.
+#'   \item \code{m.rate} is an upper bound on the mismatch rate in
+#'     \code{plcoxph()} and \code{plglm()} with \code{adjMixture()} (the known
+#'     mismatch rate in \code{plctable()}); in \code{adjMixBayes()} it is the
+#'     centre of a beta prior on the mismatch rate with standard deviation
+#'     \code{m.rate.sd}, and the rate is estimated from the data under this
+#'     prior. With covariates in \code{m.formula}, both apply at the mean of
+#'     the linkage covariates over the records not flagged as safe matches: the
+#'     EM bound, and the Bayesian prior derived from \code{m.rate}, which is
+#'     placed on the intercept of \code{gamma} for the linkage covariates
+#'     centred at that mean (\code{z_center}; the reported \code{gamma} refers
+#'     to the original covariates).
+#'   \item \code{safe.matches} are fixed as correct matches in both fits; in the
+#'     Bayesian fit they also identify which component describes the correct
+#'     matches (see \emph{Label switching}).
+#'   \item The EM fit reports standard errors and Wald intervals; the Bayesian
+#'     fit reports posterior standard deviations (\code{vcov()}; column
+#'     \code{"Std. Error"} of \code{summary()}) and posterior quantile
+#'     intervals (\code{confint()}).
+#'   \item Only the Bayesian fit has draws of the allocations
+#'     (\code{m_samples}: 1 = correct match, 2 = mismatch), which
+#'     \code{\link{mi_with}()} uses to refit Cox models to the records
+#'     allocated to the correct matches: its pooled estimates are log hazard
+#'     ratios like those of \code{coxphMixture()}, so for the Weibull
+#'     distribution they have the opposite sign to the accelerated failure time
+#'     coefficients (about \code{-shape * beta}).
+#' }
 #'
 #' @references
 #' Gutman, R., Sammartino, C., Green, T., & Montague, B. (2016).
@@ -111,14 +612,26 @@
 #' (Statistical Methodology)}, 62(4), 795--809.
 #' \doi{10.1111/1467-9868.00265}
 #'
-#' Papastamoulis, P. (2016).
-#' \emph{label.switching}: An R package for dealing with the label switching
-#' problem in MCMC outputs.
-#' \emph{Journal of Statistical Software}, 69(1), 1--24.
-#' \doi{10.18637/jss.v069.c01}
+#' Papastamoulis, P., & Iliopoulos, G. (2010).
+#' An artificial allocations based solution to the label switching problem
+#' in Bayesian analysis of mixtures of distributions.
+#' \emph{Journal of Computational and Graphical Statistics}, 19(2), 313--331.
+#' \doi{10.1198/jcgs.2010.09008}
+#'
+#' Neal, R. M. (2003). Slice sampling. \emph{The Annals of Statistics},
+#' 31(3), 705--767. \doi{10.1214/aos/1056562461}
+#'
+#' van Dyk, D. A. and Park, T. (2008). Partially collapsed Gibbs samplers:
+#' theory and methods. \emph{Journal of the American Statistical
+#' Association}, 103(482), 790--796. \doi{10.1198/016214508000000409}
+#'
+#' Vehtari, A., Gelman, A., Simpson, D., Carpenter, B., & Bürkner, P.-C.
+#' (2021). Rank-normalization, folding, and localization: an improved
+#' \eqn{\widehat{R}}{R-hat} for assessing convergence of MCMC (with
+#' discussion). \emph{Bayesian Analysis}, 16(2), 667--718.
+#' \doi{10.1214/20-BA1221}
 #'
 #' @examples
-#' \donttest{
 #' # Example: Bayesian mixture survival model fit to linked survival data
 #' # with induced linkage mismatch errors
 #'
@@ -160,58 +673,36 @@
 #' )
 #'
 #' # 3. Inspect posterior summaries
-#' # (Label switching is handled automatically)
+#' # (component 1 is the majority component here; see 'Label switching')
 #' cat("Component 1 (Correct Links):\n")
 #' print(colMeans(fit$estimates$coefficients))
 #'
 #' cat("Component 2 (Incorrect Links):\n")
-#' print(colMeans(fit$estimates$m.coefficients))
+#' print(colMeans(fit$estimates$coefficients2))
 #'
 #' cat("Estimated probability of correct linkage:\n")
 #' print(mean(fit$estimates$theta))
-#' }
+#'
+#' # the same on the logit scale of the mismatch probability, as the
+#' # m.coefficients of adjMixture() fits
+#' print(colMeans(fit$estimates$m.coefficients))
 #'
 #' @export
-#' @importFrom rstan sampling
-#' @import label.switching
 survregMixBayes <- function(X, y, dist = "weibull", priors = NULL,
                             control = list(iterations = 1e4,
-                                           burnin.iterations = 1e3,
-                                           seed = sample.int(.Machine$integer.max, 1),
-                                           cores = getOption("mc.cores", 1L)),
+                                           seed = sample.int(.Machine$integer.max, 1)),
+                            Z = NULL, safe.matches = NULL,
+                            m.rate = NULL, m.rate.sd = 0.1,
                             ...) {
 
+ # unsupported modelling arguments are refused by name, before `...` is
+ # evaluated
+ .refuse_modelling_args(.dots_names(...))
  dcontrols <- list(...)
- iterations <- if ("iterations" %in% names(dcontrols)) {
-  dcontrols$iterations
- } else if ("iterations" %in% names(control)) {
-  control$iterations
- } else {
-  1e4
- }
-
- burnin.iterations <- if ("burnin.iterations" %in% names(dcontrols)) {
-  dcontrols$burnin.iterations
- } else if ("burnin.iterations" %in% names(control)) {
-  control$burnin.iterations
- } else {
-  1e3
- }
-
- seed <- if ("seed" %in% names(dcontrols)) {
-  dcontrols$seed
- } else if ("seed" %in% names(control)) {
-  control$seed
- } else {
-  sample.int(.Machine$integer.max, 1)
- }
-
- cores <- if ("cores" %in% names(dcontrols)) {
-  dcontrols$cores
- } else if ("cores" %in% names(control)) {
-  control$cores
- } else {
-  getOption("mc.cores", 1L)
+ mcmc <- .mixbayes_settings(dcontrols, control)
+ if (is.null(priors) && is.list(control) && !is.null(control$priors)) priors <- control$priors
+ if (!missing(m.rate.sd) && !is.null(m.rate.sd) && is.null(m.rate)) {
+  warning("'m.rate.sd' has no effect unless 'm.rate' is supplied.", call. = FALSE)
  }
 
  dist <- .validate_survreg_dist(dist)
@@ -219,192 +710,211 @@ survregMixBayes <- function(X, y, dist = "weibull", priors = NULL,
   stop("Error: `dist` must be 'gamma' or 'weibull'.", call. = FALSE)
  }
 
- # Minimal input checks (formula/data checks handled upstream)
- if (!is.matrix(X) || !is.numeric(X)) stop("`X` must be a numeric matrix.", call. = FALSE)
- if (anyNA(X)) stop("NA values found in X.", call. = FALSE)
+ # Minimal input checks (formula/data checks handled upstream); unnamed
+ # columns are named "(Intercept)" (a column of ones) or "X<j>"
+ .check_design(X)
+ X <- .normalize_design_names(X)
 
  yn <- .normalize_surv_y(y)
  time <- yn$time
  event <- yn$event
  if (length(time) != nrow(X)) stop("`y` must have length nrow(X).", call. = FALSE)
- if (anyNA(time) || anyNA(event)) stop("NA values found in y.", call. = FALSE)
 
- # Pre-compiled Stan Pipeline
- # Parse prior strings into a named list of numeric values using our helper
- prior_data <- prepare_stan_priors(priors, dist, model_type = "survival")
+ # match-probability model: scalar theta (Path A) or logistic regression on Z (Path B)
+ use_logistic <- !is.null(Z)
+ safe <- .normalize_safe(safe.matches, nrow(X))
+ if (use_logistic) {
+  .check_Z(Z, nrow(X), safe)
+  Z <- .normalize_design_names(Z, prefix = "Z")
+ }
+ .check_all_safe(safe)
 
- # Combine core data with parsed prior data
- stan_data <- c(
-  list(N = nrow(X), K = ncol(X), X = X, time = as.vector(time), event = as.integer(event)),
-  prior_data
- )
+ # Path B: the sampler uses the linkage covariates centred at their mean over
+ # the records not flagged as safe matches, so that the gamma_intercept prior
+ # refers to a record with average linkage covariates; starting values of
+ # gamma are given on the original covariates
+ z_center <- NULL
+ Z_fit <- Z
+ if (use_logistic) {
+  z_center <- .z_center(Z, safe)
+  Z_fit <- .center_Z(Z, z_center)
+  mcmc$init <- .center_init_gamma(mcmc$init, z_center)
+ }
 
- # Identify pre-compiled model from rstantools' internal stanmodels object
- model_name <- paste0("survMixBayes_", dist)
+ # Priors: parse strings into hyperparameters, then expand for the sampler
+ # (without an intercept column, intercept1 / intercept2 are not used)
+ has_intercept <- .has_intercept_column(X)
+ priors <- .drop_unused_intercept_priors(priors, has_intercept, X)
+ prior_flat <- prepare_mixbayes_priors(priors, dist, model_type = "survival",
+                                       use_logistic = use_logistic,
+                                       m.rate = m.rate, m.rate.sd = m.rate.sd)
+ engine_priors <- build_engine_priors(prior_flat, dist, "survival",
+                                      K = ncol(X), M = if (use_logistic) ncol(Z) else 0L,
+                                      intercept = has_intercept)
 
- # Sample instantly from the pre-compiled C++ DLL
- fit <- rstan::sampling(
-  stanmodels[[model_name]],
-  data   = stan_data,
-  iter   = iterations,
-  warmup = burnin.iterations,
-  chains = 1,
-  seed   = seed,
-  cores  = cores
- )
+ # What identifies component 1 (see 'Label switching' in ?survregMixBayes):
+ # decided before sampling, since under the majority convention the sampler
+ # orients its starting state
+ rule <- .label_rule(engine_priors, safe)
 
- posterior <- rstan::extract(fit)
- z_samples <- posterior$z
+ # Prior-scale check (see .check_prior_data_conflict()): the coefficients of
+ # the correct-match component are compared with a fit without the mixture
+ # (to the safe matches, or to all records ignoring the linkage errors),
+ # before sampling for those with a default prior, after sampling also for
+ # those with a supplied prior that dominates the estimate
+ default_cols <- .default_prior_columns(priors, ncol(X), has_intercept)
+ naive <- .naive_coefficients(X, time, dist, event = event, safe = safe)
+
+ # Run the C++ Gibbs sampler; when it stops because no stored draw has a
+ # finite log posterior, the prior-scale check is reported first (an outcome
+ # or covariates on extreme scales typically cause both)
+ posterior <- run_mixbayes_engine(paste0("surv_", dist), X, time, event, Z_fit, safe,
+                                  engine_priors, mcmc, pre_orient = rule$pre_orient,
+                                  on_lp_stop = function() {
+                                   .check_prior_data_conflict(NULL, engine_priors, help = "survregMixBayes",
+                                                              default = default_cols, naive = naive,
+                                                              coef_names = colnames(X))
+                                  })
 
  ##### Label switching adjustment #####
-
- # --- 0) Optional global pre-alignment by majority label -----------------------
- count_label2 <- sum(z_samples == 2L, na.rm = TRUE)
- total_labels <- length(z_samples)  # S * N
- if (is.finite(count_label2) && count_label2 > total_labels / 2) {
-  message("Global label swap performed: label 2 dominates label 1.")
-
-  # Flip z: 1 -> 2, 2 -> 1
-  z_samples <- structure(3L - z_samples, dim = dim(z_samples))
-
-  # Swap component-specific parameters inside `posterior` if they exist
-  swap_if_present <- function(lst, a, b) {
-   if (all(c(a, b) %in% names(lst))) {
-    tmp <- lst[[a]]
-    lst[[a]] <- lst[[b]]
-    lst[[b]] <- tmp
-   }
-   lst
-  }
-  posterior <- swap_if_present(posterior, "beta1", "beta2")
-  posterior <- swap_if_present(posterior, "phi1",  "phi2")     # gamma
-  posterior <- swap_if_present(posterior, "shape1","shape2")   # weibull
-  posterior <- swap_if_present(posterior, "scale1","scale2")   # weibull
-
-  if ("theta" %in% names(posterior)) posterior$theta <- 1 - posterior$theta
- }
-
- # --- 1) Iterative ECR alignment of labels across MCMC draws -------------------
- ls_out <- label.switching::label.switching(
-  method = "ECR-ITERATIVE-1",
-  z      = z_samples,
-  K      = 2
+ pairs <- list(
+  beta  = list(posterior$beta1, posterior$beta2),
+  shape = list(posterior$disp1, posterior$disp2)
  )
- perm <- ls_out$permutations[["ECR-ITERATIVE-1"]]
+ if (dist == "weibull") pairs$scale <- list(posterior$scale1, posterior$scale2)
 
- # Map z by the inverse permutation for each draw
- map_z <- function(z, perm) {
-  if (!is.matrix(z)) stop("`z` must be an S x N matrix.", call. = FALSE)
-  S <- nrow(z); K <- ncol(perm)
-  if (K != 2L || nrow(perm) != S) stop("`perm` must be an S x 2 matrix of permutations.", call. = FALSE)
-  for (i in seq_len(S)) {
-   inv <- integer(K)
-   inv[perm[i, ]] <- seq_len(K)
-   z[i, ] <- inv[z[i, ]]
-  }
-  z
- }
- z_samples <- map_z(z_samples, perm)
-
- # Helper to permute paired component-specific parameters
- perm_pair <- function(a1, a2, perm) {
-  if (!is.numeric(a1) || !is.numeric(a2)) stop("Inputs must be numeric.", call. = FALSE)
-
-  d1 <- dim(a1); d2 <- dim(a2)
-
-  # Convert a1/a2 into S x p matrices (p = product of remaining dims)
-  if (is.null(d1)) {
-   S <- length(a1); p <- 1L
-   A1 <- matrix(a1, ncol = 1L)
-  } else {
-   S <- d1[1]
-   p <- as.integer(length(a1) / S)
-   if (!is.finite(S) || S < 1 || !is.finite(p) || p < 1) {
-    stop("Invalid draws/shape for component parameter.", call. = FALSE)
-   }
-   A1 <- matrix(a1, nrow = S)
-  }
-
-  if (is.null(d2)) {
-   if (length(a2) != S) stop("Shapes differ between component parameters.", call. = FALSE)
-   A2 <- matrix(a2, ncol = 1L)
-  } else {
-   if (d2[1] != S) stop("Shapes differ between component parameters.", call. = FALSE)
-   A2 <- matrix(a2, nrow = S)
-  }
-
-  if (!identical(dim(A1), dim(A2))) stop("Shapes differ between component parameters.", call. = FALSE)
-  if (!is.matrix(perm) || nrow(perm) != S || ncol(perm) != 2L) {
-   stop("`perm` must be an S x 2 matrix (one permutation per draw).", call. = FALSE)
-  }
-
-  arr <- array(NA_real_, dim = c(S, 2L, ncol(A1)))
-  arr[, 1L, ] <- A1
-  arr[, 2L, ] <- A2
-  arrp <- label.switching::permute.mcmc(arr, permutations = perm)[[1]]
-
-  out1 <- arrp[, 1L, , drop = TRUE]
-  out2 <- arrp[, 2L, , drop = TRUE]
-  if (ncol(A1) == 1L) {
-   out1 <- as.numeric(out1); out2 <- as.numeric(out2)
-  } else {
-   out1 <- matrix(out1, nrow = S); out2 <- matrix(out2, nrow = S)
-  }
-  list(`1` = out1, `2` = out2)
- }
-
- if (is.null(posterior$z) || is.null(posterior$beta1) || is.null(posterior$beta2) || is.null(posterior$theta)) {
-  stop("Missing expected parameters in posterior", call. = FALSE)
- }
-
- beta1.p <- posterior$beta1
- beta2.p <- posterior$beta2
- tmp <- perm_pair(beta1.p, beta2.p, perm)
- beta1.p <- tmp[[1]]
- beta2.p <- tmp[[2]]
-
- # theta: if draw perm swaps, theta -> 1-theta
- theta.p <- posterior$theta
- if (!is.numeric(theta.p)) stop("Expected theta draws.", call. = FALSE)
- if (length(theta.p) != nrow(z_samples)) stop("Theta draws length mismatch.", call. = FALSE)
- swap_draw <- perm[,1L] == 2L
- theta.p[swap_draw] <- 1 - theta.p[swap_draw]
-
- est <- list(
-  coefficients   = beta1.p,
-  m.coefficients = beta2.p,
-  theta          = theta.p
+ aligned <- align_mixture_labels(
+  z     = posterior$z,
+  pairs = pairs,
+  theta = if (!use_logistic) posterior$theta else NULL,
+  gamma = if (use_logistic) posterior$gamma else NULL,
+  safe  = safe,
+  orientation = rule$orientation,
+  relabel = rule$orientation == "majority component",
+  expect_majority = .prior_majority(prior_flat, use_logistic),
+  verbose = mcmc$verbose,
+  start = .orientation_start(posterior, mcmc,
+                             default_priors = .default_component_priors(prior_flat, dist, "survival")),
+  help = "survregMixBayes",
+  exchange_lp = posterior$exchange_lp
  )
+ # log posterior of the reported (possibly relabelled) draws, and the
+ # estimated share of the posterior probability of the other labelling, which
+ # under the match-rate prior must be small for the labels to be identified
+ reported_lp <- .relabel_lp(posterior$lp, posterior$exchange_lp, aligned$swapped)
+ other_share <- .other_labelling_share(reported_lp$exchange_lp)
+ .check_label_mass(other_share, rule$orientation, aligned$ecr_share, help = "survregMixBayes")
 
- if (dist == "gamma") {
-  tmp <- perm_pair(posterior$phi1, posterior$phi2, perm)
-  est$shape   <- tmp[[1]]
-  est$m.shape <- tmp[[2]]
- }
-
- if (dist == "weibull") {
-  tmp <- perm_pair(posterior$shape1, posterior$shape2, perm)
-  est$shape   <- tmp[[1]]
-  est$m.shape <- tmp[[2]]
-  tmp <- perm_pair(posterior$scale1, posterior$scale2, perm)
-  est$scale   <- tmp[[1]]
-  est$m.scale <- tmp[[2]]
- }
+ beta1.p <- aligned$pairs$beta[[1L]]
+ beta2.p <- aligned$pairs$beta[[2L]]
+ accept <- .relabel_accept(posterior$accept, aligned$flipped)
+ .check_acceptance(accept, n_sweeps = mcmc$iterations - mcmc$burnin.iterations)
 
  # Set coefficient names from X if available
  cn <- colnames(X)
- if (!is.null(cn) && is.matrix(beta1.p) && ncol(beta1.p) == length(cn)) {
+ if (!is.null(cn) && ncol(beta1.p) == length(cn)) {
   colnames(beta1.p) <- cn
   colnames(beta2.p) <- cn
  }
+ # beta1.p is compared with the component-1 prior (relabelled draws, sampled
+ # in the other labelling, describe the same majority component); one warning
+ # combines the prior-scale check and the posterior check. With a Weibull
+ # intercept column the prior is placed on the sampled intercept, while
+ # summary() reports it with log(scale) added: the warning quotes both
+ reported <- NULL
+ if (dist == "weibull" && .intercept_column(X) > 0L) {
+  ic <- .intercept_column(X)
+  reported <- colMeans(beta1.p)
+  reported[ic] <- mean(beta1.p[, ic] + log(aligned$pairs$scale[[1L]]))
+ }
+ .check_prior_data_conflict(beta1.p, engine_priors, help = "survregMixBayes",
+                            default = default_cols, naive = naive, reported = reported)
+ # the orientation of the starting state under component priors that differ
+ # must not have left the main chain far below the selected pilot chain
+ .check_orientation_lp(posterior, rule$exchangeable, rule$orientation)
+
+ # component 1 (correct matches), component 2 (mismatches) and the
+ # mismatch-indicator model, named as in glmMixBayes() and glmMixture()
+ est <- list(
+  coefficients  = beta1.p,
+  coefficients2 = beta2.p
+ )
+
+ if (use_logistic) {
+  # back to the original linkage covariates
+  gamma.p <- .uncenter_gamma(aligned$gamma, z_center)
+  zn <- colnames(Z)
+  if (!is.null(zn) && is.matrix(gamma.p) && ncol(gamma.p) == length(zn)) {
+   colnames(gamma.p) <- zn
+  }
+  est$m.coefficients <- .mismatch_coef_draws(gamma = gamma.p)
+  est$gamma <- gamma.p
+ } else {
+  est$m.coefficients <- .mismatch_coef_draws(theta = aligned$theta)
+  est$theta <- aligned$theta
+ }
+
+ est$shape  <- aligned$pairs$shape[[1L]]
+ est$shape2 <- aligned$pairs$shape[[2L]]
+ int_col <- 0L
+ if (dist == "weibull") {
+  est$scale  <- aligned$pairs$scale[[1L]]
+  est$scale2 <- aligned$pairs$scale[[2L]]
+  # With an intercept column only (Intercept) + log(scale) is identified: the
+  # reported intercepts of both components include log(scale) (the prior
+  # checks above use the raw intercept, on which its prior is placed)
+  int_col <- .intercept_column(X)
+  if (int_col > 0L) {
+   est$coefficients[, int_col]  <- est$coefficients[, int_col] + log(est$scale)
+   est$coefficients2[, int_col] <- est$coefficients2[, int_col] + log(est$scale2)
+  }
+ }
+
+ # drop the other references to the S x N allocation matrix first, so that
+ # naming its columns does not copy it
+ z_draws <- aligned$z
+ aligned$z <- NULL
+ posterior$z <- NULL
+ if (!is.null(rownames(X))) colnames(z_draws) <- rownames(X)
 
  out <- list(
-  m_samples = z_samples,
+  m_samples = z_draws,
   estimates = est,
   family = dist,
   dist = dist,
-  call = match.call()
+  call = match.call(),
+  match.prob = .match_prob(z_draws),
+  use_logistic = use_logistic,
+  priors = .prior_strings(prior_flat, dist, "survival", use_logistic, intercept = has_intercept),
+  diagnostics = list(
+   accept      = accept,
+   accept_joint = posterior$accept_collapsed,
+   joint_burnin = posterior$joint_burnin,
+   n_swapped   = sum(aligned$swapped),
+   relabelled  = aligned$relabelled,
+   pre_oriented = isTRUE(posterior$pre_oriented),
+   orient_refused = isTRUE(posterior$orient_refused),
+   orient_lp_change = posterior$orient_lp_change,
+   orient_check = posterior$orient_check,
+   ecr_share   = aligned$ecr_share,
+   other_labelling = other_share,
+   lp          = reported_lp$lp,
+   pilot_lp    = as.numeric(posterior$pilot_lp),
+   settings    = mcmc[c("iterations", "burnin.iterations", "thin", "seed", "pilots", "pilot.iterations", "collapse")],
+   orientation = aligned$orientation,
+   n_safe      = sum(safe)
+  )
  )
+ if (use_logistic) out$z_center <- z_center
+ if (dist == "weibull") out$intercept_includes_logscale <- int_col > 0L
+ # effective sample sizes and single-chain split R-hat; runs with fewer than
+ # 1000 iterations after the burn-in are exploratory (no warnings, notes in
+ # summary()), whatever the thinning
+ out$diagnostics$ess <- .mixbayes_ess(out)
+ out$diagnostics$rhat <- .mixbayes_rhat(out)
+ n_sweeps <- mcmc$iterations - mcmc$burnin.iterations
+ .check_ess(out$diagnostics$ess, nrow(z_draws), n_sweeps)
+ .check_rhat(out$diagnostics$rhat, nrow(z_draws), n_sweeps)
 
  class(out) <- "survMixBayes"
  out
@@ -415,59 +925,25 @@ survregMixBayes <- function(X, y, dist = "weibull", priors = NULL,
 #' @export
 fitsurvreg.adjMixBayes <- function(x, y, dist, adjustment, control, priors = NULL, ...) {
 
- full_data <- adjustment$data_ref$data
- if (is.null(full_data)) {
-  stop("The 'adjustment' object does not contain linked data. ",
-       "Please recreate the object with 'linked.data' provided.", call. = FALSE)
- }
-
- subset_names <- rownames(x)
-
- if (is.null(subset_names)) {
-  if (nrow(x) != nrow(full_data)) {
-   stop("Row mismatch: Model matrix 'x' has no row names and its length (", nrow(x),
-        ") differs from the adjustment data (", nrow(full_data), "). ",
-        "Ensure 'linked.data' matches the data passed to the upstream wrapper.", call. = FALSE)
-  }
- } else {
-  idx_map <- match(subset_names, rownames(full_data))
-  if (anyNA(idx_map)) {
-   stop("Row mismatch: Some observations in the model matrix could not be matched ",
-        "to the adjustment data. This usually happens if the upstream 'data' ",
-        "differs from the data used to create the adjustment object.", call. = FALSE)
-  }
- }
-
- if (anyNA(x) || anyNA(y)) {
-  stop("NA values found in x or y. Upstream wrapper should remove missingness.", call. = FALSE)
- }
-
- # Extract priors using hierarchy (function arg > dots > control > adjustment)
- dots <- list(...)
- final_priors <- priors
-
- if (is.null(final_priors) && "priors" %in% names(dots)) {
-  final_priors <- dots$priors
-  dots$priors <- NULL
- }
- if (is.null(final_priors) && !is.null(control) && is.list(control) && "priors" %in% names(control)) {
-  final_priors <- control$priors
- }
- if (is.null(final_priors)) {
-  final_priors <- adjustment$priors
- }
+ # Linked data, row alignment, prior hierarchy (function argument > `...` >
+ # control$priors > adjustment$priors) and linkage information (covariates of
+ # the match-probability model, known correct matches, prior mismatch rate)
+ .refuse_modelling_args(.dots_names(...))
+ inp <- .mixbayes_fit_inputs(x, y, adjustment, control, priors, list(...))
 
  fit <- do.call(
   survregMixBayes,
   c(
-   list(X = x, y = y, dist = dist, priors = final_priors, control = control),
-   dots
+   list(X = inp$x, y = inp$y, dist = dist, priors = inp$priors, control = control,
+        Z = inp$link$Z, safe.matches = inp$link$safe,
+        m.rate = inp$link$m.rate, m.rate.sd = inp$link$m.rate.sd),
+   inp$dots
   )
  )
 
  fit$adjustment <- adjustment
  fit$call <- match.call()
- if (!is.null(subset_names)) fit$obs_names <- subset_names
+ if (!is.null(inp$obs_names)) fit$obs_names <- inp$obs_names
 
  fit
 }

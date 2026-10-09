@@ -17,13 +17,18 @@
 The input \code{x}, invisibly.
 }
 \description{
-Prints the model call and posterior mean regression coefficients for the
-first mixture component of the fitted survival model. In this package,
-component 1 is interpreted as the correct-match component and component 2
-as the incorrect-match component.
+Prints the model call, the posterior means of the regression coefficients
+of the first mixture component of the fitted survival model, the posterior
+mean of the mixing weight \code{theta} or, when the match probability was
+modelled with linkage covariates, of the coefficients of the
+mismatch-indicator model (\code{m.coefficients}), the posterior mean of the
+shape of component 1, and the numbers of records and of safe matches. In
+this package, component 1 is interpreted as the correct-match component and
+component 2 as the incorrect-match component. For Weibull fits whose design
+matrix has an intercept column, the intercept is the identified
+\code{(Intercept) + log(scale)} (see \code{\link{survregMixBayes}}).
 }
 \examples{
-\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)
@@ -55,6 +60,5 @@ fit <- plsurvreg(
 )
 
 print(fit)
-}
 
 }

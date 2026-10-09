@@ -1,23 +1,10 @@
 # tests/testthat/test-glmMixBayes_methods.R
-# Methods tests for Bayesian GLM mixture (real Stan MCMC)
+# Methods tests for Bayesian GLM mixture (real MCMC via the C++ Gibbs sampler)
 # Refactored into 4 test_that blocks + helper (glmMixture_methods style),
 #
-# NOTE:
-# - Skipped on CRAN.
-# - Opt-in by setting RUN_STAN_TESTS=true.
+# The sampler is fast enough that these tests always run.
 
 local_edition(3)
-
-skip_if_no_stan <- function() {
- skip_on_cran()
- skip_if_not_installed("rstan")
- skip_if_not_installed("label.switching")
- if (!identical(Sys.getenv("RUN_STAN_TESTS"), "true")) {
-  skip("Set RUN_STAN_TESTS=true to run real Stan MCMC tests.")
- }
- rstan::rstan_options(auto_write = TRUE)
- options(mc.cores = 1L)
-}
 
 # -------------------------------------------------------------------------
 # Helper: keep data generation consistent with your original test-glmMixBayes
@@ -35,31 +22,24 @@ generate_bayesglm_mixture_data <- function(n = 100, seed = 42) {
  list(dat = dat, X = X, y = yv)
 }
 
-# Fit ONCE and reuse across tests (avoid running Stan 4 times)
+# Fit ONCE and reuse across tests
 fit_once <- local({
  cache <- NULL
  function() {
   if (!is.null(cache)) return(cache)
 
-  skip_if_no_stan()
   d <- generate_bayesglm_mixture_data(n = 100, seed = 42)
 
-  # Suppress Stan HMC warnings for unit testing purposes.
-  # Divergent transitions fluctuate across OS C++ compilers and
-  # are expected when running short chains on simulated data.
-  suppressWarnings({
-   cache <<- glmMixBayes(
-    X = d$X,
-    y = d$y,
-    family = "gaussian",
-    control = list(
-     iterations = 2000,
-     burnin.iterations = 1000,
-     seed = 42,
-     cores = 1
-    )
+  cache <<- suppressMessages(glmMixBayes(
+   X = d$X,
+   y = d$y,
+   family = "gaussian",
+   control = list(
+    iterations = 2000,
+    burnin.iterations = 1000,
+    seed = 42
    )
-  })
+  ))
   cache
  }
 })

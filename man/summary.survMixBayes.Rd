@@ -4,24 +4,68 @@
 \alias{summary.survMixBayes}
 \title{Summary Method for survMixBayes Models}
 \usage{
-\method{summary}{survMixBayes}(object, probs = c(0.025, 0.5, 0.975), ...)
+\method{summary}{survMixBayes}(object, probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{object}{An object of class \code{survMixBayes}.}
 
-\item{probs}{Numeric vector of probabilities used to compute posterior
-quantiles for the model parameters. The default,
-\code{c(0.025, 0.5, 0.975)}, gives a posterior median and a 95\\%
-credible interval.}
+\item{probs}{Numeric vector of probabilities of the posterior quantiles
+reported for every parameter. The default, \code{c(0.025, 0.975)}, gives
+the central 95\% credible interval (columns \code{"2.5 \%"} and
+\code{"97.5 \%"}); add \code{0.5} for the posterior median.}
 
 \item{...}{Further arguments (unused).}
 }
 \value{
-An object of class \code{summary.survMixBayes} containing posterior
-quantile summaries for the regression coefficients in both mixture
-components, the mixing weight, and any family-specific distribution
-parameters included in the fitted model. Component 1 corresponds to the
-correct-match component and component 2 to the incorrect-match component.
+An object of class \code{summary.survMixBayes}. Every parameter
+block is a table with one row per parameter and the columns
+\code{"Estimate"} (the posterior mean), \code{"Std. Error"} (the posterior
+standard deviation) and the posterior quantiles given by \code{probs}
+(\code{"2.5 \%"} and \code{"97.5 \%"} by default), the columns of
+\code{\link{summary.glmMixBayes}}. The tables of the coefficients and the
+shape (and \code{1 / shape}) of component 1 and of the match-probability
+model add the columns \code{"MCSE"} (the Monte Carlo standard error of the
+posterior mean), \code{"ESS"} (the effective sample size) and
+\code{"Rhat"} (the single-chain split R-hat; see \emph{Sampling
+algorithm} in \code{\link{survregMixBayes}}), computed from the draws
+for fits that do not store these diagnostics (also for the notes on
+them). The blocks are the regression
+coefficients of both mixture components (\code{coef1}, \code{coef2}); the
+coefficients of the mismatch-indicator model (\code{m.coefficients}, the
+logit of the mismatch probability, as in \code{\link{coxphMixture}()}); the
+mixing weight (\code{theta}) or, when the match probability was modelled
+with linkage covariates, its logistic regression coefficients
+(\code{gamma = -m.coefficients}, for the original linkage covariates,
+with \code{z_center}, the centre of the linkage covariates of the fit, and
+\code{gamma_intercept_prior}, the \code{gamma_intercept} prior used, which
+applies to a record whose linkage covariates equal \code{z_center}; both
+are printed under the \code{gamma} table); and the family-specific distribution
+parameters (\code{shape1}, \code{shape2} and, for the Weibull
+distribution, the scale multipliers \code{scale1}, \code{scale2}, which are
+not the \code{Scale} of \code{survival::survreg()}). For the Weibull
+distribution, \code{inv_shape1} summarises \code{1 / shape} of component
+1, which is comparable to the \code{Scale} reported by
+\code{survival::survreg()}; when the design matrix has an intercept
+column (\code{intercept_includes_logscale = TRUE}), the intercepts in
+\code{coef1} and \code{coef2} are the identified intercepts
+\code{(Intercept) + log(scale)} (comparable to the \code{(Intercept)} of
+\code{survival::survreg()}), and \code{scale1}, \code{scale2} are not
+identified separately from them (their posteriors reflect their priors).
+The summary also
+contains \code{match.prob}, the posterior probability that each record is
+a correct match, \code{match.rate}, a list with the average of
+\code{match.prob} over all records (safe matches counted as 1) and over
+the records not flagged as safe matches (\code{avg}) and the numbers of
+these records (\code{n}), \code{use_logistic}, \code{n_safe}, the
+number of known correct matches (with safe matches, \code{theta},
+\code{gamma} and \code{m.coefficients} describe the records that are not
+flagged as safe), the number of stored draws \code{n_draws}, and the
+diagnostics printed as notes (\code{low_ess}, \code{high_rhat},
+\code{joint_short} and \code{mixed_labels}; see
+\code{\link{summary.glmMixBayes}}). Component 1 corresponds to the correct-match component and
+component 2 to the incorrect-match component. Up to postlink 0.1.2 the
+blocks were matrices of posterior quantiles with one column per parameter
+(by default including the median).
 }
 \description{
 Computes posterior summaries for the regression coefficients, mixing weight,
@@ -30,7 +74,6 @@ and component-specific distribution parameters in a fitted
 correct-match component and component 2 as the incorrect-match component.
 }
 \examples{
-\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)
@@ -61,8 +104,10 @@ fit <- plsurvreg(
   control = list(iterations = 200, burnin.iterations = 100, seed = 123)
 )
 
-fit_summary <- summary(fit, probs = c(0.025, 0.5, 0.975))
+fit_summary <- summary(fit)
 print(fit_summary)
-}
+
+# posterior medians in addition
+summary(fit, probs = c(0.025, 0.5, 0.975))$coef1
 
 }

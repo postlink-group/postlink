@@ -64,8 +64,10 @@ return a lightweight S3 adjustment object.
   probabilities). If no record linkage information is available, a
   constant mismatch rate is assumed.
 - `adjMixBayes()`: Specifies a Bayesian mixture model approach, with
-  default or informative priors, enabling parameter estimation and
-  multiple imputation of latent match statuses using Stan.
+  default or informative priors (including a prior mismatch rate, safe
+  matches and predictors of match status), enabling parameter
+  estimation and multiple imputation of latent match statuses using a
+  compiled Gibbs sampler.
 
 **Phase 2**: Estimation & Inference
 
@@ -119,8 +121,8 @@ pak::pkg_install("postlink-group/postlink")
 
 ## **System Requirements**
 
-Because **postlink** package relies on compiled C++ code and Stan for
-Bayesian mixture modeling, depending on your operating system and how
+Because **postlink** package relies on compiled C++ code (via Rcpp and
+RcppArmadillo) for Bayesian mixture modeling, depending on your operating system and how
 you install the package, additional system tools may be needed to
 compile this code.
 
@@ -141,13 +143,13 @@ When installing the version from CRAN:
 
 When installing the development version from GitHub, all users will be
 compiling from source and must have a working C++ development
-environment and `GNU make` installed.
+environment (see below).
 
 **Required Tools for Compiling from Source:**
 
 If you are compiling from source (GitHub, Linux, or requesting source
-from CRAN), please ensure your system is set up with a C++11 compatible
-compiler:
+from CRAN), please ensure your system is set up with a C++ compiler supported by
+your version of R:
 
 - Windows: Install the version of
   [Rtools](https://cran.r-project.org/bin/windows/Rtools/) that matches

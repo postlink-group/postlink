@@ -1,18 +1,17 @@
 # tests/testthat/test-fitsurvreg_adjMixBayes.R
 # Unit-style tests for internal dispatch + data alignment for Bayesian engine.
-# This file DOES NOT run Stan MCMC. It mocks survregMixBayes().
+# This file DOES NOT run MCMC. It mocks survregMixBayes().
 
 local_edition(3)
 
 test_that("Basic Dispatch (Bayes): fitsurvreg dispatches to fitsurvreg.adjMixBayes and passes correct data to engine", {
- skip_on_cran()
  skip_if_not_installed("survival")
 
  # Capture arguments passed to the mocked engine
  mock_env <- new.env(parent = emptyenv())
  mock_env$args <- NULL
 
- # Mock survregMixBayes inside the package namespace to avoid real Stan sampling
+ # Mock survregMixBayes inside the package namespace to avoid real sampling
  testthat::local_mocked_bindings(
   survregMixBayes = function(X, y, dist, control, ...) {
    mock_env$args <- list(
@@ -25,7 +24,7 @@ test_that("Basic Dispatch (Bayes): fitsurvreg dispatches to fitsurvreg.adjMixBay
     estimates = list(
      coefficients   = matrix(0, nrow = 2, ncol = ncol(X),
                              dimnames = list(NULL, colnames(X))),
-     m.coefficients = matrix(0, nrow = 2, ncol = ncol(X),
+     coefficients2  = matrix(0, nrow = 2, ncol = ncol(X),
                              dimnames = list(NULL, colnames(X)))
     )
    )
@@ -79,7 +78,6 @@ test_that("Basic Dispatch (Bayes): fitsurvreg dispatches to fitsurvreg.adjMixBay
 })
 
 test_that("Row Alignment (Bayes): fitsurvreg.adjMixBayes subsets linked.data to match x rows", {
- skip_on_cran()
  skip_if_not_installed("survival")
 
  mock_env <- new.env(parent = emptyenv())
@@ -93,7 +91,7 @@ test_that("Row Alignment (Bayes): fitsurvreg.adjMixBayes subsets linked.data to 
     estimates = list(
      coefficients   = matrix(0, nrow = 2, ncol = ncol(X),
                              dimnames = list(NULL, colnames(X))),
-     m.coefficients = matrix(0, nrow = 2, ncol = ncol(X),
+     coefficients2  = matrix(0, nrow = 2, ncol = ncol(X),
                              dimnames = list(NULL, colnames(X)))
     )
    )
@@ -139,7 +137,6 @@ test_that("Row Alignment (Bayes): fitsurvreg.adjMixBayes subsets linked.data to 
 })
 
 test_that("Input Validation (Bayes): fitsurvreg errors if adjustment is not adjMixBayes", {
- skip_on_cran()
  skip_if_not_installed("survival")
 
  set.seed(3)
@@ -160,6 +157,41 @@ test_that("Input Validation (Bayes): fitsurvreg errors if adjustment is not adjM
    dist = "gamma",
    adjustment = list(not = "an adjustment"),
    control = list(iterations = 10, burnin.iterations = 5, seed = 3, cores = 1)
-  )
+  ),
+  "no applicable method"
  )
+})
+
+test_that("fitsurvreg.adjMixBayes passes Z, safe.matches, m.rate and m.rate.sd aligned with the modelled rows", {
+ captured <- new.env(parent = emptyenv())
+ testthat::local_mocked_bindings(
+  survregMixBayes = function(X, y, dist, control, ...) {
+   captured$args <- list(X = X, y = y, dots = list(...))
+   structure(list(
+    m_samples = matrix(1L, 2, nrow(X)),
+    estimates = list(
+     coefficients   = matrix(0, 2, ncol(X), dimnames = list(NULL, colnames(X))),
+     coefficients2  = matrix(0, 2, ncol(X), dimnames = list(NULL, colnames(X)))
+    ),
+    dist = dist
+   ), class = "survMixBayes")
+  },
+  .package = "postlink"
+ )
+ set.seed(2)
+ n <- 30
+ d <- data.frame(time = rexp(n) + 0.1, status = rbinom(n, 1, 0.7), x = rnorm(n), z = rnorm(n),
+                 safe = rbinom(n, 1, 0.3) == 1)
+ d$x[c(4, 11)] <- NA
+ adj <- adjMixBayes(linked.data = d, m.formula = ~ z, safe.matches = safe, m.rate = 0.3, m.rate.sd = 0.05)
+ plsurvreg(survival::Surv(time, status) ~ x, dist = "weibull", adjustment = adj,
+           control = list(iterations = 10, burnin.iterations = 5))
+ keep <- !is.na(d$x)
+ dots <- captured$args$dots
+ expect_equal(as.vector(dots$Z), as.vector(cbind(1, d$z[keep])))
+ expect_equal(dim(dots$Z), c(sum(keep), 2L))
+ expect_identical(dots$safe.matches, as.integer(d$safe[keep]))
+ expect_equal(dots$m.rate, 0.3)
+ expect_equal(dots$m.rate.sd, 0.05)
+ expect_equal(unname(captured$args$y[, "time"]), d$time[keep])
 })

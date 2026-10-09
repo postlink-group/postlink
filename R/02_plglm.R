@@ -126,6 +126,10 @@ plglm <- function(formula,
 
  # Extract Model Matrix (X) and Response (Y)
  mt <- attr(mf, "terms")
+ if (!is.null(attr(mt, "offset")) && inherits(adjustment, "adjMixBayes")) {
+  stop("offset() terms in the model formula are not supported by the Bayesian mixture models (adjMixBayes).",
+       call. = FALSE)
+ }
  X_mat <- stats::model.matrix(mt, mf)
  Y_vec <- stats::model.response(mf, "any")
 

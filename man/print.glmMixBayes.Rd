@@ -17,10 +17,14 @@
 The input \code{x}, invisibly.
 }
 \description{
-Print a glmMixBayes Model Object
+Prints the call, the posterior means of the regression coefficients of
+component 1 (the correct-match component), the posterior mean of the mixing
+weight \code{theta} or, when the match probability was modelled with linkage
+covariates, of the coefficients of the mismatch-indicator model
+(\code{m.coefficients}), the posterior mean of the dispersion of component 1
+(Gaussian and Gamma fits), and the numbers of records and of safe matches.
 }
 \examples{
-\donttest{
 data(lifem)
 
 # lifem data preprocessing
@@ -31,12 +35,18 @@ lifem_small <- rbind(
   head(subset(lifem, hndlnk == 0), 20)
 )
 
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
-
+# priors on the scale of the outcome (age in years) and of the slopes of the
+# cubic polynomial: the defaults (normal(0, 10) for the intercepts,
+# normal(0, 5) for the slopes) suit outcomes and covariates of order one
 adj <- adjMixBayes(
   linked.data = lifem_small,
-  priors = list(theta = "beta(2, 2)")
+  priors = list(
+    theta = "beta(2, 2)",
+    intercept1 = "normal(60, 20)",
+    intercept2 = "normal(60, 20)",
+    beta1 = "normal(0, 100)",
+    beta2 = "normal(0, 100)"
+  )
 )
 
 fit <- plglm(
@@ -51,6 +61,5 @@ fit <- plglm(
 )
 
 print(fit)
-}
 
 }

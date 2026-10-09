@@ -4,10 +4,13 @@
 \alias{print.adjMixBayes}
 \title{Print Method for \code{adjMixBayes} Objects}
 \usage{
-\method{print}{adjMixBayes}(x, ...)
+\method{print}{adjMixBayes}(x, digits = 3, ...)
 }
 \arguments{
 \item{x}{An object of class \code{adjMixBayes}.}
+
+\item{digits}{Number of significant digits used for derived prior
+hyperparameters.}
 
 \item{...}{Additional arguments passed to methods.}
 }
@@ -22,7 +25,26 @@ Provides a concise summary of the Bayesian adjustment object created by
 This method inspects the reference-based data environment to report the number
 of linked records without copying the full dataset. It safely handles cases
 where the linked data is unspecified (NULL). It also prints the user-specified
-priors or outlines the defaults that will be used.
+priors (marking entries that the fitting functions do not recognise, such
+as \code{intercept} without its component number, as ignored), outlines the
+defaults that will be used, and describes the match
+probability model implied by \code{m.formula}, \code{m.rate} and
+\code{safe.matches}, applying the same precedence rules as the fitting
+functions (an explicit \code{theta} or \code{gamma_intercept} prior takes
+precedence over \code{m.rate}; with covariates in \code{m.formula}, a
+\code{gamma_intercept} prior also over a \code{theta} prior, and
+\code{gamma_slope} over its alias \code{gamma}). When a shape parameter of
+the beta distribution implied by \code{m.rate} and \code{m.rate.sd} is below
+1, a note gives the bound on \code{m.rate.sd} below which both exceed 1,
+rounded down (see \code{m.rate.sd} in \code{\link{adjMixBayes}}). With covariates in \code{m.formula}, the
+intercept prior and the prior on \eqn{\theta}{theta} implied by
+\code{m.rate} refer to a record with average linkage covariates: the fit
+centres them at their mean over the analysed records not flagged as safe
+matches (over all analysed records when every record is a safe match) and
+stores this mean as \code{z_center} in the fit. When the object holds the
+linked data, the corresponding mean over the records of \code{linked.data}
+is shown; it can differ slightly from \code{z_center} when records are
+dropped at fit time (e.g. by \code{subset} or because of missing outcomes).
 }
 \examples{
 data(lifem)
@@ -42,5 +64,8 @@ adj_obj <- adjMixBayes(
 
 # Implicitly calls print.adjMixBayes()
 adj_obj
+
+adjMixBayes(lifem_small, m.formula = ~ commf + comml, m.rate = 0.05,
+            m.rate.sd = 0.02, safe.matches = hndlnk)
 
 }

@@ -4,24 +4,41 @@
 \alias{vcov.survMixBayes}
 \title{Posterior Covariance Matrix for survMixBayes Coefficients}
 \usage{
-\method{vcov}{survMixBayes}(object, ...)
+\method{vcov}{survMixBayes}(
+  object,
+  block = c("coefficients", "coefficients2", "m.coefficients", "theta", "gamma", "shape",
+    "shape2", "scale", "scale2"),
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{survMixBayes} model object.}
 
-\item{...}{Further arguments (unused).}
+\item{block}{Which parameter block: \code{"coefficients"} (component 1;
+default), \code{"coefficients2"} (component 2), \code{"m.coefficients"}
+(the mismatch-indicator model), \code{"theta"}, \code{"gamma"},
+\code{"shape"}, \code{"shape2"}, \code{"scale"} or \code{"scale2"}; the
+names of the list returned by \code{\link{confint.survMixBayes}}
+(\code{"coef1"}, \code{"coef2"}, \code{"shape1"}, \code{"scale1"}) are
+accepted too, as by its \code{block} argument.}
+
+\item{...}{Not used; other arguments raise an error.}
 }
 \value{
-Posterior covariance matrix of the regression coefficients for
-component 1, interpreted as the correct-match component.
+Posterior covariance matrix of the parameters of the selected block
+(by default the regression coefficients of component 1, interpreted as
+the correct-match component), i.e. the covariance of their posterior
+draws. For Weibull fits whose design matrix has an intercept column, the
+intercept is the identified \code{(Intercept) + log(scale)} (see
+\code{\link{survregMixBayes}}).
 }
 \description{
 Returns the empirical posterior covariance matrix of the regression
-coefficients for component 1 of a fitted \code{survMixBayes} model.
-In this package, component 1 is interpreted as the correct-match component.
+coefficients for component 1 of a fitted \code{survMixBayes} model, or of
+another parameter block. In this package, component 1 is interpreted as the
+correct-match component.
 }
 \examples{
-\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)
@@ -56,6 +73,8 @@ fit <- plsurvreg(
 # Extract the empirical posterior covariance matrix for component 1
 vcov_mat <- vcov(fit)
 print(vcov_mat)
-}
+
+# posterior covariance of the coefficients of the mismatch-indicator model
+vcov(fit, block = "m.coefficients")
 
 }

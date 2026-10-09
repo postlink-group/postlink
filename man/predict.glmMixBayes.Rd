@@ -6,19 +6,24 @@
 \usage{
 \method{predict}{glmMixBayes}(
   object,
-  newx,
+  newdata = NULL,
   type = c("link", "response"),
   se.fit = FALSE,
   interval = c("none", "credible"),
   level = 0.95,
+  na.action = stats::na.pass,
+  newx = NULL,
   ...
 )
 }
 \arguments{
 \item{object}{A \code{glmMixBayes} model object.}
 
-\item{newx}{A numeric matrix of new observations (n_new x K) with columns aligned
-to the design matrix \code{X} used for fitting.}
+\item{newdata}{Optional data frame in which to look for the variables of the
+outcome model; its model matrix is built from the terms of a fit from
+\code{plglm()} (stored with \code{model = TRUE}, the default). A numeric
+matrix is taken to be a model matrix, as \code{newx}, so that calls of
+postlink 0.1.2 such as \code{predict(fit, X, "response")} keep working.}
 
 \item{type}{Either \code{"link"} or \code{"response"}, indicating the scale of predictions.}
 
@@ -28,18 +33,48 @@ to the design matrix \code{X} used for fitting.}
 
 \item{level}{Probability level for the credible interval (default 0.95).}
 
-\item{...}{Not used.}
+\item{na.action}{Function determining what to do with missing values in
+\code{newdata} (default \code{stats::na.pass}, which gives \code{NA}
+predictions).}
+
+\item{newx}{Optional numeric matrix of new observations (n_new x K) with
+columns aligned to the design matrix \code{X} used for fitting (matched by
+name when the coefficient names are non-empty and unique and each names
+exactly one column, otherwise by position, with a warning when a column
+bears the name of a coefficient at another position). It follows the
+arguments of \code{predict.glmMixture()}, so give it by name.}
+
+\item{...}{Not used; other arguments (e.g. a misspelled \code{newdata})
+raise an error.}
 }
 \value{
 If \code{se.fit = FALSE} and \code{interval = "none"}, a numeric vector of predicted values.
 Otherwise, a matrix with columns for the fit, (optional) \code{se.fit}, and (optional)
-credible interval bounds.
+credible interval bounds labelled as by \code{stats::confint()}
+(\code{"2.5 \%"}, \code{"97.5 \%"}). The fitted value is the prediction at the
+posterior mean of the component-1 coefficients (for \code{type = "response"}
+the inverse link of \eqn{x^\top E[\beta]}{x' E[beta]}), whereas \code{se.fit}
+and the credible interval summarise the posterior draws of the prediction.
+Predictions are named after the rows of the model matrix (the row names
+of \code{newdata}, the row names of \code{newx} if it has any, or the
+analysed records), as by \code{\link[stats]{predict.glm}()}; rows with
+missing covariates give \code{NA}.
 }
 \description{
-Predictions from a glmMixBayes Model
+Predictions of the correct-match component (component 1). New data are
+given as a data frame in \code{newdata}, as for \code{\link{glmMixture}()}
+fits (this needs the model terms stored by \code{\link{plglm}()}), or as a
+model matrix in \code{newx} (for fits from \code{glmMixBayes()}).
+}
+\details{
+When neither \code{newdata} nor \code{newx} is given, predictions
+are made for the analysed records of the fit (in the order of
+\code{match.prob}): from the design matrix stored by
+\code{plglm(..., x = TRUE)}, or else from the stored model frame. Records
+dropped at fit time because their linkage covariates are missing are
+left out.
 }
 \examples{
-\donttest{
 data(lifem)
 
 # lifem data preprocessing
@@ -50,12 +85,18 @@ lifem_small <- rbind(
   head(subset(lifem, hndlnk == 0), 20)
 )
 
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
-
+# priors on the scale of the outcome (age in years) and of the slopes of the
+# cubic polynomial: the defaults (normal(0, 10) for the intercepts,
+# normal(0, 5) for the slopes) suit outcomes and covariates of order one
 adj <- adjMixBayes(
   linked.data = lifem_small,
-  priors = list(theta = "beta(2, 2)")
+  priors = list(
+    theta = "beta(2, 2)",
+    intercept1 = "normal(60, 20)",
+    intercept2 = "normal(60, 20)",
+    beta1 = "normal(0, 100)",
+    beta2 = "normal(0, 100)"
+  )
 )
 
 fit <- plglm(
@@ -69,8 +110,11 @@ fit <- plglm(
   )
 )
 
+# new data as a data frame (variables of the outcome formula) ...
+predict(fit, newdata = data.frame(unit_yob = c(0.2, 0.5, 0.8)), type = "response")
+
+# ... or as a model matrix
 newx <- cbind(1, poly(c(0.2, 0.5, 0.8), 3, raw = TRUE))
 predict(fit, newx = newx, type = "response")
-}
 
 }

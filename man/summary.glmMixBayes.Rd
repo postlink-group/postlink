@@ -12,13 +12,65 @@
 \item{...}{Not used.}
 }
 \value{
-An object of class \code{"summary.glmMixBayes"}, which is printed with a custom method.
+An object of class \code{"summary.glmMixBayes"}, which is printed
+with a custom method. It contains \code{call}, \code{family}, and the
+tables of the regression coefficients of component 1
+(\code{coefficients}, the correct matches) and of component 2
+(\code{coefficients2}, the mismatches); for Gaussian and Gamma fits the
+tables of the dispersion of both components (\code{dispersion},
+\code{dispersion2}: \eqn{\sigma^2}{sigma^2} or \eqn{1/\phi}{1/phi}); the
+table of the coefficients of the mismatch-indicator model
+(\code{m.coefficients}, the logit of the mismatch probability, as in
+\code{\link{glmMixture}()}); the table of the mixing weight \code{theta}
+or, when the match probability was modelled with linkage covariates, of
+its logistic regression coefficients \code{gamma} (\code{= -m.coefficients}),
+for the original linkage covariates, together with \code{z_center}, the
+centre of the linkage covariates of the fit, and
+\code{gamma_intercept_prior}, the \code{gamma_intercept} prior used, which
+applies to a record whose linkage covariates equal \code{z_center} (both
+printed under the \code{gamma} table; see \code{\link{glmMixBayes}});
+\code{match.prob}, the posterior probability that each record is a correct
+match; \code{match.rate}, a list with the average of \code{match.prob}
+over all records (safe matches counted as 1) and over the records that
+are not flagged as safe matches (\code{avg}), and the numbers of these
+records (\code{n}); \code{use_logistic}; \code{n_safe}, the number of
+known correct matches (with safe matches, \code{theta}, \code{gamma} and
+\code{m.coefficients} describe the records that are not flagged as safe);
+and the diagnostics printed as notes: \code{low_ess} (effective sample
+sizes below 100), \code{high_rhat} (split R-hat values above 1.05; the
+note says that R-hat is noisy when fewer than 200 draws were stored, their
+number being \code{n_draws}),
+\code{joint_short} (when the joint moves were off because the burn-in was
+too short: the burn-in used and the one that would suffice) and
+\code{mixed_labels}. The printed tables show the effective sample size
+as a whole number and the split R-hat with three decimals.
+Up to postlink 0.1.2 the coefficients of component 2 were stored as
+\code{m.coefficients}, the first column of the coefficient tables was
+named \code{"Estimates"}, and the dispersion tables had no interval
+columns; summary objects saved with these versions are printed with the
+component-2 tables under component 2.
 }
 \description{
-Summary Method for glmMixBayes Models
+Posterior summaries of every parameter block of a \code{glmMixBayes} fit.
+Each table has one row per parameter and the columns \code{"Estimate"} (the
+posterior mean), \code{"Std. Error"} (the posterior standard deviation) and
+\code{"2.5 \%"}, \code{"97.5 \%"} (the posterior quantiles bounding the
+central 95\% credible interval), the column names used by
+\code{\link{glmMixture}()} and \code{stats::confint()}. The tables of the
+coefficients and the dispersion of component 1 and of the match-probability
+model (\code{theta}, \code{m.coefficients}, \code{gamma}) add the columns
+\code{"MCSE"} (the Monte Carlo standard error of the posterior mean: the
+posterior standard deviation divided by the square root of the effective
+sample size), \code{"ESS"} (the effective sample size, as in
+\code{diagnostics$ess}) and \code{"Rhat"} (the single-chain split R-hat,
+as in \code{diagnostics$rhat}; see \emph{Sampling algorithm} in
+\code{\link{glmMixBayes}}); for fits that do not store these diagnostics
+they are computed from the draws, for the tables and for the notes on
+them, and so are the values of design columns that share a name (e.g.
+given duplicated names, or unnamed columns in fits saved by earlier
+versions).
 }
 \examples{
-\donttest{
 data(lifem)
 
 # lifem data preprocessing
@@ -29,12 +81,18 @@ lifem_small <- rbind(
   head(subset(lifem, hndlnk == 0), 20)
 )
 
-x <- cbind(1, poly(lifem_small$unit_yob, 3, raw = TRUE))
-y <- lifem_small$age_at_death
-
+# priors on the scale of the outcome (age in years) and of the slopes of the
+# cubic polynomial: the defaults (normal(0, 10) for the intercepts,
+# normal(0, 5) for the slopes) suit outcomes and covariates of order one
 adj <- adjMixBayes(
   linked.data = lifem_small,
-  priors = list(theta = "beta(2, 2)")
+  priors = list(
+    theta = "beta(2, 2)",
+    intercept1 = "normal(60, 20)",
+    intercept2 = "normal(60, 20)",
+    beta1 = "normal(0, 100)",
+    beta2 = "normal(0, 100)"
+  )
 )
 
 fit <- plglm(
@@ -49,6 +107,5 @@ fit <- plglm(
 )
 
 summary(fit)
-}
 
 }

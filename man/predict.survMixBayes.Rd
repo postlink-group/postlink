@@ -10,15 +10,27 @@
   se.fit = FALSE,
   interval = c("none", "credible"),
   level = 0.95,
+  na.action = stats::na.pass,
   ...
 )
 }
 \arguments{
 \item{object}{A \code{survMixBayes} model object.}
 
-\item{newdata}{A numeric matrix of new observations (\eqn{n_{new} \times K})
-with columns aligned to the design matrix used for fitting.
-If \code{NULL}, the fitted design matrix stored in \code{object$X} is used.}
+\item{newdata}{Optional new data: a data frame in which to look for the
+covariates of the outcome model, whose model matrix is built from the
+terms of a fit from \code{plsurvreg()} (stored with \code{model = TRUE},
+the default), as by \code{\link{predict.glmMixBayes}}; or a numeric
+matrix of new observations (\eqn{n_{new} \times K}{n_new x K}) with
+columns aligned to the design matrix used for fitting (matched by name
+when the coefficient names are non-empty and unique and each names
+exactly one column, otherwise by position, with a warning when a column
+bears the name of a coefficient at another position), which fits from
+\code{survregMixBayes()} need. If \code{NULL}, predictions are made for
+the analysed records of the fit, from the design matrix stored by
+\code{plsurvreg(..., x = TRUE)} or else from the stored model frame
+(records dropped at fit time because their linkage covariates are missing
+are left out).}
 
 \item{se.fit}{Logical; if \code{TRUE}, also return posterior SD of predictions.}
 
@@ -27,7 +39,11 @@ to compute credible intervals.}
 
 \item{level}{Probability level for the credible interval (default 0.95).}
 
-\item{...}{Not used.}
+\item{na.action}{Function determining what to do with missing values in a
+data frame \code{newdata} (default \code{stats::na.pass}, which gives
+\code{NA} predictions).}
+
+\item{...}{Not used; other arguments (e.g. \code{type}) raise an error.}
 }
 \value{
 A list with two components, \code{component1} and \code{component2},
@@ -35,7 +51,11 @@ corresponding to the two latent mixture components.
 If \code{se.fit = FALSE} and \code{interval = "none"}, each element is a
 numeric vector of posterior mean linear predictors.
 Otherwise, each element is a matrix containing the fitted values and,
-optionally, posterior SDs and credible interval bounds.
+optionally, posterior SDs and credible interval bounds. Predictions are
+named after the rows of the design matrix (the row names of a data frame
+in \code{newdata}, or the analysed records), as by
+\code{\link[stats]{predict.glm}()}; rows with missing covariates give
+\code{NA}.
 }
 \description{
 Computes posterior predictions for each latent component of a
@@ -43,12 +63,22 @@ Computes posterior predictions for each latent component of a
 linear predictor scale for both components.
 }
 \details{
+For the gamma model the linear predictor is \eqn{X\beta}{X beta}, the log of
+the mean survival time. For the Weibull model it is
+\eqn{\log(\mathrm{scale}) + X\beta}{log(scale) + X beta}, the log of each
+record's Weibull scale parameter (the scale of
+\code{predict(survival::survreg(...), type = "lp")}). When the design
+matrix has an intercept column, the reported intercepts already include
+\eqn{\log(\mathrm{scale})}{log(scale)} (the identified intercepts; see
+\code{\link{survregMixBayes}}), so the linear predictor is \eqn{X\beta}{X beta}
+with these coefficients; otherwise \eqn{\log(\mathrm{scale})}{log(scale)}
+is added to \eqn{X\beta}{X beta}.
+
 Component 1 is interpreted as the correct-match component and
 component 2 as the incorrect-match component (after label-switching
 correction).
 }
 \examples{
-\donttest{
 set.seed(301)
 n <- 150
 trt <- rbinom(n, 1, 0.5)
@@ -83,13 +113,14 @@ fit <- plsurvreg(
   )
 )
 
-# Create a design matrix for new covariate values
-newdata <- stats::model.matrix(~ trt, data = data.frame(trt = c(0, 1)))
-
 # Predict posterior mean linear predictors for each latent component
-preds <- predict(fit, newdata = newdata, se.fit = TRUE, interval = "credible")
+preds <- predict(fit, newdata = data.frame(trt = c(0, 1)), se.fit = TRUE,
+                 interval = "credible")
 print(preds$component1)
 print(preds$component2)
-}
+
+# the same with a design matrix
+newx <- stats::model.matrix(~ trt, data = data.frame(trt = c(0, 1)))
+predict(fit, newdata = newx)$component1
 
 }
