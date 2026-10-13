@@ -14,7 +14,8 @@ This is a update of the archived postlink 0.1.1 addressing the CRAN check issues
 -   GitHub Actions: macOS-latest (release)
 -   GitHub Actions: windows-latest (release)
 -   GitHub Actions: ubuntu-latest (devel, release, oldrel-1)
--   win-builder (devel)
+-   win-builder (R-devel) (https://win-builder.r-project.org/)
+-   Local Windows 11 (64-bit), R 4.5.0: `R CMD check --as-cran`
 
 ## R CMD check results
 
