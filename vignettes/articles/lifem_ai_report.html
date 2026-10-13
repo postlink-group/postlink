@@ -1,0 +1,60 @@
+<!DOCTYPE html><html><head><title>postlink Analysis Report</title><style>body{font-family:Georgia,serif;max-width:820px;margin:2.5em auto;line-height:1.7;color:#222}h1{font-size:1.8em;border-bottom:2px solid #333;padding-bottom:.3em}h2{font-size:1.3em;color:#444;margin-top:2em}h3{font-size:1.1em;color:#555}table{border-collapse:collapse;width:100%;margin:1em 0}th,td{border:1px solid #ccc;padding:8px 12px;text-align:left}th{background:#f5f5f5}blockquote{border-left:4px solid #f0ad4e;padding:.5em 1em;background:#fffbe6}code{background:#f4f4f4;padding:2px 5px;border-radius:3px}</style></head><body>
+<h1>postlink Analysis Report</h1>
+<p><em>August 30, 2026</em></p>
+
+<h2>Data</h2>
+
+The linked dataset contains <strong>156,453 records</strong>. The outcome variable is <strong>age at death (years)</strong> and the main predictor is <strong>year of birth</strong>. 
+<h2>Methods</h2>
+
+Linkage error was accounted for using <strong>postlink</strong> (R package, v0.1.0; Bukke et al., 2026). The outcome (age at death (years)) was modelled using Gaussian (linear) regression with formula <code>age_at_death ~ poly(unit_yob, 3, raw = TRUE)</code>. Linkage error correction used an EM-based two-component mixture model (Slawski et al., 2025). Each record pair is modelled as either a correct match (C = 1) or a false link (C = 0). The EM algorithm alternates between estimating posterior correct match probabilities (E-step) and updating the regression parameters for true matches (M-step). The EM algorithm converged. The mean posterior correct match probability was 0.9 (65.6% of records exceeded 0.9), implying an estimated mismatch rate of approximately 10%. 
+
+<h3>Mismatch Model Coefficients</h3>
+95% confidence intervals for the mismatch model coefficients are shown below. These describe how linkage quality covariates predict correct match probability and are reported as supplementary information.
+
+<table>
+<thead><tr><th>Term</th><th>95% CI Lower</th><th>95% CI Upper</th></tr></thead>
+<tbody>
+<tr><td>(Intercept)</td><td> 4.9355</td><td> 6.7751</td></tr>
+<tr><td>commf</td><td> 0.3946</td><td> 2.5015</td></tr>
+<tr><td>comml</td><td>-7.7461</td><td>-6.4727</td></tr>
+</tbody>
+</table>
+<h2>Results</h2>
+
+<blockquote>The narrative below was drafted by an AI language model using exact numerical outputs from the model. Review and edit before submitting or publishing.</blockquote>
+
+The EM mixture model–adjusted estimates, which correct for the approximately 5% expected mismatch rate among machine-linked records, reveal a statistically significant nonlinear relationship between year of birth and age at death across all three polynomial terms (all p < 0.05). The adjusted intercept was 58.63 (95% CI: 58.34, 58.91), with linear, quadratic, and cubic year-of-birth coefficients of −51.17 (95% CI: −54.20, −48.13), 140.54 (95% CI: 132.95, 148.12), and −76.92 (95% CI: −82.01, −71.83), respectively. Compared to the naive model estimated on all records without linkage correction, the adjusted linear term was meaningfully more negative (−51.17 vs. −46.70), the quadratic term was larger (140.54 vs. 130.41), and the cubic term was more strongly negative (−76.92 vs. −72.94), suggesting that false links in the naive model attenuated the estimated curvature of the birth-year–longevity relationship. The adjusted estimates also diverged modestly from those obtained using the small hand-linked subsample alone (n = 2,159), with the full adjusted model yielding more pronounced polynomial coefficients, reflecting greater statistical precision while still accounting for linkage error.
+
+<h3>Model Comparison</h3>
+The table below compares coefficient estimates (SE) across all models. The primary adjusted model corrects for record linkage error; differences from the naive model reflect the impact of this correction.
+
+<table>
+<thead><tr><th>Term</th><th>Naive (All Records)</th><th>Hand-Linked Only</th><th>Adjusted</th></tr></thead>
+<tbody>
+<tr><td>(Intercept)</td><td>58.4994 (0.2149)</td><td>57.6558 (1.2603)</td><td>58.6292 (0.1451)</td></tr>
+<tr><td>poly(unit_yob, 3, raw = TRUE)1</td><td>-46.7007 (1.7897)</td><td>-44.2281 (11.5935)</td><td>-51.1659 (1.5498)</td></tr>
+<tr><td>poly(unit_yob, 3, raw = TRUE)2</td><td>130.4127 (3.9923)</td><td>118.5657 (27.9187)</td><td>140.5362 (3.8685)</td></tr>
+<tr><td>poly(unit_yob, 3, raw = TRUE)3</td><td>-72.9382 (2.5188)</td><td>-59.9173 (18.4589)</td><td>-76.9233 (2.5964)</td></tr>
+<tr><td>n</td><td>156,453</td><td>2,159</td><td>156,453</td></tr>
+</tbody>
+</table>
+
+<h3>Adjusted Model — Coefficient Table</h3>
+<table>
+<thead><tr><th>Term</th><th>Estimate</th><th>SE</th><th>z</th><th>p-value</th><th>95% CI Lower</th><th>95% CI Upper</th></tr></thead>
+<tbody>
+<tr><td>(Intercept)</td><td> 58.6292</td><td>0.1451</td><td>404.061</td><td>0 *</td><td> 58.3448</td><td> 58.9136</td></tr>
+<tr><td>poly(unit_yob, 3, raw = TRUE)1</td><td>-51.1659</td><td>1.5498</td><td>-33.015</td><td>0 *</td><td>-54.2034</td><td>-48.1284</td></tr>
+<tr><td>poly(unit_yob, 3, raw = TRUE)2</td><td>140.5362</td><td>3.8685</td><td> 36.328</td><td>0 *</td><td>132.9541</td><td>148.1183</td></tr>
+<tr><td>poly(unit_yob, 3, raw = TRUE)3</td><td>-76.9233</td><td>2.5964</td><td>-29.627</td><td>0 *</td><td>-82.0122</td><td>-71.8345</td></tr>
+</tbody>
+</table>
+
+<p><em>* p &lt; 0.05</em></p>
+<h2>References</h2>
+
+<p>postlink R package (v0.1.0). Bukke, P., Kamat, G., Cui, J., Gutman, R., & Slawski, M. https://postlink-group.github.io/postlink/</p>
+<p>Slawski, M., West, B. T., Bukke, P., Wang, Z., Diao, G., & Ben-David, E. (2025). A general framework for regression with mismatched data based on mixture modelling. *Journal of the Royal Statistical Society Series A*, 188(3), 896-919.</p>
+
+</body></html>
