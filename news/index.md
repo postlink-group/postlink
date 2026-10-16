@@ -2,6 +2,8 @@
 
 ## **postlink 0.1.2**
 
+CRAN release: 2026-10-13
+
 #### Bug Fixes
 
 - Migrated `.stan` models to the new Stan `array[...]` syntax to resolve

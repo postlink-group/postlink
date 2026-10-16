@@ -134,9 +134,9 @@ fit <- plsurvreg(
 #> Chain 1: Iteration: 180 / 200 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 200 / 200 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.295 seconds (Warm-up)
-#> Chain 1:                0.238 seconds (Sampling)
-#> Chain 1:                0.533 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.3 seconds (Warm-up)
+#> Chain 1:                0.244 seconds (Sampling)
+#> Chain 1:                0.544 seconds (Total)
 #> Chain 1: 
 #> Warning: The largest R-hat is 1.29, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
@@ -152,7 +152,7 @@ fit <- plsurvreg(
 #>     ......................................................................................
 #>     . Method                         Time (sec)           Status                         . 
 #>     ......................................................................................
-#>     . ECR-ITERATIVE-1                0.067                Converged (3 iterations)       . 
+#>     . ECR-ITERATIVE-1                0.073                Converged (3 iterations)       . 
 #>     ......................................................................................
 #> 
 #>     Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
