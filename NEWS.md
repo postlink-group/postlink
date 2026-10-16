@@ -9,6 +9,9 @@
 ### Documentation
 * Update the formatting of references in README.
 
+### Other
+* Removed the non-portable flag(s): '-Wa,-mbig-obj'.
+  
 # **postlink 0.1.1**
 
 ### New Features
