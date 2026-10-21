@@ -10,7 +10,7 @@ link-citations: true
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = TRUE 
+  eval = FALSE
 )
 ```
 
@@ -29,6 +29,12 @@ url <- "https://github.com/postlink-group/postlink/releases/download/v0.1.0/life
 lifem_data <- readRDS(url(url, "rb"))
 
 head(lifem_data, n = 5) # 156,453 records w/ 6 variables
+#>    yob   unit_yob age_at_death hndlnk commf comml
+#> 1 1905 0.95652174           83  FALSE  0.77  0.45
+#> 2 1883 0.00000000           79   TRUE  0.93  0.08
+#> 3 1886 0.13043478           58  FALSE  0.89  0.80
+#> 4 1885 0.08695652           58  FALSE  0.72  0.42
+#> 5 1886 0.13043478           42  FALSE  0.74  0.61
 ```
 
 The age at death (in years) `age_at_death` is the response variable ($Y_{A}$) and the year of birth (rescaled to the unit interval for analysis) `unit_yob` is used as a predictor variable ($X_{B}$). We assume a Gaussian regression model for the predictor-response relationship and use a cubic polynomial to describe the non-linear relationship observed for the birth cohorts.
@@ -45,6 +51,27 @@ The Gaussian regression model that does not adjust for possible linkage errors c
 fit_naive <- glm(age_at_death ~ poly(unit_yob, 3, raw = TRUE),
               data = lifem_data, family = "gaussian")
 summary(fit_naive)
+#> 
+#> Call:
+#> glm(formula = age_at_death ~ poly(unit_yob, 3, raw = TRUE), family = "gaussian", 
+#>     data = lifem_data)
+#> 
+#> Coefficients:
+#>                                Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)                     58.4994     0.2149  272.22   <2e-16 ***
+#> poly(unit_yob, 3, raw = TRUE)1 -46.7007     1.7897  -26.09   <2e-16 ***
+#> poly(unit_yob, 3, raw = TRUE)2 130.4127     3.9923   32.67   <2e-16 ***
+#> poly(unit_yob, 3, raw = TRUE)3 -72.9382     2.5188  -28.96   <2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for gaussian family taken to be 450.3995)
+#> 
+#>     Null deviance: 75831134  on 156452  degrees of freedom
+#> Residual deviance: 70464555  on 156449  degrees of freedom
+#> AIC: 1399949
+#> 
+#> Number of Fisher Scoring iterations: 2
 ```
 
 ## **3. Hand-Linked Only Approach**
@@ -55,6 +82,27 @@ Alternatively, the analysis could be limited to the records that were hand-linke
 fit_hl <- glm(age_at_death ~ poly(unit_yob, 3, raw = TRUE), 
               data = lifem_data[lifem_data$hndlnk,], family = "gaussian")
 summary(fit_hl)
+#> 
+#> Call:
+#> glm(formula = age_at_death ~ poly(unit_yob, 3, raw = TRUE), family = "gaussian", 
+#>     data = lifem_data[lifem_data$hndlnk, ])
+#> 
+#> Coefficients:
+#>                                Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)                       57.66       1.26  45.748  < 2e-16 ***
+#> poly(unit_yob, 3, raw = TRUE)1   -44.23      11.59  -3.815  0.00014 ***
+#> poly(unit_yob, 3, raw = TRUE)2   118.57      27.92   4.247 2.26e-05 ***
+#> poly(unit_yob, 3, raw = TRUE)3   -59.92      18.46  -3.246  0.00119 ** 
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for gaussian family taken to be 360.4084)
+#> 
+#>     Null deviance: 881640  on 2158  degrees of freedom
+#> Residual deviance: 776680  on 2155  degrees of freedom
+#> AIC: 18844
+#> 
+#> Number of Fisher Scoring iterations: 2
 ```
 
 ## **4. Adjustment Approach**
@@ -98,6 +146,15 @@ adj_lifem <- adjMixture(
     safe.matches = hndlnk                
   )
 print(adj_lifem)
+#> 
+#>  Adjustment Object: Mixture Model 
+#> 
+#> * Linked Data:
+#>     Observations:   156,453
+#> * Specification:
+#>     Mismatch Model:        ~commf + comml
+#>     Global Mismatch Rate: 0.05 (Constrained)
+#>     Safe Matches:         2,159 (1.4%)
 ```
 
 **II. Estimation and Inference**. We pass the resulting *Adjustment* object to the `plglm()` wrapper. This merges the paradata with the formula for the model of specific interest to implement the linkage errors adjusted estimates,
@@ -108,18 +165,52 @@ fit_adj <- plglm(
     adjustment = adj_lifem
   )
 summary(fit_adj)
+#> 
+#> Call:
+#> plglm(formula = age_at_death ~ poly(unit_yob, 3, raw = TRUE), 
+#>     family = "gaussian", adjustment = adj_lifem)
+#> 
+#> Outcome Model Coefficients:
+#>                                Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)                     58.6292     0.1428  410.59   <2e-16 ***
+#> poly(unit_yob, 3, raw = TRUE)1 -51.1659     1.5179  -33.71   <2e-16 ***
+#> poly(unit_yob, 3, raw = TRUE)2 140.5362     3.8042   36.94   <2e-16 ***
+#> poly(unit_yob, 3, raw = TRUE)3 -76.9233     2.5712  -29.92   <2e-16 ***
+#> 
+#> Mismatch Model Coefficients:
+#>             Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)  -5.8553     0.5564 -10.523  < 2e-16 ***
+#> commf        -1.4481     0.5373  -2.695  0.00703 ** 
+#> comml         7.1094     0.4734  15.017  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for gaussian family taken to be 426.3)
+#> 
+#> Average Correct Match Probability: 0.899
 ```
 
 The average correct match rate refers to the mean of the posterior correct match probabilities for all of the records. The probability for each record is accessible through the `fit` object in the `match.prob` vector. For safe matches, the probability is set to 1.
 
 ```{r}
 str(fit_adj$match.prob)
+#>  Named num [1:156453] 0.984 1 0.821 0.982 0.948 ...
+#>  - attr(*, "names")= chr [1:156453] "1" "2" "3" "4" ...
 ```
 
 For the model of primary interest, the `confint()` function provides confidence intervals for the coefficients. The default confidence level is $0.95$.
 
 ```{r}
 confint(fit_adj)
+#>                                          2.5 %      97.5 %
+#> coef (Intercept)                     58.349322  58.9090652
+#> coef poly(unit_yob, 3, raw = TRUE)1 -54.141043 -48.1908256
+#> coef poly(unit_yob, 3, raw = TRUE)2 133.080031 147.9923349
+#> coef poly(unit_yob, 3, raw = TRUE)3 -81.962756 -71.8839293
+#> dispersion                          422.969758 429.6395526
+#> m.coef (Intercept)                   -6.945826  -4.7646968
+#> m.coef commf                         -2.501109  -0.3950481
+#> m.coef comml                          6.181537   8.0372981
 ```
 
 The `predict()` function computes the predicted ages at death for the 1883 - 1906 birth cohorts along with point-wise standard errors and $95\%$ confidence intervals. The predictions type is set to "link" (i.e., linear predictors) by default.
@@ -127,6 +218,14 @@ The `predict()` function computes the predicted ages at death for the 1883 - 190
 ```{r}
 predictions <- predict(fit_adj, se.fit = TRUE, interval = "confidence")
 str(predictions)
+#> List of 3
+#>  $ fit           : num [1:156453, 1:3] 70.9 58.6 54.2 55.2 54.2 ...
+#>   ..- attr(*, "dimnames")=List of 2
+#>   .. ..$ : chr [1:156453] "1" "2" "3" "4" ...
+#>   .. ..$ : NULL
+#>  $ se.fit        : Named num [1:156453] 0.1208 0.1428 0.0788 0.0798 0.0788 ...
+#>   ..- attr(*, "names")= chr [1:156453] "1" "2" "3" "4" ...
+#>  $ residual.scale: num 20.6
 ```
 
 ## **5. Comparison**

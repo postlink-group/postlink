@@ -10,7 +10,7 @@ link-citations: true
 csl: "https://raw.githubusercontent.com/citation-style-language/styles/master/apa.csl"
 vignette: >
   %\VignetteEncoding{UTF-8}
-  %\VignetteIndexEntry{postlink: Post-Linkage Data Analysis in R}
+  %\VignetteIndexEntry{postlink: An R Package for Post-Linkage Data Analysis}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   markdown: 
@@ -1162,7 +1162,7 @@ of substantive interest when classifying between true and false links,
 so that the analysis model is more restrictive than the imputation model
 [@meng1994multiple; @kamatreview].
 
-![](images/clipboard-2038809973.png){fig-align="center" width="690"}
+![](images/covariate_plot.png){fig-align="center" width="690"}
 
 *Figure 3: Correction for Attenuation Bias from Linkage Errors in
 Logistic Regression. The dashed line represents the true Oracle

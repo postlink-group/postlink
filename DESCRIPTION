@@ -46,5 +46,9 @@ LinkingTo:
     StanHeaders (>= 2.26.0)
 SystemRequirements: GNU make
 URL: https://postlink-group.github.io/postlink/
-Config/Needs/website: rmarkdown
+Config/Needs/website: 
+    rmarkdown,
+    knitr,
+    dplyr,
+    ggplot2
 Config/roxygen2/version: 8.1.0
