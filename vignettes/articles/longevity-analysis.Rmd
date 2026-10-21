@@ -10,7 +10,7 @@ link-citations: true
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE 
+  eval = TRUE 
 )
 ```
 
@@ -31,8 +31,6 @@ lifem_data <- readRDS(url(url, "rb"))
 head(lifem_data, n = 5) # 156,453 records w/ 6 variables
 ```
 
-![](images/clipboard-894756773.png)
-
 The age at death (in years) `age_at_death` is the response variable ($Y_{A}$) and the year of birth (rescaled to the unit interval for analysis) `unit_yob` is used as a predictor variable ($X_{B}$). We assume a Gaussian regression model for the predictor-response relationship and use a cubic polynomial to describe the non-linear relationship observed for the birth cohorts.
 
 In the following sections, we walk through the overall workflow for the secondary analysis of the LIFE-M data set using an adjustment method for mismatch errors. For reference, alternative approaches using standard `stats::glm()` function in R are included in comparison.
@@ -49,8 +47,6 @@ fit_naive <- glm(age_at_death ~ poly(unit_yob, 3, raw = TRUE),
 summary(fit_naive)
 ```
 
-![](images/clipboard-1967366050.png)
-
 ## **3. Hand-Linked Only Approach**
 
 Alternatively, the analysis could be limited to the records that were hand-linked. However, this procedure discards the majority of the linked data and suffers from significant loss of power.
@@ -60,8 +56,6 @@ fit_hl <- glm(age_at_death ~ poly(unit_yob, 3, raw = TRUE),
               data = lifem_data[lifem_data$hndlnk,], family = "gaussian")
 summary(fit_hl)
 ```
-
-![](images/clipboard-3201197499.png)
 
 ## **4. Adjustment Approach**
 
@@ -106,8 +100,6 @@ adj_lifem <- adjMixture(
 print(adj_lifem)
 ```
 
-![](images/clipboard-2866077792.png)
-
 **II. Estimation and Inference**. We pass the resulting *Adjustment* object to the `plglm()` wrapper. This merges the paradata with the formula for the model of specific interest to implement the linkage errors adjusted estimates,
 
 ```{r}
@@ -118,15 +110,11 @@ fit_adj <- plglm(
 summary(fit_adj)
 ```
 
-![](images/clipboard-3580686908.png)
-
 The average correct match rate refers to the mean of the posterior correct match probabilities for all of the records. The probability for each record is accessible through the `fit` object in the `match.prob` vector. For safe matches, the probability is set to 1.
 
 ```{r}
 str(fit_adj$match.prob)
 ```
-
-![](images/clipboard-366413255.png)
 
 For the model of primary interest, the `confint()` function provides confidence intervals for the coefficients. The default confidence level is $0.95$.
 
@@ -134,16 +122,12 @@ For the model of primary interest, the `confint()` function provides confidence 
 confint(fit_adj)
 ```
 
-![](images/clipboard-128516201.png)
-
 The `predict()` function computes the predicted ages at death for the 1883 - 1906 birth cohorts along with point-wise standard errors and $95\%$ confidence intervals. The predictions type is set to "link" (i.e., linear predictors) by default.
 
 ```{r}
 predictions <- predict(fit_adj, se.fit = TRUE, interval = "confidence")
 str(predictions)
 ```
-
-![](images/clipboard-2903449795.png)
 
 ## **5. Comparison**
 
