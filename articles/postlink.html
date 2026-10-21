@@ -759,9 +759,9 @@ continuous and binary predictors. The true, unknown parameters are <span class="
 \texttt{BMI}_i, \texttt{Age}_i, \texttt{Treatment}_i)) = \beta_0 +
 \beta_{\texttt{BMI}}\texttt{BMI}_i + \beta_{\texttt{Age}}\texttt{Age}_i
 + \beta_{\texttt{Treatment}}\texttt{Treatment}_i</span></p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>R<span class="sc">&gt;</span> LD1000 <span class="ot">&lt;-</span> LD1000 <span class="sc">%&gt;%</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="sc">+</span>           <span class="fu">mutate</span>(<span class="at">BMI =</span> <span class="fu">as.numeric</span>(<span class="fu">scale</span>(BMI)),</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="sc">+</span>                  <span class="at">Age =</span> <span class="fu">as.numeric</span>(<span class="fu">scale</span>(Age)))</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">LD1000</span><span class="op">$</span><span class="va">BMI</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale</a></span><span class="op">(</span><span class="va">LD1000</span><span class="op">$</span><span class="va">BMI</span><span class="op">)</span><span class="op">)</span> </span>
+<span><span class="va">LD1000</span><span class="op">$</span><span class="va">Age</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale</a></span><span class="op">(</span><span class="va">LD1000</span><span class="op">$</span><span class="va">Age</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>In the secondary analysis setting, the analyst has access to the
 variables of interest merged from both files
 (<code>Disease_Status</code>, <code>BMI</code>, <code>Age</code>,
@@ -949,7 +949,7 @@ model coefficients correspond to <span class="math inline">\boldsymbol{\beta} = 
 <span class="math inline">-\boldsymbol{\xi}</span>, based on Equation
 (4) in Section 3.2. Below, <code>fl_prob</code> is taken as a predictor
 in this model based the specified <code>adj_em_all</code>. While the
-positive estimate supports that higher <code>fl_prob</code>
+negative estimate supports that higher <code>fl_prob</code>
 probabilities predict correct matches, the concentration of values near
 0 and 1 can inflate the standard error, contributing to a
 non-significant <span class="math inline">p</span>-value (see Figure
@@ -1062,7 +1062,7 @@ covariates among falsely linked records.</p>
 <span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a><span class="sc">+</span>                     <span class="at">control =</span> <span class="fu">list</span>(<span class="at">seed =</span> <span class="dv">2026</span>))</span>
 <span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a>R<span class="sc">&gt;</span> <span class="fu">summary</span>(fit_bayes)</span>
 <span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a><span class="co">#&gt; plglm(formula = formula_sci, family = "binomial", adjustment = adj_bayes_strong, </span></span>
+<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a><span class="co">#&gt; plglm(formula = formula_sci, family = "binomial", adjustment = adj_bayes, </span></span>
 <span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a><span class="co">#&gt;     control = list(seed = 2026))</span></span>
 <span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a><span class="co">#&gt;  </span></span>
 <span id="cb26-9"><a href="#cb26-9" tabindex="-1"></a><span class="co">#&gt; Family:</span></span>
@@ -1186,7 +1186,7 @@ from the benchmark models and post-linkage adjustment methods.</em></p>
 <td align="center">0.165</td>
 </tr>
 <tr class="odd">
-<td align="left">3. Naive (Exact Matches Only)</td>
+<td align="left">3. Naive (Safe Matches Only)</td>
 <td align="center">-0.855</td>
 <td align="center">0.380</td>
 <td align="center">0.838</td>
@@ -1219,7 +1219,7 @@ from the benchmark models and post-linkage adjustment methods.</em></p>
 <td align="center">0.341</td>
 </tr>
 <tr class="even">
-<td align="left">6. EM (Exact Matches Only)</td>
+<td align="left">6. EM (Safe Matches Only)</td>
 <td align="center">-0.837</td>
 <td align="center">0.136</td>
 <td align="center">1.129</td>
@@ -1303,7 +1303,7 @@ pre-computed adjustment object:</p>
 <span id="cb27-12"><a href="#cb27-12" tabindex="-1"></a><span class="co">#&gt; Treatment     -1.182     0.238 -1.649 -0.715 61465</span></span></code></pre></div>
 <p>As detailed in the output, the marginal term for
 <code>Treatment</code> is estimated to be significantly different from
-zero at the 5% nominal level (95% CI: -1.648, -0.713), which is
+zero at the 5% nominal level (95% CI: -1.649, -0.715), which is
 consistent with the underlying data-generating process. This model
 exploration utilized 9,000 posterior draws as imputed datasets,
 demonstrating how linkage error estimation can be decoupled from
@@ -1314,8 +1314,8 @@ classifying between true and false links, so that the analysis model is
 more restrictive than the imputation model <span class="citation">(<a href="#ref-kamatreview">Kamat &amp; Gutman, 2026</a>; <a href="#ref-meng1994multiple">Meng, 1994</a>)</span>.</p>
 <p><img src="images/covariate_plot.png" fig-align="center" width="690"></p>
 <p><em>Figure 3: Correction for Attenuation Bias from Linkage Errors in
-Logistic Regression. The dashed line represents the true Oracle
-estimates.</em></p>
+Logistic Regression. The dashed line represents the true parameter
+values.</em></p>
 </div>
 </div>
 <div class="section level2">
