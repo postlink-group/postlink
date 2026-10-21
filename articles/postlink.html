@@ -321,19 +321,6 @@ supporting standard post-modeling generics such as
 <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>. For Bayesian adjustments, multiple imputation
 pooling is supported with a generic <code><a href="../reference/mi_with.html">mi_with()</a></code> function.</p>
 </div>
-<div class="section level3">
-<h3 id="dual-access-interface">Dual-Access Interface<a class="anchor" aria-label="anchor" href="#dual-access-interface"></a>
-</h3>
-<p>Complementing the two-phase workflow, the underlying computational
-routines are also available (e.g., <code><a href="../reference/glmELE.html">glmELE()</a></code>,
-<code><a href="../reference/coxphMixture.html">coxphMixture()</a></code>, <code><a href="../reference/survregMixBayes.html">survregMixBayes()</a></code>). The S3
-framework can be bypassed to invoke these routines directly, a
-capability advantageous for performance-critical tasks, such as
-large-scale simulation studies, or for developers prototyping new
-adjustment algorithms. This decoupling also ensures that emerging PLDA
-methodologies can be integrated without altering the established
-modeling syntax.</p>
-</div>
 </div>
 <div class="section level2">
 <h2 id="sec-methods">3. Adjustment Methods for Secondary Analysis<a class="anchor" aria-label="anchor" href="#sec-methods"></a>

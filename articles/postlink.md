@@ -228,20 +228,6 @@ adjustments, multiple imputation pooling is supported with a generic
 [`mi_with()`](https://postlink-group.github.io/postlink/reference/mi_with.md)
 function.
 
-### Dual-Access Interface
-
-Complementing the two-phase workflow, the underlying computational
-routines are also available (e.g.,
-[`glmELE()`](https://postlink-group.github.io/postlink/reference/glmELE.md),
-[`coxphMixture()`](https://postlink-group.github.io/postlink/reference/coxphMixture.md),
-[`survregMixBayes()`](https://postlink-group.github.io/postlink/reference/survregMixBayes.md)).
-The S3 framework can be bypassed to invoke these routines directly, a
-capability advantageous for performance-critical tasks, such as
-large-scale simulation studies, or for developers prototyping new
-adjustment algorithms. This decoupling also ensures that emerging PLDA
-methodologies can be integrated without altering the established
-modeling syntax.
-
 ## 3. Adjustment Methods for Secondary Analysis
 
 We describe the theoretical foundation for the secondary analysis
