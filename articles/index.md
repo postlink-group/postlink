@@ -13,3 +13,6 @@
 
   A case study demonstrating the postlink workflow for linear
   regression.
+
+- [postlink: An R Package for Post-Linkage Data
+  Analysis](https://postlink-group.github.io/postlink/articles/postlink.md):

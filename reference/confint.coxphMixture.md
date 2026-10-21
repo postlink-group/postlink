@@ -87,7 +87,7 @@ confint(fit)
 #> x2 -2.1429623 -0.4823973
 #>            NA         NA
 #>            NA         NA
-confint(fit, parm = "treatment", level = 0.90)
-#>           5 % 95 %
-#> treatment  NA   NA
+confint(fit, parm = "x1", level = 0.90)
+#>          5 %     95 %
+#> x1 0.7458495 1.527256
 ```

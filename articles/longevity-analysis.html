@@ -38,6 +38,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../articles/postlink.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
@@ -118,8 +119,13 @@ displayed below. Each line represents a distinct individual.</p>
 <code class="sourceCode R"><span><span class="va">url</span> <span class="op">&lt;-</span> <span class="st">"https://github.com/postlink-group/postlink/releases/download/v0.1.0/lifem.rds"</span></span>
 <span><span class="va">lifem_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/connections.html" class="external-link">url</a></span><span class="op">(</span><span class="va">url</span>, <span class="st">"rb"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">lifem_data</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="co"># 156,453 records w/ 6 variables</span></span></code></pre></div>
-<p><img src="images/clipboard-894756773.png"></p>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">lifem_data</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="co"># 156,453 records w/ 6 variables</span></span>
+<span><span class="co">#&gt;    yob   unit_yob age_at_death hndlnk commf comml</span></span>
+<span><span class="co">#&gt; 1 1905 0.95652174           83  FALSE  0.77  0.45</span></span>
+<span><span class="co">#&gt; 2 1883 0.00000000           79   TRUE  0.93  0.08</span></span>
+<span><span class="co">#&gt; 3 1886 0.13043478           58  FALSE  0.89  0.80</span></span>
+<span><span class="co">#&gt; 4 1885 0.08695652           58  FALSE  0.72  0.42</span></span>
+<span><span class="co">#&gt; 5 1886 0.13043478           42  FALSE  0.74  0.61</span></span></code></pre></div>
 <p>The age at death (in years) <code>age_at_death</code> is the response
 variable (<span class="math inline">Y_{A}</span>) and the year of birth
 (rescaled to the unit interval for analysis) <code>unit_yob</code> is
@@ -147,8 +153,28 @@ linkage errors can be estimated using the standard <code><a href="https://rdrr.i
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_naive</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></span><span class="op">(</span><span class="va">age_at_death</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/stats/poly.html" class="external-link">poly</a></span><span class="op">(</span><span class="va">unit_yob</span>, <span class="fl">3</span>, raw <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>              data <span class="op">=</span> <span class="va">lifem_data</span>, family <span class="op">=</span> <span class="st">"gaussian"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_naive</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/clipboard-1967366050.png"></p>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_naive</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; glm(formula = age_at_death ~ poly(unit_yob, 3, raw = TRUE), family = "gaussian", </span></span>
+<span><span class="co">#&gt;     data = lifem_data)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;                                Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)                     58.4994     0.2149  272.22   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; poly(unit_yob, 3, raw = TRUE)1 -46.7007     1.7897  -26.09   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; poly(unit_yob, 3, raw = TRUE)2 130.4127     3.9923   32.67   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; poly(unit_yob, 3, raw = TRUE)3 -72.9382     2.5188  -28.96   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 450.3995)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     Null deviance: 75831134  on 156452  degrees of freedom</span></span>
+<span><span class="co">#&gt; Residual deviance: 70464555  on 156449  degrees of freedom</span></span>
+<span><span class="co">#&gt; AIC: 1399949</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="hand-linked-only-approach">
@@ -160,8 +186,28 @@ data and suffers from significant loss of power.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_hl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></span><span class="op">(</span><span class="va">age_at_death</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/stats/poly.html" class="external-link">poly</a></span><span class="op">(</span><span class="va">unit_yob</span>, <span class="fl">3</span>, raw <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, </span>
 <span>              data <span class="op">=</span> <span class="va">lifem_data</span><span class="op">[</span><span class="va">lifem_data</span><span class="op">$</span><span class="va">hndlnk</span>,<span class="op">]</span>, family <span class="op">=</span> <span class="st">"gaussian"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_hl</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/clipboard-3201197499.png"></p>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_hl</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; glm(formula = age_at_death ~ poly(unit_yob, 3, raw = TRUE), family = "gaussian", </span></span>
+<span><span class="co">#&gt;     data = lifem_data[lifem_data$hndlnk, ])</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;                                Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)                       57.66       1.26  45.748  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; poly(unit_yob, 3, raw = TRUE)1   -44.23      11.59  -3.815  0.00014 ***</span></span>
+<span><span class="co">#&gt; poly(unit_yob, 3, raw = TRUE)2   118.57      27.92   4.247 2.26e-05 ***</span></span>
+<span><span class="co">#&gt; poly(unit_yob, 3, raw = TRUE)3   -59.92      18.46  -3.246  0.00119 ** </span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 360.4084)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     Null deviance: 881640  on 2158  degrees of freedom</span></span>
+<span><span class="co">#&gt; Residual deviance: 776680  on 2155  degrees of freedom</span></span>
+<span><span class="co">#&gt; AIC: 18844</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="adjustment-approach">
@@ -241,8 +287,16 @@ used in the framework (<span class="citation">Slawski et al. (<a href="#ref-slaw
 <span>    m.rate <span class="op">=</span> <span class="fl">0.05</span>,                               </span>
 <span>    safe.matches <span class="op">=</span> <span class="va">hndlnk</span>                </span>
 <span>  <span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">adj_lifem</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/clipboard-2866077792.png"></p>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">adj_lifem</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  Adjustment Object: Mixture Model </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; * Linked Data:</span></span>
+<span><span class="co">#&gt;     Observations:   156,453</span></span>
+<span><span class="co">#&gt; * Specification:</span></span>
+<span><span class="co">#&gt;     Mismatch Model:        ~commf + comml</span></span>
+<span><span class="co">#&gt;     Global Mismatch Rate: 0.05 (Constrained)</span></span>
+<span><span class="co">#&gt;     Safe Matches:         2,159 (1.4%)</span></span></code></pre></div>
 <p><strong>II. Estimation and Inference</strong>. We pass the resulting
 <em>Adjustment</em> object to the <code><a href="../reference/plglm.html">plglm()</a></code> wrapper. This
 merges the paradata with the formula for the model of specific interest
@@ -252,22 +306,53 @@ to implement the linkage errors adjusted estimates,</p>
 <span>    <span class="va">age_at_death</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/stats/poly.html" class="external-link">poly</a></span><span class="op">(</span><span class="va">unit_yob</span>, <span class="fl">3</span>, raw <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, family <span class="op">=</span> <span class="st">"gaussian"</span>,</span>
 <span>    adjustment <span class="op">=</span> <span class="va">adj_lifem</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_adj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/clipboard-3580686908.png"></p>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_adj</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; plglm(formula = age_at_death ~ poly(unit_yob, 3, raw = TRUE), </span></span>
+<span><span class="co">#&gt;     family = "gaussian", adjustment = adj_lifem)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Outcome Model Coefficients:</span></span>
+<span><span class="co">#&gt;                                Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)                     58.6292     0.1428  410.59   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; poly(unit_yob, 3, raw = TRUE)1 -51.1659     1.5179  -33.71   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; poly(unit_yob, 3, raw = TRUE)2 140.5362     3.8042   36.94   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; poly(unit_yob, 3, raw = TRUE)3 -76.9233     2.5712  -29.92   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Mismatch Model Coefficients:</span></span>
+<span><span class="co">#&gt;             Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
+<span><span class="co">#&gt; (Intercept)  -5.8553     0.5564 -10.523  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; commf        -1.4481     0.5373  -2.695  0.00703 ** </span></span>
+<span><span class="co">#&gt; comml         7.1094     0.4734  15.017  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 426.3)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Average Correct Match Probability: 0.899</span></span></code></pre></div>
 <p>The average correct match rate refers to the mean of the posterior
 correct match probabilities for all of the records. The probability for
 each record is accessible through the <code>fit</code> object in the
 <code>match.prob</code> vector. For safe matches, the probability is set
 to 1.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">fit_adj</span><span class="op">$</span><span class="va">match.prob</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/clipboard-366413255.png"></p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">fit_adj</span><span class="op">$</span><span class="va">match.prob</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  Named num [1:156453] 0.984 1 0.821 0.982 0.948 ...</span></span>
+<span><span class="co">#&gt;  - attr(*, "names")= chr [1:156453] "1" "2" "3" "4" ...</span></span></code></pre></div>
 <p>For the model of primary interest, the <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code>
 function provides confidence intervals for the coefficients. The default
 confidence level is <span class="math inline">0.95</span>.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit_adj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/clipboard-128516201.png"></p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit_adj</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                                          2.5 %      97.5 %</span></span>
+<span><span class="co">#&gt; coef (Intercept)                     58.349322  58.9090652</span></span>
+<span><span class="co">#&gt; coef poly(unit_yob, 3, raw = TRUE)1 -54.141043 -48.1908256</span></span>
+<span><span class="co">#&gt; coef poly(unit_yob, 3, raw = TRUE)2 133.080031 147.9923349</span></span>
+<span><span class="co">#&gt; coef poly(unit_yob, 3, raw = TRUE)3 -81.962756 -71.8839293</span></span>
+<span><span class="co">#&gt; dispersion                          422.969758 429.6395526</span></span>
+<span><span class="co">#&gt; m.coef (Intercept)                   -6.945826  -4.7646968</span></span>
+<span><span class="co">#&gt; m.coef commf                         -2.501109  -0.3950481</span></span>
+<span><span class="co">#&gt; m.coef comml                          6.181537   8.0372981</span></span></code></pre></div>
 <p>The <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> function computes the predicted ages at
 death for the 1883 - 1906 birth cohorts along with point-wise standard
 errors and <span class="math inline">95\%</span> confidence intervals.
@@ -275,8 +360,15 @@ The predictions type is set to “link” (i.e., linear predictors) by
 default.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">predictions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit_adj</span>, se.fit <span class="op">=</span> <span class="cn">TRUE</span>, interval <span class="op">=</span> <span class="st">"confidence"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">predictions</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/clipboard-2903449795.png"></p>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">predictions</span><span class="op">)</span></span>
+<span><span class="co">#&gt; List of 3</span></span>
+<span><span class="co">#&gt;  $ fit           : num [1:156453, 1:3] 70.9 58.6 54.2 55.2 54.2 ...</span></span>
+<span><span class="co">#&gt;   ..- attr(*, "dimnames")=List of 2</span></span>
+<span><span class="co">#&gt;   .. ..$ : chr [1:156453] "1" "2" "3" "4" ...</span></span>
+<span><span class="co">#&gt;   .. ..$ : NULL</span></span>
+<span><span class="co">#&gt;  $ se.fit        : Named num [1:156453] 0.1208 0.1428 0.0788 0.0798 0.0788 ...</span></span>
+<span><span class="co">#&gt;   ..- attr(*, "names")= chr [1:156453] "1" "2" "3" "4" ...</span></span>
+<span><span class="co">#&gt;  $ residual.scale: num 20.6</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="comparison">

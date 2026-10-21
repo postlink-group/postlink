@@ -1,4 +1,4 @@
-# postlink: Post-Linkage Data Analysis in R
+# postlink: An R Package for Post-Linkage Data Analysis
 
 ## Abstract
 
@@ -60,19 +60,30 @@ record linkage packages were developed, `bstrl` ([Betancourt et al.,
 2022](#ref-bstrl)), `BRL` ([Sadinle, 2017](#ref-Sadinle2017)) and
 `blink` ([Steorts, 2020](#ref-blink)). In addition, privacy preserving
 record linkage package is available through `PPRL` ([Schmiedel,
-2025](#ref-PPRL)). Python record linkage tools such as `Splink`
-([Linacre et al., 2022](#ref-splink)), `recordlinkage` ([De Bruin,
+2025](#ref-PPRL)). To evaluate the quality of the linkage, the
+`ER-Evaluation` package ([Binette & Reiter, 2023](#ref-er-evaluation))
+has also been developed in Python to assess linkage quality using
+benchmark data.
+
+Similarly, Python record linkage tools such as `Splink` ([Linacre et
+al., 2022](#ref-splink)), `recordlinkage` ([De Bruin,
 2019](#ref-recordlinkagep)), `dedupe` ([Gregg & Eder,
 2022](#ref-dedupe)), `gfs_sampler` ([Farley & Gutman, 2020](#ref-gfs)),
 and `anonlink` ([Data61, 2017](#ref-Anonlink)) have been developed to
 offer flexible and scalable linkage solutions.
 
-After the linkage process is complete, it is imperative to evaluate the
-quality of the linkage and address possible linkage errors in downstream
-analysis. The `ER-Evaluation` package in Python ([Binette & Reiter,
-2023](#ref-er-evaluation)) has been developed to assess linkage quality
-using benchmark data. However, dedicated tools to conduct statistical
-analyses that account for potential linkage errors are absent. A common
+Beyond R and Python, record linkage functionality is available across
+the statistical and commercial software landscape, including Stata
+packages such as `reclink2` ([Wasi & Flaaen, 2015](#ref-wasi2015record))
+and `dtalink` ([Kranker, 2018](#ref-kranker2018dtalink)), SAS-based
+tools like `The Link King` ([Campbell et al.,
+2008](#ref-campbell2008record)), and standalone applications such as
+`Link Plus` ([Campbell et al., 2008](#ref-campbell2008record)) and
+`FEBRL` ([Christen, 2008](#ref-christen2008febrl)).
+
+Despite software available to perform and evaluate record linkage across
+platforms, dedicated tools to conduct downstream statistical analyses
+that account for potential linkage errors remain absent. A common
 statistical tool to estimate the relationship between an outcome and a
 set of covariates are linear and generalized linear models. These models
 are efficiently implemented with the
@@ -84,7 +95,7 @@ matches. Although statistical methods to adjust for linkage errors have
 been proposed ([Kamat & Gutman, 2026](#ref-kamatreview)), the
 corresponding software is often not readily accessible. This poses a
 barrier to the adoption and application of these methods in practice.
-([Chambers, 2009](#ref-chambers2009regression)) provides R functions to
+Chambers ([2009](#ref-chambers2009regression)) provides R functions to
 adjust for linkage errors within the regression framework. These methods
 assume that the probability of a mismatch is constant across records
 within defined subgroups (i.e., exchangeable linkage errors). However,
@@ -99,11 +110,11 @@ We have developed an R package, `postlink` ([Bukke et al.,
 implementation of PLDA methods across a range of settings and input
 types. The package is available from the Comprehensive R Archive Network
 (CRAN) at <https://CRAN.R-project.org/package=postlink>, and is
-implemented using a common modeling interface while adjusting for
-falsely linked records. The `postlink` package focuses on methods for
-secondary analysis. In primary analysis settings, where individual files
-are accessible, methods that jointly perform record linkage and analysis
-with direct propagation of uncertainty are more appropriate.
+implemented using a common regression modeling interface while adjusting
+for falsely linked records. The `postlink` package focuses on methods
+for secondary analysis. In primary analysis settings, where individual
+files are accessible, methods that jointly perform record linkage and
+analysis with direct propagation of uncertainty are more appropriate.
 
 The `postlink` R package consolidates three foundational frameworks for
 post-linkage data analysis. First, the software implements
@@ -197,15 +208,17 @@ for Cox proportional hazards,
 [`plsurvreg()`](https://postlink-group.github.io/postlink/reference/plsurvreg.md)
 for parametric survival models, and
 [`plctable()`](https://postlink-group.github.io/postlink/reference/plctable.md)
-for contingency table analyses. Using S3 dispatch, these wrappers
-automatically retrieve the encapsulated specifications from the provided
-`Adjustment` object and perform the corresponding internal inference
-routine. This design allows analysts to use the familiar formula-based
-syntax of core R functions (e.g.,
+for contingency table analyses.
+
+Using S3 dispatch, these wrappers retrieve the encapsulated
+specifications from the `Adjustment` object and perform the
+corresponding internal inference routine. This design allows analysts to
+use the familiar formula-based syntax of core R functions (e.g.,
 [`stats::glm()`](https://rdrr.io/r/stats/glm.html),
 [`survival::coxph()`](https://rdrr.io/pkg/survival/man/coxph.html)),
-while the package manages the underlying computational complexity. The
-resulting fitted model objects integrate with the R ecosystem,
+while the package manages the underlying computational complexity.
+
+The resulting fitted model objects integrate with the R ecosystem,
 supporting standard post-modeling generics such as
 [`summary()`](https://rdrr.io/r/base/summary.html),
 [`confint()`](https://rdrr.io/r/stats/confint.html),
@@ -245,7 +258,7 @@ data source B. Formally, the linked data is defined as LD =
 utilizes dataset LD to estimate the conditional distribution p(Y\_{Ai}
 \mid \mathbf{X}\_{Ai},\mathbf{X}\_{Bi};\boldsymbol{\beta}), where
 \boldsymbol{\beta} is a set of unknown parameters governing this
-distribution. Because LD is formed by merging two separate data sources
+distribution. As LD is formed by merging two separate data sources
 without unique identifiers, it contains the observed paired outcome
 Y\_{Ai}^\*, which may differ from the true outcome Y\_{Ai} because of
 linkage errors (Y\_{Ai}^\* \neq Y\_{Ai}). As a result, LD includes both
@@ -258,13 +271,11 @@ permuted version of true vector \mathbf{Y}\_{A}, such that
 \mathbf{Y}\_{A}^\* = \Delta\mathbf{Y}\_{A}, where \Delta is an n\times n
 permutation matrix with exactly one entry equal to one in each row and
 column. When there are no errors in the linkage, \Delta is the identity
-matrix and \mathbf{Y}\_{A}^\*=\mathbf{Y}\_{A}.
-
-This notation cannot be utilized when the dataset includes some records
-that represent the same entities, and some records that do not. To
-address this limitation, we rely on an indicator variable C_i with C_i=1
-for correct matches, i.e., Y\_{Ai}^\*=Y\_{Ai}, and C_i=0 otherwise, 1
-\leq i \leq n.
+matrix and \mathbf{Y}\_{A}^\*=\mathbf{Y}\_{A}. This notation cannot be
+utilized when the dataset includes some records that represent the same
+entities, and some records that do not. To address this limitation, we
+rely on an indicator variable C_i with C_i=1 for correct matches, i.e.,
+Y\_{A_i}^\*=Y\_{A_i}, and C_i=0 otherwise, 1 \leq i \leq n.
 
 A naive estimator \widehat{\boldsymbol{\beta}}\_N of the parameter
 \boldsymbol{\beta} is obtained by regressing \mathbf{Y}\_A^\* on
@@ -275,7 +286,7 @@ Gutman, 2026](#ref-kamatreview); [Neter et al., 1965](#ref-neter65);
 provides three distinct adjustment frameworks, which are accessible
 through the package’s two-phase `adj*()` and `pl*()` architecture. Table
 1 provides an overview of these frameworks, their constructor functions,
-and statistical modeling they currently support.
+and the statistical modeling they currently support.
 
 *Table 1: An overview of three PLDA frameworks implemented in
 `postlink`*
@@ -307,49 +318,52 @@ given \mathbf{X}\_{Bq}, which implies that E(\mathbf{Y}\_{Aq}^\* \mid
 \mid \mathbf{X}\_{Bq}) = E_q f_q(\boldsymbol{\beta}), where E_q =
 E(\Delta_q \mid \mathbf{X}\_{Bq}), and f_q(\boldsymbol{\beta}) =
 E(\mathbf{Y}\_{Aq} \mid \mathbf{X}\_{Bq}) is the regression function
-under correctly linked data. When the data is correctly linked, an
-estimating equation for \boldsymbol{\beta} is of the form
-\sum\_{q=1}^{Q} \mathbf{G}\_q(\mathbf{X}\_{Bq}, \boldsymbol{\beta})
-\left\\\mathbf{Y}\_{Aq}-f_q(\boldsymbol{\beta}) \right\\=0, where
-\mathbf{G}\_q(\mathbf{X}\_{Bq}, \boldsymbol{\beta}) is a weighting
+under correctly linked data.
+
+When the data is correctly linked, an estimating equation for
+\boldsymbol{\beta} is of the form \sum\_{q=1}^{Q}
+\mathbf{G}\_q(\mathbf{X}\_{Bq}, \boldsymbol{\beta})
+\left\\\mathbf{Y}\_{Aq}-f_q(\boldsymbol{\beta}) \right\\=0, \tag{1}
+where \mathbf{G}\_q(\mathbf{X}\_{Bq}, \boldsymbol{\beta}) is a weighting
 matrix that is independent of \mathbf{Y}\_{Aq}. However, we only have
 access to \mathbf{Y}^\*\_{Aq}. Replacing \mathbf{Y}\_{Aq} with
-\mathbf{Y}^\*\_{Aq} results in the naive estimator
+\mathbf{Y}^\*\_{Aq} in Equation (1) results in the naive estimator
 \widehat{\boldsymbol{\beta}}\_N. This estimator is biased when some of
 the units are incorrectly linked ([Chambers,
 2009](#ref-chambers2009regression)). To correct for the bias in
-\widehat{\boldsymbol{\beta}}\_N, we modify the equation to adjust for
+\widehat{\boldsymbol{\beta}}\_N, we modify Equation (1) to adjust for
 linkage errors, \sum\_{q} \mathbf{G}\_q(\mathbf{X}\_{Bq},
 \boldsymbol{\beta}) \left\\ \mathbf{Y}^\*\_{Aq} - E_q
-f_q(\boldsymbol{\beta}) \right\\ = 0. Chambers
+f_q(\boldsymbol{\beta}) \right\\ = 0. \tag{2} Chambers
 ([2009](#ref-chambers2009regression)) constructed E_q under the
 exchangeable linkage error (ELE) model \[E_q\]\_{ij} = \begin{cases}
 \lambda_q, & \text{if record pair } (i,j) \text{ is a link},\\ \frac{1 -
-\lambda_q}{n_q - 1}, & \text{otherwise}, \end{cases} where \lambda_q is
-the proportion of correct links in block q, and it is either known to
-the analyst or estimated from audit samples.
+\lambda_q}{n_q - 1}, & \text{otherwise}, \end{cases} \tag{3} where
+\lambda_q is the proportion of correct links in block q, and it is
+either known to the analyst or estimated from audit samples.
 
-The choice of \mathbf{G}\_q(\mathbf{X}\_{Bq}, \boldsymbol{\beta}) leads
-to different estimators. For example, in linear regression,
-\mathbf{G}\_q = \mathbf{X}\_{Bq}^\top yields a ratio-type adjustment
-estimator, which is similar to the one proposed by Scheuren & Winkler
-([1993](#ref-scheurenwinkler93)). Setting \mathbf{G}\_q =
+The choice of \mathbf{G}\_q(\mathbf{X}\_{Bq}, \boldsymbol{\beta}) in
+Equation (2) leads to different estimators. For example, in linear
+regression, \mathbf{G}\_q = \mathbf{X}\_{Bq}^\top yields a ratio-type
+adjustment estimator, which is similar to the one proposed by Scheuren &
+Winkler ([1993](#ref-scheurenwinkler93)). Setting \mathbf{G}\_q =
 \mathbf{X}\_{Bq}^\top E_q results in the estimator proposed by Lahiri &
 Larsen ([2005](#ref-lahirilarsen05)). Setting \mathbf{G}\_q =
 \mathbf{X}\_{Bq}^\top E_q^\top (\boldsymbol{\Sigma}\_q +
 \mathbf{V}\_q)^{-1} leads to the best linear unbiased estimator (BLUE)
-of \boldsymbol{\beta}, where \mathbf{V}\_q = \mathrm{Var}(\Delta_q
-E(\mathbf{Y}\_q \mid \mathbf{X}\_{Bq}) \mid \mathbf{X}\_{Bq}) and
-\boldsymbol{\Sigma}\_q is a diagonal matrix containing the
-observation-specific error variances, \sigma_i^2 = \mathrm{Var}(Y_i \mid
-\mathbf{X}\_{Bi}), 1 \leq i \leq n. Because the BLUE depends on unknown
-quantities, it can be approximated using an iterative procedure in which
-these quantities are replaced by successively refined estimates.
+of \boldsymbol{\beta}, where \mathbf{V}\_q =
+\mathrm{Var}(\boldsymbol{\Delta}\_q E(\mathbf{Y}\_q \mid
+\mathbf{X}\_{Bq}) \mid \mathbf{X}\_{Bq}) and \boldsymbol{\Sigma}\_q is a
+diagonal matrix containing the observation-specific error variances,
+\sigma_i^2 = \mathrm{Var}(Y_i \mid \mathbf{X}\_{Bi}), 1 \leq i \leq n.
+Since the BLUE depends on unknown quantities, it can be approximated
+using an iterative procedure in which these quantities are replaced by
+successively refined estimates.
 
 This suite of weighting methods has been extended to generalized linear
-models ([Chambers, 2009](#ref-chambers2009regression)) and time-to-event
-models ([Vo et al., 2024](#ref-vo2024cox)). Corresponding sandwich-type
-variance estimators have also been derived ([Chambers,
+models ([Chambers, 2009, pp. 22–23](#ref-chambers2009regression)) and
+time-to-event models ([Vo et al., 2024](#ref-vo2024cox)). Corresponding
+sandwich-type variance estimators have also been derived ([Chambers,
 2009](#ref-chambers2009regression)).
 
 In `postlink`, this procedure is implemented using the two-phase
@@ -393,28 +407,27 @@ plglm(formula, family = "gaussian", adjustment, control, ...)
 plcoxph(formula, adjustment, control, ...)
 ```
 
-The parameter `formula` describes the relationship between
-\mathbf{Y}\_q^\* and \mathbf{X}\_{Bq}, while the parameter `family`
-describes the link function. These arguments correspond to the
-regression mean function f_q(\boldsymbol{\beta}). The parameter `family`
-is set to `"gaussian"` by default, but can take the values `"binomial"`,
-`"poisson"`, or `"gamma"`. The `control` parameter allows the user to
-specify starting values for the iterative algorithm used to estimate
-\boldsymbol{\beta}. By default, the naive estimator is used as the
-initial value for ratio-type and Lahiri–Larsen weight matrix
-adjustments. For the BLUE weight matrix, the Lahiri–Larsen estimator
-serves as the default starting value for estimating \boldsymbol{\beta}.
+The `formula` describes the relationship between \mathbf{Y}\_q^\* and
+\mathbf{X}\_{Bq}, while the `family` describes the link function. These
+arguments correspond to the regression mean function
+f_q(\boldsymbol{\beta}). The `family` is set to `"gaussian"` by default,
+but can take the values `"binomial"`, `"poisson"`, or `"gamma"`. The
+`control` argument allows the user to specify starting values for the
+iterative algorithm used to estimate \boldsymbol{\beta}. By default, the
+naive estimator is used as the initial value for ratio-type and
+Lahiri–Larsen weight matrix adjustments. For the BLUE weight matrix, the
+Lahiri–Larsen estimator serves as the default starting value for
+estimating \boldsymbol{\beta}.
 
 The backend implementation differs from that of Chambers
-([2009](#ref-chambers2009regression)) primarily in how the expected
-estimating equation is handled. By relying on vectorized operations for
-block-wise processing and analytically simplifying E_q M into a sum of
-column means and scalar constants, the internal computational routine
-reduces the computational complexity from \mathcal{O}(n_q^2 d) down to
-\mathcal{O}(n_q d), where d represents the number of covariates in the
-model (see Appendix A). The `nleqslv` package ([Hasselman,
-2023](#ref-nleqslv)) is used to solve the non-linear system of
-equations.
+([2009](#ref-chambers2009regression)) primarily in how Equation (2) is
+handled. By relying on vectorized operations for block-wise processing
+and simplifying E_q M into a sum of column means and scalar constants,
+the internal computational routine reduces the computational complexity
+from \mathcal{O}(n_q^2 d) down to \mathcal{O}(n_q d), where d represents
+the number of covariates in the model (see Appendix A). The `nleqslv`
+package ([Hasselman, 2023](#ref-nleqslv)) is used to solve the
+non-linear system of equations.
 
 ### 3.2 Inferring true links via latent mixture modeling (EM)
 
@@ -424,14 +437,14 @@ to estimate the configuration of match status indicators \mathbf{C}=
 available at the secondary analysis stage that may be associated with
 C_i. Following Gutman et al. ([2016](#ref-gutmanmixture)) and Slawski et
 al. ([2025](#ref-slawski2024general)), a two-component mixture model for
-\mathbf{C} can be specified as \begin{align}
+\mathbf{C} can be specified as \begin{aligned}
 Y\_{Ai},\mathbf{X}\_{Ai},\mathbf{X}\_{Bi} \mid \mathbf{Z}\_i,C\_{i}=1 &
 \sim p_m(Y\_{Ai},\mathbf{X}\_{Ai},\mathbf{X}\_{Bi} \mid
 \mathbf{Z}\_i;\boldsymbol{\beta}\_m), \\
 Y\_{Ai},\mathbf{X}\_{Ai},\mathbf{X}\_{Bi} \mid \mathbf{Z}\_i,C\_{i}=0 &
-\sim p_u(Y\_{Ai},\mathbf{X}\_{Ai},\mathbf{X}\_i \mid
+\sim p_u(Y\_{Ai},\mathbf{X}\_{Ai},\mathbf{X}\_{Bi} \mid
 \mathbf{Z}\_i;\boldsymbol{\beta}\_{u}), \\ C_i & \sim \text{ Bernoulli
-}(h(\mathbf{Z}\_i;\boldsymbol{\xi})), \end{align} where
+}(h(\mathbf{Z}\_i;\boldsymbol{\xi})), \end{aligned} \tag{4} where
 \boldsymbol{\beta}\_m and \boldsymbol{\beta}\_u govern the joint
 distributions p_m and p_u of (Y\_{Ai},
 \mathbf{X}\_{Ai},\mathbf{X}\_{Bi}) among true links and false links,
@@ -447,10 +460,10 @@ In addition, they assume that p_u(Y\_{Ai}, \mathbf{X}\_{Bi} \mid
 p\_{uY}(Y\_{Ai};\boldsymbol{\beta}\_u) \cdot
 p\_{u\mathbf{X}}(\mathbf{X}\_{Bi} \mid
 \mathbf{Z}\_i;\boldsymbol{\beta}\_u), and estimate \boldsymbol{\beta}\_m
-by maximizing the likelihood resulting from the mixture model using the
-EM algorithm ([Dempster et al., 1977](#ref-dempsterEM)) while a plug-in
-estimator is used for p_u. The function h(\cdot\\;\boldsymbol{\xi}) can
-be parameterized in different ways. For instance,
+by maximizing the likelihood resulting from (4) using the EM algorithm
+([Dempster et al., 1977](#ref-dempsterEM)) while a plug-in estimator is
+used for p_u. The function h(\cdot\\;\boldsymbol{\xi}) in Equation (4)
+can be parameterized in different ways. For instance,
 h(\cdot\\;\boldsymbol{\xi}) can be modeled according to a logistic
 regression model, with specific constraints on the linear predictors to
 facilitate estimation. An intercept-only specification of this logistic
@@ -482,8 +495,8 @@ estimate to constrain the global mismatch rate. The parameter
 to be correct matches, fixing their correct linkage probability to 1
 during the estimation process.
 
-Because the adjustment specification is decoupled from the modeling
-syntax, the same `Adjustment` object can be passed to
+As the adjustment specification is decoupled from the modeling syntax,
+the same `Adjustment` object can be passed to
 [`plglm()`](https://postlink-group.github.io/postlink/reference/plglm.md),
 [`plcoxph()`](https://postlink-group.github.io/postlink/reference/plcoxph.md),
 or
@@ -510,10 +523,10 @@ within an EM framework. In addition, analysts may use complex models to
 identify erroneous links but report results from a simpler primary
 analysis model. To support these settings, `postlink` implements a
 Bayesian mixture model ([Gutman et al., 2016](#ref-gutmanmixture)) for
-estimating the parameters. Note that in the Bayesian formulation,
-\mathbf{X}\_i includes both \mathbf{X}\_{Ai} and \mathbf{X}\_{Bi}, and
-parameter constraints can be imposed through the specification of prior
-distributions.
+estimating the parameters in Equation (4). Note that in the Bayesian
+formulation, \mathbf{X}\_i includes both \mathbf{X}\_{Ai} and
+\mathbf{X}\_{Bi}, and parameter constraints can be imposed through the
+specification of prior distributions.
 
 Posterior inference can be performed using the data augmentation
 procedure ([Tanner & Wong, 1987](#ref-tannerwong1987)), which alternates
@@ -521,15 +534,14 @@ between imputing \mathbf{C} and updating the model parameters. When p_m
 coincides with the analysis model of interest, inference based on
 posterior draws of \boldsymbol{\beta}\_m incorporates the uncertainty
 about \mathbf{C}. In settings where p_m differs from the analysis model,
-post-linkage inference can be obtained using multiple imputation
-([Rubin, 1987](#ref-rubin1987)). Multiple imputed realizations of
+post-linkage inference can be obtained using multiple imputation (MI,
+[Rubin, 1987](#ref-rubin1987)). Multiple imputed realizations of
 \mathbf{C} are drawn from the posterior distribution. Each realization
 is used to fit the analysis model separately, and resulting point and
 interval estimates are combined across imputations using standard
 multiple imputation combining rules ([Little & Rubin,
-2002](#ref-littlerubin2002); [Rubin, 1996](#ref-Rubin1996)).
-
-The underlying software for sampling from the posterior distribution is
+2002](#ref-littlerubin2002); [Rubin, 1996](#ref-Rubin1996)). The
+underlying software for sampling from the posterior distribution is
 based on Stan ([Stan Development Team, 2024](#ref-stan2024)) and the
 `rstan` package ([Stan Development Team, 2025](#ref-rstan)), which
 employs the No-U-Turn Sampler to draw samples from the posterior
@@ -545,7 +557,7 @@ The Bayesian adjustment is initialized using
 [`adjMixBayes()`](https://postlink-group.github.io/postlink/reference/adjMixBayes.md),
 which optionally accepts customized prior distributions and the current
 specifications of the prior distribution for the different models is
-described in Appendix B:
+described in Appendix B,
 
 ``` r
 
@@ -561,7 +573,7 @@ argument. In addition to GLMs, the package also provides
 [`plsurvreg()`](https://postlink-group.github.io/postlink/reference/plsurvreg.md)
 for time-to-event outcomes. This function extends the Bayesian mixture
 framework to survival data by specifying p_m and p_u as parametric
-survival models. The function call is:
+survival models. The function call is
 
 ``` r
 
@@ -577,7 +589,9 @@ survival outcome models p_m and p_u, with current choices including
 specifies the MCMC settings, including the number of iterations,
 burn-in, random seed, and number of computational cores. These options
 control posterior sampling and can be tuned to balance computational
-cost with estimation accuracy. We note that the
+cost with estimation accuracy.
+
+We note that the
 [`plcoxph()`](https://postlink-group.github.io/postlink/reference/plcoxph.md)
 function implements the semi-parametric Cox proportional hazards model,
 and treats the baseline hazard non-parametrically. In contrast, the
@@ -585,7 +599,7 @@ and treats the baseline hazard non-parametrically. In contrast, the
 function uses a fully parametric survival model when performing Bayesian
 inference.
 
-Finally, to support multiple imputation, the package provides the
+Finally, to support multiple imputation, the package provides
 [`mi_with()`](https://postlink-group.github.io/postlink/reference/mi_with.md)
 function:
 
@@ -604,173 +618,364 @@ standard combination rules for multiple imputation ([Little & Rubin,
 
 ## 4. Illustrations
 
-We illustrate the implementation of the different post-linkage
-adjustment methods and their inclusion of paradata available from the
-linkage process. We simulate a linkage pipeline using the `RLdata10000`
-dataset from the `RecordLinkage` package ([Sariyar & Borg,
-2025](#ref-recordlinkage)).
+We illustrate the implementation of the different PLDA adjustment
+methods and their varying inclusion of linkage paradata. To mimic a
+secondary analysis environment where the original source files are
+inaccessible, we provide a linked dataset `LD1000` within `postlink`.
+The `LD1000` was generated through one-to-one matching of records from
+two separate synthetic datasets.
 
-A secondary analysis environment is generated with an approximate 30%
-mismatch rate by constructing two separate datasets. Dataset A consists
-of 1,000 unique records and contains the demographic and clinical
-predictors: `BMI`, `Age`, and a binary `Treatment` indicator. Dataset B
-contains the binary outcome variable, `Disease_Status`. To construct
-these datasets, we use the `RLdata10000` data as identifiers of entities
-that possess two distinct records, which often contain natural
-typographical errors. We randomly selected 700 of these record pairs,
-allocating the first instance to Dataset A and the corresponding
-error-prone second instance to Dataset B. To complete the 1,000-record
-cohorts, the remaining 300 records in Dataset A and 300 records in
-Dataset B were sampled from mutually exclusive sets of identifiers
-representing unique, unmatchable entities. This design guarantees 700
-true matchable entities across the files, systematically enforcing a
-mismatch rate of at least 30% when the files are linked as described
-below. Both datasets share a set of error-prone quasi-identifiers used
-for the linkage process: first name, last name, and date of birth. We
-assume that the linkage process is strongly non-informative, so that the
-linkage errors are independent of the variables used in the post-linkage
-analysis ([Kamat & Gutman, 2026](#ref-kamatreview)).
+``` r
 
-The two files are linked probabilistically with the `fastLink` package
-that implements the Fellegi-Sunter model ([Fellegi & Sunter,
-1969](#ref-Fellegi1969)). To maintain an analytical cohort of n=1000
-units, unlinked records from both files are paired uniformly at random.
-Within this linked dataset, a subset of records was designated as “safe
-matches” if both the first and last names exhibit exact string agreement
-across the datasets.
+R> data("LD1000", package = "postlink")
+R> head(subset(LD1000, select = -c(True_Disease_Status, is_match)), n = 5)
+#> # A tibble: 5 × 8
+#>   Disease_Status   BMI   Age Treatment fl_prob safe_match    bm block_mrate
+#>            <int> <dbl> <int>     <int>   <dbl> <lgl>      <dbl>       <dbl>
+#> 1              0  26.4    33         0   0.980 FALSE         12        0.45
+#> 2              1  23.5    39         0   0.175 FALSE          6        0.35
+#> 3              1  25.1    78         0   0.981 FALSE          6        0.35
+#> 4              0  25.4    52         1   0.979 FALSE          3        0.25
+#> 5              1  27.1    40         0   0.965 FALSE          4        0.35
+```
+
+Dataset A consisted of 1,000 unique records and contained the
+demographic and clinical predictors: `BMI`, `Age`, and a binary
+`Treatment` indicator. Dataset B contained the binary outcome variable,
+`Disease_Status`. To construct these datasets, the `RLdata10000` data
+from the `RecordLinkage` package ([Sariyar & Borg,
+2025](#ref-recordlinkage)) were used as identifiers of entities that
+possess two distinct records, which often contain natural typographical
+errors. Of these identifiers, 800 were randomly selected to allocate the
+first instance to Dataset A and the corresponding error-prone second
+instance to Dataset B. To complete the 1,000-record cohorts, the
+remaining 200 records in Dataset A and 200 records in Dataset B were
+sampled from mutually exclusive sets of identifiers representing unique,
+unmatchable entities. This design lead to a mismatch rate of
+approximately 30% when the files were linked as described below. Both
+datasets shared a set of error-prone quasi-identifiers used for the
+linkage process: first name, last name, and date of birth. The linkage
+process was strongly non-informative, so that the linkage errors were
+independent of the variables used in the post-linkage analysis ([Kamat &
+Gutman, 2026](#ref-kamatreview)).
+
+The two files were linked probabilistically with the `fastLink` package
+that implements of the Fellegi-Sunter model ([Fellegi & Sunter,
+1969](#ref-Fellegi1969)). To maintain a cohort of n=1000 units and
+establish one-to-one matches between records, the posterior
+probabilities from `fastLink` were used to construct a cost matrix that
+was resolved via the `solve_LSAP` function in the R package `clue`
+([Hornik & Böhm, 2023](#ref-clue)). Within this linked dataset, a subset
+of records was designated as “safe matches” if both the first and last
+names exhibit exact string agreement across the datasets and the birth
+year exactly agreed.
 
 The primary objective is to fit a logistic regression model to estimate
 the probability of the outcome (`Disease_Status`) given the covariates
-(`BMI`, `Age`, and `Treatment`). Formally, the analysis model is given
-by:
+(`BMI`, `Age`, and `Treatment`):
 
-\begin{aligned} \text{logit}(P(Y_i = 1 \mid \text{BMI}\_i,
-\text{Age}\_i, \text{Treatment}\_i)) &= \beta_0 +
-\beta\_{\text{BMI}}\text{BMI}\_i \\ &\quad +
-\beta\_{\text{Age}}\text{Age}\_i +
-\beta\_{\text{Treatment}}\text{Treatment}\_i \end{aligned}
+``` r
 
-For comparability of effect sizes across the continuous and binary
-predictors, both `BMI` and `Age` were standardized to have a mean of
-zero and a standard deviation of one. The true data-generating
-parameters are set to \beta\_{0}=-1, \beta\_{\text{BMI}}=1.2,
-\beta\_{\text{Age}}=0.8, and \beta\_{\text{Treatment}}=-1.5.
+R> formula_sci <- Disease_Status ~ BMI + Age + Treatment
+```
 
-In a secondary analysis setting, the analyst has access to the
-analytical variables merged from both files, along with linkage paradata
-(e.g., blocking variables and continuous Jaro–Winkler string distances),
-but does not observe the latent true match indicator. Rather than using
-raw identifying strings, which are typically unavailable because of
-privacy constraints, the models rely on these distance metrics and safe
-match designations to assess linkage quality.
+Formally, the analysis model is as below, where both `BMI` and `Age` are
+standardized to have a mean of zero and a standard deviation of one for
+comparability of effect sizes across the continuous and binary
+predictors. The true, unknown parameters are \beta\_{0}=-1,
+\beta\_{\texttt{BMI}}=1.2, \beta\_{\texttt{Age}}=0.8, and
+\beta\_{\texttt{Treatment}}=-1.5:
 
-Table 2 illustrates the structure of the linked data, `dat.linked`,
-available for the secondary analysis. While the analyst observes the
-scientific variables (`Disease_Status`, `BMI`, `Age`, `Treatment`) and
-the linkage paradata (`jw_fname`, `jw_lname`, `safe_match`), the latent
-true match indicator is absent. The data contains a mix of exact matches
-where `safe_match` is `TRUE`, probable matches with high string
-distances, and false links characterized by near-zero Jaro-Winkler
-similarities.
+\text{logit}(P(Y_i = 1 \mid \texttt{BMI}\_i, \texttt{Age}\_i,
+\texttt{Treatment}\_i)) = \beta_0 +
+\beta\_{\texttt{BMI}}\texttt{BMI}\_i +
+\beta\_{\texttt{Age}}\texttt{Age}\_i +
+\beta\_{\texttt{Treatment}}\texttt{Treatment}\_i
 
-*Table 2: A sample of the linked dataset available for secondary
-analysis, containing scientific covariates and linkage paradata, but
-lacking true match status.*
+``` r
+R> LD1000 <- LD1000 %>%
++           mutate(BMI = as.numeric(scale(BMI)),
++                  Age = as.numeric(scale(Age)))
+```
 
-| `Disease_Status` | `BMI`  | `Age`  | `Treatment` | `jw_fname` | `jw_lname` | `safe_match` |
-|:----------------:|:------:|:------:|:-----------:|:----------:|:----------:|:------------:|
-|        0         | 0.777  | 1.320  |      0      |   0.000    |   0.550    |   `FALSE`    |
-|        0         | 0.571  | 0.957  |      0      |   0.750    |   0.514    |   `FALSE`    |
-|        0         | -0.145 | -0.036 |      1      |   1.000    |   0.978    |   `FALSE`    |
-|        0         | 0.701  | -0.564 |      0      |   0.540    |   0.550    |   `FALSE`    |
-|        0         | -1.346 | 0.174  |      1      |   0.971    |   1.000    |   `FALSE`    |
+In the secondary analysis setting, the analyst has access to the
+variables of interest merged from both files (`Disease_Status`, `BMI`,
+`Age`, `Treatment`), optionally along with linkage paradata (e.g.,
+posterior match probabilities `fl_prob` from the underlying `fastLink`
+RL algorithm, safe match indicator `safe_match`, blocking variable `bm`,
+or block-wise mismatch rates `block_mrate`), but does not observe the
+latent true match indicator (`is_match`) or true linked values
+(`True_Disease_Status`). Rather than the raw identifiers used for
+linking the records, which are typically unavailable because of privacy
+constraints, the models rely on these paradata as available to assess
+linkage quality; for example, Figure 2 shows the distribution of the
+`fl_prob` across correct matches (`is_match = TRUE`) and mismatches
+(`is_match = FALSE`).
 
-We demonstrate the performance of the different methods using the
-available paradata and compare them to cases where we know the truth or
-use naive methods.
+![](images/fl_prob.png)
+
+*Figure 2: Horizontal boxplots of `fastLink` posterior match
+probabilities (`fl_prob`) in `LD1000` by latent match status (C = 0 for
+mismatches; C = 1 for correct matches), with blue diamonds denoting
+group means and semi-transparent points indicating outliers beyond 1.5
+times the interquartile range. As most mismatches concentrate at 0
+(where the C = 0 median and first quartile coincide at the left box
+edge) and most correct matches concentrate near 1 (compressing the C = 1
+box), record pairs with intermediate or misclassified probabilities
+appear as discrete outlier points whose darker shading reflects
+overlapping observations.*
+
+We demonstrate the overall workflow for different adjustment methods
+using the available paradata and compare them to cases where we know the
+truth or use naive methods.
 
 ### 4.1 The Benchmarks (Models 1–3)
 
 The first three models represent standard approaches that do not utilize
-`postlink`:
+the `postlink` package:
 
-- **Oracle:** The unobservable gold standard, logistic regression fit on
-  the true, perfectly linked data.
+Model 1 is the “Oracle”. This is logistic regression fit on the
+unobservable, true linked data.
 
-- **Naive:** A standard logistic regression fit on the probabilistically
-  linked data that ignores the presence of false links.
+``` r
+R> fit_oracle <- glm(True_Disease_Status ~ BMI + Age + Treatment, 
++                    data = LD1000, family = "binomial")
+```
 
-- **Naive (Exact matches only):** The analyst restricts the regression
-  to only to links with the highest confidence (exact string matches on
-  both first and last names), discarding the rest of the dataset.
+Model 2 is a standard “Naive” logistic regression fit on the
+probabilistically linked data that ignores the presence of mismatches.
+
+``` r
+
+R> fit_naive <- glm(formula_sci, data = LD1000, family = "binomial")
+```
+
+Model 3 is a “Naive (Safe Matches Only)” approach, in which the analyst
+restricts the regression only to links deemed “safe”, discarding the
+rest of the dataset.
+
+``` r
+R> fit_naive_safe <- glm(formula_sci,
++                        data = subset(LD1000, safe_match == TRUE),
++                        family = "binomial")
+```
 
 ### 4.2 Aggregate Information (Model 4)
 
 If the analyst has access to block-level mismatch rates based on
-clerical review, the
+clerical review and knowledge of the random audit sample sizes per
+block, the
 [`adjELE()`](https://postlink-group.github.io/postlink/reference/adjELE.md)
-constructor can be utilized. We define the blocks using the birth month
-(`bm`) variable. We simulate an analyst reviewing a random audit sample
-of 20 records per birth-month block.
+constructor can be used. The blocks are defined as the birth month
+(`bm`) variable.
 
 ``` r
-R> adj_ele_audit <- adjELE(linked.data = dat.linked, m.rate = m.rate_vec, 
-+                          blocks = ~ bm, audit.size = audit_sizes, 
+R> adj_ele_audit <- adjELE(linked.data = LD1000, 
++                          m.rate = LD1000$block_mrate, 
++                          blocks = bm, 
++                          audit.size = rep(20, length(unique(LD1000$bm))), 
 +                          weight.matrix = "BLUE")
-R> formula_sci <- Disease_Status ~ BMI + Age + Treatment
-R> fit_ele_audit <- plglm(formula_sci, family = "binomial", 
-+                          adjustment = adj_ele_audit)
+R> print(adj_ele_audit)
+#> 
+#>  Adjustment Object: Exchangeable Linkage Errors 
+#> 
+#> * Linked Data:
+#>     Observations:   1,000
+#> * Specification:
+#>     Weight Matrix:   BLUE
+#>     Blocks:         12 distinct blocks
+#>     Mismatch Rate:  Variable (Mean: 0.271, Range: 0.100 - 0.450)
+#>     Audit Sample:   Same size 20
 ```
 
 In practice, the choice of blocking variables for post-linkage
-adjustment should mimic the blocking algorithms used by the underlying
-record linkage algorithm, because mismatch rates tend to be more similar
-within these blocks.
+adjustment generally aligns with the blocking algorithms used by the
+underlying record linkage algorithm, because mismatch rates tend to be
+more similar within these blocks.
 
-### 4.3 Probabilistic Paradata (Models 5–7)
+``` r
+R> fit_ele_audit <- plglm(formula_sci, family = "binomial", 
++                         adjustment = adj_ele_audit)
+R> summary(fit_ele_audit)
+#> 
+#> Call:
+#> plglm(formula = formula_sci, family = "binomial", adjustment = adj_ele_audit)
+#> 
+#> Family: binomial
+#> 
+#> --- Weighting Method: BLUE ---
+#>             Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)   -0.841      0.143   -5.89  3.8e-09 ***
+#> BMI            1.278      0.177    7.24  4.5e-13 ***
+#> Age            0.719      0.125    5.76  8.4e-09 ***
+#> Treatment     -1.526      0.264   -5.78  7.5e-09 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+The `fit_ele_audit` object returns results for \boldsymbol{\beta} =
+(\beta\_{0}, \beta\_{\texttt{BMI}}, \beta\_{\texttt{Age}},
+\beta\_{\texttt{Treatment}}) in the analysis model, similar to the
+standard `glm` object in R.
+
+### 4.3 Probabilistic Paradata (Models 5–8)
 
 If continuous or categorical paradata from the linkage process is
 retained, it can be passed into the
 [`adjMixture()`](https://postlink-group.github.io/postlink/reference/adjMixture.md)
-constructor. We demonstrate three progressively information-rich
-applications of the EM mixture model. Model 5 relies on a known global
-mismatch rate:
+constructor. We demonstrate four progressively information-rich
+applications of the EM mixture model.
+
+Model 5 relies on a anticipated global mismatch rate (0.3), which may be
+given by the linked data provider based on a `mean(LD1000$block_mrate)`
+of 0.271:
 
 ``` r
-R> adj_em_rate <- adjMixture(linked.data = dat.linked, 
+R> adj_em_rate <- adjMixture(linked.data = LD1000, 
 +                            m.formula = ~ 1, 
-+                            m.rate = global_mismatch_rate)
++                            m.rate = 0.3)
+R> print(adj_em_rate)
+#> 
+#>  Adjustment Object: Mixture Model 
+#> 
+#> * Linked Data:
+#>     Observations:   1,000
+#> * Specification:
+#>     Mismatch Model:        ~1
+#>     Global Mismatch Rate: 0.3 (Constrained)
+#>     Safe Matches:         None specified
+```
+
+``` r
 R> fit_em_rate <- plglm(formula_sci, family = "binomial", 
 +                       adjustment = adj_em_rate)    
 ```
 
-Model 6 enhances Model 5 by incorporating a logical indicator for exact
-matches, allowing the algorithm to fix the match probability to 1 for
-highly confident records:
+Model 6 alternatively incorporates a logical indicator for safe matches,
+allowing the algorithm to fix the match probability to 1 for highly
+confident linked records:
 
 ``` r
-R> adj_em_safe <- adjMixture(linked.data = dat.linked, 
+R> adj_em_safe <- adjMixture(linked.data = LD1000, 
 +                            m.formula = ~ 1, 
-+                            m.rate = global_mismatch_rate, 
-+                            safe.matches = dat.linked$safe_match_exact)
++                            safe.matches = safe_match)
+R> print(adj_em_safe)
+#> 
+#>  Adjustment Object: Mixture Model 
+#> 
+#> * Linked Data:
+#>     Observations:   1,000
+#> * Specification:
+#>     Mismatch Model:        ~1
+#>     Global Mismatch Rate: Unconstrained (Estimated from data)
+#>     Safe Matches:         84 (8.4%)
+```
+
+``` r
 R> fit_em_safe <- plglm(formula_sci, family = "binomial", 
 +                       adjustment = adj_em_safe)
 ```
 
-In Model 7, we drop the global rate constraint and incorporate the
-continuous Jaro-Winkler string distances for first and last names
-directly. This allows the mixture model to predict the match indicators
-(C_i) using the linkage paradata (\mathbf{Z}\_i), which are the
-auxiliary covariates introduced in Equation 3.
+In Model 7, we drop the global mismatch rate constraint and instead
+incorporate the posterior match probabilities obtained from the
+underlying record linkage algorithm (i.e., `fastLink`). This allows the
+mixture model to predict the match indicators (C_i) using the linkage
+paradata (\mathbf{Z}\_i), which are the auxiliary covariates introduced
+in Equation (4).
 
 ``` r
-R> adj_em_z <- adjMixture(linked.data = dat.linked, 
-+                         m.formula = ~ jw_fname + jw_lname)
-R> fit_em_z <- plglm(formula_sci, family = "binomial", 
-+                    adjustment = adj_em_z)
+R> adj_em_prob <- adjMixture(linked.data = LD1000, 
++                            m.formula = ~ fl_prob)
+R> print(adj_em_prob)
+#> 
+#>  Adjustment Object: Mixture Model 
+#> 
+#> * Linked Data:
+#>     Observations:   1,000
+#> * Specification:
+#>     Mismatch Model:        ~fl_prob
+#>     Global Mismatch Rate: Unconstrained (Estimated from data)
+#>     Safe Matches:         None specified  
 ```
 
-### 4.4 Prior Knowledge (Model 8)
+``` r
+R> fit_em_prob <- plglm(formula_sci, family = "binomial", 
++                       adjustment = adj_em_prob)
+```
+
+Model 8 shows how the linkage paradata can also be used in combination,
+if all are available.
+
+``` r
+R> adj_em_all <- adjMixture(linked.data = LD1000, 
++                           m.formula = ~ fl_prob,
++                           safe.matches = safe_match,
++                           m.rate = 0.3)
+R> print(adj_em_all)
+#> 
+#>  Adjustment Object: Mixture Model 
+#> 
+#> * Linked Data:
+#>     Observations:   1,000
+#> * Specification:
+#>     Mismatch Model:        ~fl_prob
+#>     Global Mismatch Rate: 0.3 (Constrained)
+#>     Safe Matches:         84 (8.4%)
+```
+
+The `fit_em_all` object is summarized below. The outcome model
+coefficients correspond to \boldsymbol{\beta} = (\beta\_{0},
+\beta\_{\texttt{BMI}}, \beta\_{\texttt{Age}},
+\beta\_{\texttt{Treatment}}). The mismatch model coefficients are
+-\boldsymbol{\xi}, based on Equation (4) in Section 3.2. Below,
+`fl_prob` is taken as a predictor in this model based the specified
+`adj_em_all`. While the positive estimate supports that higher `fl_prob`
+probabilities predict correct matches, the concentration of values near
+0 and 1 can inflate the standard error, contributing to a
+non-significant p-value (see Figure 2).
+
+``` r
+R> fit_em_all <- plglm(formula_sci, family = "binomial", 
++                      adjustment = adj_em_all)
+R> summary(fit_em_all)
+#> 
+#> Call:
+#> plglm(formula = formula_sci, family = "binomial", adjustment = adj_em_all)
+#> 
+#> Outcome Model Coefficients:
+#>             Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)   -0.859      0.139   -6.19  6.2e-10 ***
+#> BMI            1.130      0.131    8.64  < 2e-16 ***
+#> Age            0.722      0.122    5.94  2.9e-09 ***
+#> Treatment     -1.511      0.271   -5.57  2.5e-08 ***
+#> 
+#> Mismatch Model Coefficients:
+#>             Estimate Std. Error z value Pr(>|z|)  
+#> (Intercept)    0.989      0.600    1.65    0.099 .
+#> fl_prob       -9.416     20.482   -0.46    0.646  
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for binomial family taken to be 1)
+#> 
+#> Average Correct Match Probability: 0.798
+```
+
+In earlier Models 5-7, the fit object returned is similarly formatted.
+The average correct match probability (0.798) refers to the mean of the
+posterior correct match probabilities for all of the records. The
+probability for each record is accessible through the `fit` object in
+the `match.prob` vector. For safe matches, the probability is set by
+default to 1.
+
+``` r
+
+R> str(fit_em_all$match.prob)  
+#>  Named num [1:1000] 1 0.447 1 1 1 ...
+#>  - attr(*, "names")= chr [1:1000] "1" "2" "3" "4" ...
+```
+
+### 4.4 Prior Knowledge (Model 9)
 
 If the analyst has historical data or domain expertise regarding the
 scientific parameters, the
@@ -784,7 +989,7 @@ distinguish between true and false links without large number of units.
 However, incorporating paradata in the form of prior distributions, such
 as knowing the effect of age is positive and bounded or the approximate
 error rate, can assist in the estimation process and result in more
-reliable parameter estimates. The `priors` argument is a list of prior
+reliable parameter estimates. The `prior` argument is a list of prior
 distributions for model parameters, and it depends on the family of
 distributions (See Appendix B).
 
@@ -797,7 +1002,7 @@ when the variables used to create blocks are associated with Y\_{Ai} and
 this simulation, we will maintain this independence assumption to
 demonstrate the specification of prior distributions. Implementing this
 assumption in the form of prior distribution assumes that a-priori the
-intercept among mismatched links, `intercept2`, is centered at -1.28 and
+intercept among mismatched links, `intercept2`, is centered at -1.09 and
 standard deviation of 3. The center of the prior distribution is derived
 from the empirical log-odds of the outcome prevalence in the linked
 dataset. The standard deviation of 3 result in relatively diffused prior
@@ -805,36 +1010,93 @@ distribution for the intercept of a logistic regression model. To
 enforce independence between Y\_{Ai} and \mathbf{X}\_{Bi} among
 mismatched links, we assumed that slope parameters, `beta2`, follow
 \mathcal{N}(0, 0.01), which reflects that the coefficient is centered at
-zero with very small standard deviation. This prior distribution
+zero with very small standard deviation. This prior distribution,
 requires significant input from the observed data to deviate from 0.
-Lastly, to incorporate that 70% of the links are true links, we assumed
-that the prior distribution for the marginal proportion of true links,
-`theta`, follows a Beta distribution with shape parameters 70 and 30.
-This implies that the mean of the distribution is 0.7 and the standard
-deviation is 0.05.
+Lastly, to incorporate that approximately 70\\ of the links are true
+links, we assumed that the prior distribution for the marginal
+proportion of true links, `theta`, follows a Beta distribution with
+shape parameters 70 and 30. This implies that the mean of the
+distribution is 0.70 and the standard deviation is 0.05.
 
 ``` r
-R> adj_bayes_strong <- adjMixBayes(linked.data = dat.linked, 
-+                                  priors = list(
-+                                           intercept2 = "normal(-1.28, 3)", 
-+                                           beta2 = "normal(0,0.01)", 
-+                                           theta = "beta(70,30)"))
-R> fit_bayes_strong <- plglm(formula_sci, family = "binomial", 
-+                            adjustment = adj_bayes_strong,
-+                            control = list(seed = 2026))
+R> adj_bayes <- adjMixBayes(linked.data = LD1000, 
++                           priors = list(
++                                    intercept2 = "normal(-1.09, 3)", 
++                                    beta2 = "normal(0,0.01)", 
++                                    theta = "beta(70,30)"))
+R> print(adj_bayes)
+#> 
+#>  Adjustment Object: Bayesian Mixture 
+#> 
+#> * Linked Data:
+#>     Observations:   1,000
+#> * Priors:
+#>       intercept2 : normal(-1.09, 3)
+#>       beta2      : normal(0, 0.01)
+#>       theta      : beta(70, 30)
+#>     (Unspecified parameters will use defaults below)
+#> 
+#>     Defaults applied during fitting (for any unspecified):
+#>       Intercept:  intercept ~ normal(0,10)
+#>       GLM Slopes: beta ~ normal(0,5) [binomial: normal(0,2.5)]
+#>       Surv Slopes: beta ~ normal(0,5) [weibull: normal(0,2)]
+#>       Mix Weight:  theta ~ beta(1,1)
 ```
+
+The Bayesian mixture model returns posterior summaries for two latent
+components. The coefficients for the correct-match component
+(Component 1) correspond to the analysis model of primary interest. For
+the mismatch component (Component 2), the posterior means for the slope
+coefficients are centered near zero, which is consistent with the prior
+specification of conditional independence between the outcome and
+covariates among falsely linked records.
+
+``` r
+R> fit_bayes <- plglm(formula_sci, family = "binomial",
++                     adjustment = adj_bayes,
++                     control = list(seed = 2026))
+R> summary(fit_bayes)
+#> Call:
+#> plglm(formula = formula_sci, family = "binomial", adjustment = adj_bayes_strong, 
+#>     control = list(seed = 2026))
+#>  
+#> Family:
+#> binomial
+#>  
+#> (Component 1 = Correct-match):
+#> Outcome Model Coefficients:
+#>             Estimates Std. Error  2.5 % 97.5 %
+#> (Intercept)    -0.788      0.284 -1.374 -0.262
+#> BMI             1.412      0.252  0.963  1.951
+#> Age             0.805      0.169  0.504  1.170
+#> Treatment      -1.683      0.354 -2.448 -1.063
+#> 
+#> (Component 2 = Incorrect-match):
+#> Outcome Model Coefficients:
+#>             Estimates Std. Error  2.5 % 97.5 %
+#> (Intercept)    -1.309      0.583 -2.599 -0.394
+#> BMI             0.000      0.010 -0.020  0.019
+#> Age             0.000      0.010 -0.018  0.019
+#> Treatment       0.000      0.010 -0.020  0.020
+```
+
+Note that these Component 2 outcome coefficients (\boldsymbol{\beta}\_u)
+should be distinguished from the mismatch model coefficients
+(\boldsymbol{\xi}); the former describe the outcome relationship among
+false links, while the latter correspond to the probability of being a
+mismatch.
 
 ### 4.5 Results and Discussion
 
-The coefficient estimates and 95% confidence intervals for all seven
-scenarios are detailed in Table 3. These results illustrate the
-potential biases introduced by linkage errors and the relative usage of
-different post-linkage adjustment strategies.
+The coefficient estimates and 95% confidence intervals for all scenarios
+are visualized in Figure 3 and detailed in Table 2. These results
+illustrate the potential biases introduced by linkage errors and the
+relative usage of different post-linkage adjustment strategies.
 
-Ignoring the 30% mismatch rate (Model 2) results in estimates that are
-biased towards zero. For example, the estimate for \beta\_{BMI} is
+Ignoring the \sim 30% mismatch rate (Model 2) results in estimates that
+are biased towards zero. For example, the estimate for \beta\_{BMI} is
 attenuated by approximately 30% compared to the Oracle benchmark (from
-0.927 by the Oracle down to 0.645 by the Naive), and its 95% confidence
+1.163 by the Oracle down to 0.797 by the Naive), and its 95% confidence
 interval fails to include the true parameter. Relying on this unadjusted
 analysis would lead to underestimation of the relationship between the
 outcome and the covariate.
@@ -843,50 +1105,51 @@ An alternative heuristic approach is to restrict the analysis to only
 high-confidence matches (Model 3). While this successfully eliminates
 the false links, it discards a significant portion of the dataset. By
 requiring exact name matches, the effective sample size is reduced from
-N=1000 to N\approx70, causing the standard error for the Treatment
-effect to more than triple (from 0.212 to 0.721). The confidence
-intervals are wider and the statistical power of the analysis is
-reduced. Moreover, when units with lower-confidence matches have
-different relationship between \mathbf{Y}\_A and \mathbf{X}\_B than
-high-confidence matches, bias may be introduced.
+N=1000 to N=84, causing the standard error for the Treatment effect to
+more than triple (from 0.190 to 0.643). The confidence intervals are
+wider and the statistical power of the analysis is reduced. Moreover,
+when units with lower-confidence matches have different relationship
+between \mathbf{Y}\_A and \mathbf{X}\_B than high-confidence matches,
+bias may be introduced.
 
 The adjustment methods implemented in `postlink` mitigate these
 limitations to varying degrees. The ELE approach (Model 4) shifts the
-estimates toward the true parameters’ values. Because the `audit.size`
+estimates toward the true parameters’ values. Since the `audit.size`
 argument was supplied, the standard errors increase to account for the
 sampling variance inherent in the clerical review, providing more
-appropriately calibrated inference. The EM Mixture model using
-continuous Jaro-Winkler string distances (Model 7) demonstrates
-favorable performance. By incorporating continuous paradata, the
-algorithm assigns probabilistic weights to the reliability of individual
-records, recovering point estimates comparable to the Oracle model
-without the large variance inflation observed in the exact matches only
-approach. We note, however, that the simulated separation between the
-high string distances of true matches and the near-zero distances of
-forced random mismatches creates a comparatively straightforward
-classification task. In applied settings where false links share higher
-string similarity (e.g., matching ‘John Smith’ to ‘Jon Smith’
-erroneously), the resulting overlap of the distributions p_m and p_u
-would naturally increase the standard errors of the estimated model
-parameters. The point estimates of the Bayesian model are comparable to
-Model 5. However, because the prior distributions allow for more
-variability in the mismatch rate and the estimates of regression
-parameters among non-links leads to larger standard errors, but still
-smaller than the high confidence matches analysis (Model 3).
+appropriately calibrated inference. The EM Mixture model using posterior
+match probabilities (Model 8) demonstrates favorable performance. By
+incorporating continuous paradata, the algorithm assigns probabilistic
+weights to the reliability of individual records, recovering point
+estimates comparable to the Oracle model without the large variance
+inflation observed in the exact matches only approach. We note, however,
+that the simulated separation between the high string distances of true
+matches and the near-zero distances of forced random mismatches creates
+a comparatively straightforward classification task. In applied settings
+where false links share higher string similarity (e.g., matching ‘John
+Smith’ to ‘Jon Smith’ erroneously), the resulting overlap of the
+distributions p_m and p_u in (4) would naturally increase the standard
+errors of the estimated model parameters. The point estimates of the
+Bayesian model are comparable to Model 5. However, because the prior
+distributions allow for more variability in the mismatch rate and the
+estimates of regression parameters among non-links leads to larger
+standard errors, but still smaller than the high confidence matches
+analysis (Model 3).
 
-*Table 3: Logistic regression estimates and standard errors (SE) from
+*Table 2: Logistic regression estimates and standard errors (SE) from
 the benchmark models and post-linkage adjustment methods.*
 
 | Model | Est. (Intercept) | SE (Intercept) | Est. (BMI) | SE (BMI) | Est. (Age) | SE (Age) | Est. (Treatment) | SE (Treatment) |
 |:---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-| 1\. Oracle | -1.243 | 0.139 | 0.927 | 0.114 | 0.631 | 0.110 | -0.870 | 0.212 |
-| 2\. Naive (All Links) | -1.176 | 0.109 | 0.645 | 0.086 | 0.369 | 0.083 | -0.517 | 0.163 |
-| 3\. Naive (Exact Matches) | -0.791 | 0.376 | 0.716 | 0.365 | 0.650 | 0.351 | -1.463 | 0.721 |
-| 4\. ELE (Audit Sample) | -1.233 | 0.164 | 1.113 | 0.195 | 0.622 | 0.156 | -0.884 | 0.293 |
-| 5\. EM (Global Rate) | -1.231 | 0.199 | 1.075 | 0.434 | 0.596 | 0.255 | -0.811 | 0.379 |
-| 6\. EM (Exact + Rate) | -1.184 | 0.174 | 0.945 | 0.330 | 0.538 | 0.233 | -0.776 | 0.402 |
-| 7\. EM (String Distances) | -1.240 | 0.157 | 1.025 | 0.139 | 0.700 | 0.129 | -0.909 | 0.231 |
-| 8\. Bayesian (Informative) | -1.099 | 0.419 | 1.029 | 0.251 | 0.573 | 0.162 | -0.782 | 0.282 |
+| 1\. Oracle | -0.870 | 0.112 | 1.163 | 0.108 | 0.799 | 0.096 | -1.604 | 0.190 |
+| 2\. Naive (All Links) | -0.835 | 0.104 | 0.797 | 0.090 | 0.518 | 0.084 | -1.015 | 0.165 |
+| 3\. Naive (Exact Matches Only) | -0.855 | 0.380 | 0.838 | 0.334 | 0.506 | 0.302 | -1.522 | 0.643 |
+| 4\. ELE (Audit Sample) | -0.841 | 0.143 | 1.278 | 0.177 | 0.719 | 0.125 | -1.526 | 0.264 |
+| 5\. EM (Global Rate) | -0.841 | 0.146 | 1.219 | 0.261 | 0.713 | 0.141 | -1.483 | 0.341 |
+| 6\. EM (Exact Matches Only) | -0.837 | 0.136 | 1.129 | 0.198 | 0.666 | 0.120 | -1.400 | 0.288 |
+| 7\. EM (Posterior Probabilities) | -0.858 | 0.138 | 1.131 | 0.131 | 0.722 | 0.121 | -1.512 | 0.270 |
+| 8\. EM (All) | -0.859 | 0.139 | 1.130 | 0.131 | 0.722 | 0.122 | -1.511 | 0.271 |
+| 9\. Bayesian (Informative Priors) | -0.788 | 0.284 | 1.412 | 0.252 | 0.805 | 0.169 | -1.683 | 0.354 |
 
 ### 4.6 Decoupling Linkage and Analysis via Multiple Imputation
 
@@ -903,7 +1166,7 @@ The `postlink` package addresses this computational complexity by using
 multiple imputation ([Gutman et al., 2016](#ref-gutmanmixture)), which
 is implemented with the
 [`mi_with()`](https://postlink-group.github.io/postlink/reference/mi_with.md)
-generic function. Because the Bayesian mixture model returns posterior
+generic function. Since the Bayesian mixture model returns posterior
 draws of the latent match status for every record, each draw effectively
 generates one completed dataset. The
 [`mi_with()`](https://postlink-group.github.io/postlink/reference/mi_with.md)
@@ -917,26 +1180,26 @@ the analyst is only interested in the marginal effect of `Treatment`,
 they can pass the updated formula to the pre-computed adjustment object:
 
 ``` r
-R> formula_interaction <- Disease_Status ~ Treatment
-R> pooled_mi_fit <- mi_with(object = fit_bayes_strong, 
-+                           data = dat.linked, 
-+                           formula = formula_interaction, 
+R> formula_alternative <- Disease_Status ~ Treatment
+R> pooled_mi_fit <- mi_with(object = fit_bayes, 
++                           data = LD1000, 
++                           formula = formula_alternative, 
 +                           family = binomial())
 R> print(pooled_mi_fit, digits = 3)
-#>  Pooled regression results across posterior match classifications:
+#> Pooled regression results across posterior match classifications:
 #>   Retained imputations (m): 9000 
 #> 
-#>             Estimate Std.Error  CI.lwr  CI.upr         df
-#> (Intercept)   -0.868     0.288  -1.432  -0.304  13017.312
-#> Treatment     -0.629     0.227  -1.074  -0.184  82594.793
+#>             Estimate Std.Error CI.lwr CI.upr    df
+#> (Intercept)   -0.541     0.196 -0.925 -0.156 18844
+#> Treatment     -1.182     0.238 -1.649 -0.715 61465
 ```
 
 As detailed in the output, the marginal term for `Treatment` is
 estimated to be significantly different from zero at the 5% nominal
-level (95% CI: -1.067, -0.183), which is consistent with the underlying
-data-generating process. This model exploration utilized 1,000 posterior
+level (95% CI: -1.648, -0.713), which is consistent with the underlying
+data-generating process. This model exploration utilized 9,000 posterior
 draws as imputed datasets, demonstrating how linkage error estimation
-can be decoupled from downstream scientific modeling. When utilizing
+can be decoupled from downstream scientific modeling. When using
 multiple imputation one should attempt to avoid uncongenial models
 ([Meng, 1994](#ref-meng1994multiple)). Thus, it is advisable to include
 many relationships of substantive interest when classifying between true
@@ -944,9 +1207,9 @@ and false links, so that the analysis model is more restrictive than the
 imputation model ([Kamat & Gutman, 2026](#ref-kamatreview); [Meng,
 1994](#ref-meng1994multiple)).
 
-![](images/clipboard-2038809973.png)
+![](images/covariate_plot.png)
 
-*Figure 2: Correction for Attenuation Bias from Linkage Errors in
+*Figure 3: Correction for Attenuation Bias from Linkage Errors in
 Logistic Regression. The dashed line represents the true Oracle
 estimates.*
 
@@ -967,34 +1230,36 @@ mimics standard R modeling functions (e.g.,
 [`survival::coxph()`](https://rdrr.io/pkg/survival/man/coxph.html)). Our
 implementations offer a variety of ways to incorporate information about
 linkage quality in secondary analysis settings, which we expect to be
-useful for practitioners working with linked data sets. The current
-version of the package leaves room for various extensions, including
-additional types of post-linkage analysis models, support for missed
-matches (i.e., records that could not be linked) in addition to
-mismatches, and integration with record linkage software.
+useful for practitioners working with linked data sets. The package
+leaves room for various extensions, including additional types of
+post-linkage analysis models, support for missed matches (i.e., records
+that could not be linked) in addition to mismatches, and integration
+with record linkage software. Alongside such enhancements, developing
+tailored goodness-of-fit metrics, residual diagnostics, and exploratory
+tools to evaluate adjustment specifications remains an important
+direction for future research.
 
 ## Computational Details
 
 The results and illustrations in this article were obtained using R
-4.3.2 and the `postlink` package version 0.1.0. R itself and all
+4.5.1 and the `postlink` package version 0.1.2. R itself and all
 standard dependent packages, including `survival` for time-to-event
-outcomes, `nleqslv` for solving estimating equations, and `fastLink` for
-the probabilistic record linkage, are available from the Comprehensive R
-Archive Network (CRAN) at <https://CRAN.R-project.org/>. The Bayesian
-mixture modeling routines in `postlink` utilize Hamiltonian Monte Carlo
-sampling and require a functional C++ toolchain. These routines depend
-on the `rstan` and `rstantools` packages, which are also available from
-CRAN.
+outcomes, and `nleqslv` for solving estimating equations, are available
+from the Comprehensive R Archive Network (CRAN) at
+<https://CRAN.R-project.org/>.
+
+The Bayesian mixture modeling routines in `postlink` use Hamiltonian
+Monte Carlo sampling and require a functional C++ toolchain. These
+routines depend on the `rstan` and `rstantools` packages, which are also
+available from CRAN. Cross-platform floating point differences may cause
+local numerical deviations. For reproducibility, specific random seeds
+were set prior to model fitting, and all results were generated using a
+Ubuntu 24.04 Docker container.
 
 The `postlink` package and datasets used for the application are
-open-source and publicly available. The development version can be
-accessed and installed from GitHub at
-<https://github.com/postlink-group/postlink>. To ensure exact
-reproducibility of the Bayesian data augmentation and the
-Expectation-Maximization algorithms, specific random seeds were set
-prior to model fitting. Full replication scripts for all illustrations
-and simulations presented in this article are provided in the
-supplementary materials.
+open-source and publicly available. Full replication scripts and the
+container Dockerfile for all results presented in this article are
+provided in the supplementary materials.
 
 ## Acknowledgments
 
@@ -1006,8 +1271,8 @@ supported by NSF grant \# 2120318.
 
 ### A.1 Computation of expected design matrices
 
-To solve the adjusted estimating equations, we compute the product of
-the expected linkage matrix E_q and the block-level design matrix
+To solve the adjusted estimating equations (2), we compute the product
+of the expected linkage matrix E_q and the block-level design matrix
 \mathbf{X}\_{Bq} (or a function of it, denoted by M_q). Constructing the
 n_q \times n_q matrix E_q and performing standard matrix multiplication
 requires \mathcal{O}(n_q^2 d) floating-point operations (flops) per
@@ -1017,7 +1282,7 @@ The `postlink` package circumvents this by exploiting the structural
 properties of the ELE model. Let \alpha_q = 1 - \lambda_q represent the
 mismatch rate. The product E_q M_q can be analytically rewritten as a
 linear combination of the observed values and their block-specific
-column means: E_q M_q = c\_{1q} M_q + c\_{0q} \bar{M}\_q where
+column means: E_q M_q = c\_{1q} M_q + c\_{0q} \bar{M}\_q, \tag{5} where
 \bar{M}\_q represents the column means of M_q, and the scalars are
 defined as c\_{1q} = 1 - \alpha_q - \alpha_q / (n_q - 1) and c\_{0q} =
 \alpha_q \frac{n_q}{n_q - 1}. This formulation reduces the computational
@@ -1026,9 +1291,9 @@ this optimization globally across the internal
 [`glmELE()`](https://postlink-group.github.io/postlink/reference/glmELE.md)
 and
 [`coxphELE()`](https://postlink-group.github.io/postlink/reference/coxphELE.md)
-routines, utilizing vectorized aggregation functions (e.g.,
-[`rowsum()`](https://rdrr.io/r/base/rowsum.html)) to ensure scalable
-model fitting and risk-set evaluation.
+routines, using vectorized aggregation functions (e.g.,
+[`rowsum()`](https://rdrr.io/r/base/rowsum.html)) for model fitting and
+risk-set evaluation.
 
 ### A.2 Variance estimation and audit sample uncertainty
 
@@ -1039,23 +1304,23 @@ equations evaluated at \widehat{\boldsymbol{\beta}}. The variance of the
 estimating functions, V_H, is decomposed as V_H = V_1 + V_2.
 
 The term V_2 represents the empirical covariance of the estimating
-functions assuming the mismatch rates \lambda_q are fixed and known.
-When the mismatch rates are estimated via a simple random audit sample
+functions assuming the correct match rates \lambda_q are fixed and
+known. When these rates are estimated via a simple random audit sample
 of size m_q drawn from the n_q records in block q (supplied via the
 `audit.size` argument), the package computes V_1 to account for this
-additional source of uncertainty.
-
-The implementation applies a finite population correction (FPC) to
-accurately reflect the sampling fraction: V_1 = \sum\_{q=1}^Q \left(
+additional source of uncertainty. A finite population correction (FPC)
+is applied to reflect the sampling fraction: V_1 = \sum\_{q=1}^Q \left(
 \frac{1}{m_q} - \frac{1}{n_q} \right) \left( \frac{m_q}{m_q - 1} \right)
-\frac{\alpha_q}{\lambda_q^3} U_q U_q^\top where U_q is the
-block-specific sum of the weighted residuals. This accounting of audit
-uncertainty ensures that the standard errors returned by standard
+\frac{\alpha_q}{\lambda_q^3} U_q U_q^\top, \tag{6} where U_q represents
+the partial derivative of the block-specific adjusted estimating
+equation with respect to \lambda_q, evaluated at
+\hat{\boldsymbol{\beta}} and \hat{\lambda}\_q. This accounts for audit
+uncertainty so that the standard errors returned by standard
 post-estimation generics, such as
 [`confint()`](https://rdrr.io/r/stats/confint.html) and
 [`vcov()`](https://rdrr.io/r/stats/vcov.html), provide valid statistical
 inference even when linkage quality is estimated from small clerical
-reviews.
+reviews ([Vo et al., 2024](#ref-vo2024cox)).
 
 ## Appendix B: Default Prior Distributions for Each Family of Distributions
 
@@ -1151,12 +1416,22 @@ Bukke, P., Wang, Z., Slawski, M., West, B. T., Ben-David, E., & Diao, G.
 (2024). *Pldamixture: Post-linkage data analysis based on mixture
 modelling*. <https://CRAN.R-project.org/package=pldamixture>
 
+Campbell, K. M., Deck, D., & Krupski, A. (2008). Record linkage software
+in the public domain: A comparison of link plus, the link king, and
+abasic’deterministic algorithm. *Health Informatics Journal*, *14*(1),
+5–15.
+
 Chambers, R. (2009). Regression analysis of probability-linked data.
 *Statisphere Official Statistics*, *4*.
 
 Chambers, R., & Diniz da Silva, A. (2020). Improved secondary analysis
 of linked data: A framework and an illustration. *Journal of the Royal
 Statistical Society, Series A*, *183*, 37–59.
+
+Christen, P. (2008). Febrl- an open source data cleaning, deduplication
+and record linkage system with a graphical user interface. *Proceedings
+of the 14th ACM SIGKDD International Conference on Knowledge Discovery
+and Data Mining*, 1065–1068.
 
 Data61, C. (2017). Anonlink private record linkage system. In *GitHub
 Repository*. <https://github.com/data61/anonlink>; GitHub.
@@ -1197,11 +1472,18 @@ Hoffman, M. D., & Gelman, A. (2014). The no-u-turn sampler: Adaptively
 setting path lengths in hamiltonian monte carlo. *Journal of Machine
 Learning Research*, *15*(1), 1593–1623.
 
+Hornik, K., & Böhm, W. (2023). *Clue: Cluster
+ensembles*.[https://CRAN.R-project.org/package=clue](NA)
+
 Kamat, G., & Gutman, R. (2026). Analysis of linked files: A missing data
 perspective. *Statistical Science*, *41*(1), 28–48.
 
 Kamat, G., Shan, M., & Gutman, R. (2023). Bayesian record linkage with
 variables in one file. *Statistics in Medicine*, *42*(27), 4931–4951.
+
+Kranker, K. (2018). Dtalink: Faster probabilistic record linking and
+deduplication methods in stata for large data files. *2018 Stata
+Conference*.
 
 Lahiri, P., & Larsen, M. D. (2005). Regression analysis with linked
 data. *Journal of the American Statistical Association*, *100*(469),
@@ -1274,3 +1556,7 @@ Medicine*, *43*(2), 296–314.
 Wang, Z., Ben-David, E., Diao, G., & Slawski, M. (2022). Regression with
 linked datasets subject to linkage error. *WIREs Computational
 Statistics*, *14*, e1570.
+
+Wasi, N., & Flaaen, A. (2015). Record linkage using stata:
+Preprocessing, linking, and reviewing utilities. *The Stata Journal*,
+*15*(3), 672–697.
