@@ -663,9 +663,8 @@ $\beta_{\texttt{Treatment}}=-1.5$:
 $$\text{logit}(P(Y_i = 1 \mid \texttt{BMI}_i, \texttt{Age}_i, \texttt{Treatment}_i)) = \beta_0 + \beta_{\texttt{BMI}}\texttt{BMI}_i + \beta_{\texttt{Age}}\texttt{Age}_i + \beta_{\texttt{Treatment}}\texttt{Treatment}_i$$
 
 ```{r, eval=FALSE}
-R> LD1000 <- LD1000 %>%
-+           mutate(BMI = as.numeric(scale(BMI)),
-+                  Age = as.numeric(scale(Age)))
+LD1000$BMI <- as.numeric(scale(LD1000$BMI)) 
+LD1000$Age <- as.numeric(scale(LD1000$Age))
 ```
 
 In the secondary analysis setting, the analyst has access to the
@@ -893,7 +892,7 @@ coefficients correspond to
 $\boldsymbol{\beta} = (\beta_{0}, \beta_{\texttt{BMI}}, \beta_{\texttt{Age}}, \beta_{\texttt{Treatment}})$.
 The mismatch model coefficients are $-\boldsymbol{\xi}$, based on
 Equation (4) in Section 3.2. Below, `fl_prob` is taken as a predictor in
-this model based the specified `adj_em_all`. While the positive estimate
+this model based the specified `adj_em_all`. While the negative estimate
 supports that higher `fl_prob` probabilities predict correct matches,
 the concentration of values near 0 and 1 can inflate the standard error,
 contributing to a non-significant $p$-value (see Figure 2).
@@ -1018,7 +1017,7 @@ R> fit_bayes <- plglm(formula_sci, family = "binomial",
 +                     control = list(seed = 2026))
 R> summary(fit_bayes)
 #> Call:
-#> plglm(formula = formula_sci, family = "binomial", adjustment = adj_bayes_strong, 
+#> plglm(formula = formula_sci, family = "binomial", adjustment = adj_bayes, 
 #>     control = list(seed = 2026))
 #>  
 #> Family:
@@ -1104,10 +1103,10 @@ the benchmark models and post-linkage adjustment methods.*
 |:-------|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
 | 1\. Oracle | -0.870 | 0.112 | 1.163 | 0.108 | 0.799 | 0.096 | -1.604 | 0.190 |
 | 2\. Naive (All Links) | -0.835 | 0.104 | 0.797 | 0.090 | 0.518 | 0.084 | -1.015 | 0.165 |
-| 3\. Naive (Exact Matches Only) | -0.855 | 0.380 | 0.838 | 0.334 | 0.506 | 0.302 | -1.522 | 0.643 |
+| 3\. Naive (Safe Matches Only) | -0.855 | 0.380 | 0.838 | 0.334 | 0.506 | 0.302 | -1.522 | 0.643 |
 | 4\. ELE (Audit Sample) | -0.841 | 0.143 | 1.278 | 0.177 | 0.719 | 0.125 | -1.526 | 0.264 |
 | 5\. EM (Global Rate) | -0.841 | 0.146 | 1.219 | 0.261 | 0.713 | 0.141 | -1.483 | 0.341 |
-| 6\. EM (Exact Matches Only) | -0.837 | 0.136 | 1.129 | 0.198 | 0.666 | 0.120 | -1.400 | 0.288 |
+| 6\. EM (Safe Matches Only) | -0.837 | 0.136 | 1.129 | 0.198 | 0.666 | 0.120 | -1.400 | 0.288 |
 | 7\. EM (Posterior Probabilities) | -0.858 | 0.138 | 1.131 | 0.131 | 0.722 | 0.121 | -1.512 | 0.270 |
 | 8\. EM (All) | -0.859 | 0.139 | 1.130 | 0.131 | 0.722 | 0.122 | -1.511 | 0.271 |
 | 9\. Bayesian (Informative Priors) | -0.788 | 0.284 | 1.412 | 0.252 | 0.805 | 0.169 | -1.683 | 0.354 |
@@ -1152,7 +1151,7 @@ R> print(pooled_mi_fit, digits = 3)
 
 As detailed in the output, the marginal term for `Treatment` is
 estimated to be significantly different from zero at the 5% nominal
-level (95% CI: -1.648, -0.713), which is consistent with the underlying
+level (95% CI: -1.649, -0.715), which is consistent with the underlying
 data-generating process. This model exploration utilized 9,000 posterior
 draws as imputed datasets, demonstrating how linkage error estimation
 can be decoupled from downstream scientific modeling. When using
@@ -1165,8 +1164,7 @@ so that the analysis model is more restrictive than the imputation model
 ![](images/covariate_plot.png){fig-align="center" width="690"}
 
 *Figure 3: Correction for Attenuation Bias from Linkage Errors in
-Logistic Regression. The dashed line represents the true Oracle
-estimates.*
+Logistic Regression. The dashed line represents the true parameter values.*
 
 ## 5. Conclusion {#sec-summary}
 
