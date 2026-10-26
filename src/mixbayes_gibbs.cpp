@@ -1093,23 +1093,34 @@ List mixbayes_gibbs_cpp(std::string family, const arma::mat& X, const arma::vec&
   // and only the priors contribute (on any scale of the parameters: the
   // Jacobians of the log and logit transformations are symmetric under the
   // exchange): the component-specific priors and, when it is not symmetric
-  // (pre_orient = 2), the prior on the match probability. Computed term by
-  // term, so that it is exactly 0 when the component-specific priors are
-  // identical and the prior on the match probability is symmetric.
+  // (pre_orient = 2), the prior on the match probability. Terms whose two
+  // priors are identical (for the coefficients of the match probability,
+  // priors centred at 0, which are symmetric under gamma -> -gamma) are 0 and
+  // are skipped, so that the change is exactly 0 when the component-specific
+  // priors are identical and the prior on the match probability is symmetric,
+  // on every platform: evaluating two equal terms and subtracting them is not
+  // exact when the compiler fuses multiply-adds (e.g. clang on arm64 macOS).
+  auto same_scalar_prior = [](const ScalarPrior& a, const ScalarPrior& b) {
+    return a.dist == b.dist && a.p1 == b.p1 && a.p2 == b.p2 && a.p3 == b.p3;
+  };
+  const bool disp_same = has_disp && same_scalar_prior(sp1, sp2);
+  const bool scale_same = weibull && same_scalar_prior(sc1, sc2);
   auto exchange_lp_change = [&](const State& s) {
     double d = 0.0;
     for (int i = 0; i < K; ++i) {
+      if (pb1.mean[i] == pb2.mean[i] && pb1.sd[i] == pb2.sd[i]) continue;
       double a1 = (s.b2[i] - pb1.mean[i]) / pb1.sd[i], a2 = (s.b1[i] - pb2.mean[i]) / pb2.sd[i];
       double c1 = (s.b1[i] - pb1.mean[i]) / pb1.sd[i], c2 = (s.b2[i] - pb2.mean[i]) / pb2.sd[i];
       d -= 0.5 * ((a1 * a1 + a2 * a2) - (c1 * c1 + c2 * c2));
     }
-    if (has_disp) d += (sp1.logd(s.s2) + sp2.logd(s.s1)) - (sp1.logd(s.s1) + sp2.logd(s.s2));
-    if (weibull) {
+    if (has_disp && !disp_same) d += (sp1.logd(s.s2) + sp2.logd(s.s1)) - (sp1.logd(s.s1) + sp2.logd(s.s2));
+    if (weibull && !scale_same) {
       const double e1 = std::exp(s.b1[K]), e2 = std::exp(s.b2[K]);
       d += (sc1.logd(e2) + sc2.logd(e1)) - (sc1.logd(e1) + sc2.logd(e2));
     }
     if (use_logistic) {
       for (int i = 0; i < M; ++i) {
+        if (pg.mean[i] == 0.0) continue;
         double u = (-s.gam[i] - pg.mean[i]) / pg.sd[i], v = (s.gam[i] - pg.mean[i]) / pg.sd[i];
         d -= 0.5 * (u * u - v * v);
       }
