@@ -37,5 +37,9 @@ LinkingTo:
     Rcpp (>= 0.12.0),
     RcppArmadillo
 URL: https://postlink-group.github.io/postlink/
-Config/Needs/website: rmarkdown
+Config/Needs/website: 
+    rmarkdown,
+    knitr,
+    dplyr,
+    ggplot2
 Config/roxygen2/version: 8.1.0

@@ -121,7 +121,7 @@ vcov.coxphMixture <- function(object, ...) {
 #'
 #' # Extract Confidence Intervals
 #' confint(fit)
-#' confint(fit, parm = "treatment", level = 0.90)
+#' confint(fit, parm = "x1", level = 0.90)
 #'
 #' @export
 confint.coxphMixture <- function(object, parm, level = 0.95, ...) {

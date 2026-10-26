@@ -66,6 +66,6 @@ fit <- plcoxph(Surv(time, status) ~ x1 + x2, adjustment = adj,
 
 # Extract Confidence Intervals
 confint(fit)
-confint(fit, parm = "treatment", level = 0.90)
+confint(fit, parm = "x1", level = 0.90)
 
 }

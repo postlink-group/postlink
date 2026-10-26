@@ -321,85 +321,91 @@ glmMixture <- function(x, y, family,
  }
 
  # 3. Standard Errors
- hgamma_eval <- hgamma(z[!safe.matches, , drop = FALSE] %*% as.matrix(gamma_cur))
+ hgamma_eval <- hgamma(z %*% as.matrix(gamma_cur))
+
+ if (any(safe.matches)) {
+  hgamma_eval$fun[safe.matches] <- 1
+  hgamma_eval$dfun[safe.matches] <- 0
+  hgamma_eval$d2fun[safe.matches] <- 0
+ }
 
  if (family_name == "gaussian") {
-  fymu_all_eval <- (function(mu, std, sub) {
-   fun <- stats::dnorm((y - mu)[sub], sd = std)
-   d_fun_beta <- fun * (y - mu)[sub] / (std^2)
-   d_fun_sigma <- fun * ((y - mu)[sub]^2 / std^3 - 1 / std)
-   d2_fun_beta <- d_fun_beta * (y - mu)[sub] / (std^2) - fun / (std^2)
-   d2_fun_sigma <- d_fun_sigma * ((y - mu)[sub]^2 / std^3 - 1 / std) + fun * (1 / std^2 - 3 * (y - mu)[sub]^2 / std^4)
-   d2_fun_beta_sigma <- d_fun_sigma * (y - mu)[sub] / (std^2) - 2 * fun * (y - mu)[sub] / (std^3)
+  fymu_all_eval <- (function(mu, std) {
+   fun <- stats::dnorm((y - mu), sd = std)
+   d_fun_beta <- fun * (y - mu) / (std^2)
+   d_fun_sigma <- fun * ((y - mu)^2 / std^3 - 1 / std)
+   d2_fun_beta <- d_fun_beta * (y - mu) / (std^2) - fun / (std^2)
+   d2_fun_sigma <- d_fun_sigma * ((y - mu)^2 / std^3 - 1 / std) + fun * (1 / std^2 - 3 * (y - mu)^2 / std^4)
+   d2_fun_beta_sigma <- d_fun_sigma * (y - mu) / (std^2) - 2 * fun * (y - mu) / (std^3)
    list(fun = fun, dfun_beta = d_fun_beta, dfun_sigma = d_fun_sigma,
         d2fun_beta = d2_fun_beta, d2fun_sigma = d2_fun_sigma, d2fun_beta_sigma = d2_fun_beta_sigma)
-  })(mu_cur, stdcur, !safe.matches)
+  })(mu_cur, stdcur)
 
-  mixprob <- fy[!safe.matches] * (1 - hgamma_eval$fun) + hgamma_eval$fun * fymu_all_eval$fun
+  mixprob <- pmax(fy * (1 - hgamma_eval$fun) + hgamma_eval$fun * fymu_all_eval$fun, 1e-10)
+
   w_beta_score <- (-1) * fymu_all_eval$dfun_beta * hgamma_eval$fun / mixprob
   w_sigma_score <- (-1) * fymu_all_eval$dfun_sigma * hgamma_eval$fun / mixprob
-  w_gamma_score <- (-1) * (fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$dfun / mixprob
+  w_gamma_score <- (-1) * (fymu_all_eval$fun - fy) * hgamma_eval$dfun / mixprob
 
-  Xw1 <- sweep(x[!safe.matches, , drop = FALSE], 1, w_beta_score, "*")
-  Xw2 <- sweep(matrix(1, sum(!safe.matches), 1), 1, w_sigma_score, "*")
-  Deltaw3 <- sweep(z[!safe.matches, , drop = FALSE], 1, w_gamma_score, "*")
+  Xw1 <- sweep(x, 1, w_beta_score, "*")
+  Xw2 <- matrix(w_sigma_score, n, 1)
+  Deltaw3 <- sweep(z, 1, w_gamma_score, "*")
   meat <- crossprod(cbind(Xw1, Xw2, Deltaw3))
 
   w_beta2_hess <- (-(hgamma_eval$fun * fymu_all_eval$d2fun_beta) / mixprob) + w_beta_score^2
   w_sigma2_hess <- (-(hgamma_eval$fun * fymu_all_eval$d2fun_sigma) / mixprob) + w_sigma_score^2
-  w_gamma2_hess <- ((-(fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$d2fun) / mixprob) + w_gamma_score^2
+  w_gamma2_hess <- ((-(fymu_all_eval$fun - fy) * hgamma_eval$d2fun) / mixprob) + w_gamma_score^2
+
   w_beta_gamma_hess <- (-(fymu_all_eval$dfun_beta * hgamma_eval$dfun) / mixprob) +
-   ((fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$fun * hgamma_eval$dfun * fymu_all_eval$dfun_beta) / (mixprob^2)
+   ((fymu_all_eval$fun - fy) * hgamma_eval$fun * hgamma_eval$dfun * fymu_all_eval$dfun_beta) / (mixprob^2)
   w_sigma_gamma_hess <- (-(fymu_all_eval$dfun_sigma * hgamma_eval$dfun) / mixprob) +
-   ((fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$fun * hgamma_eval$dfun * fymu_all_eval$dfun_sigma) / (mixprob^2)
+   ((fymu_all_eval$fun - fy) * hgamma_eval$fun * hgamma_eval$dfun * fymu_all_eval$dfun_sigma) / (mixprob^2)
 
-  w_beta_sigma_hess <- (-(fymu_all_eval$d2fun_beta_sigma * hgamma_eval$dfun) / mixprob) + w_beta_score * w_sigma_score
+  w_beta_sigma_hess <- (-(fymu_all_eval$d2fun_beta_sigma * hgamma_eval$fun) / mixprob) + w_beta_score * w_sigma_score
 
-  Xw4 <- sweep(x[!safe.matches, , drop = FALSE], 1, w_beta2_hess, "*")
-  Deltaw6 <- sweep(z[!safe.matches, , drop = FALSE], 1, w_gamma2_hess, "*")
-  Xw5 <- sweep(x[!safe.matches, , drop = FALSE], 1, w_beta_gamma_hess, "*")
+  Xw4 <- sweep(x, 1, w_beta2_hess, "*")
+  Deltaw6 <- sweep(z, 1, w_gamma2_hess, "*")
+  Xw5 <- sweep(x, 1, w_beta_gamma_hess, "*")
 
   Hess <- matrix(0, d + 1 + ncol(z), d + 1 + ncol(z))
-  one_v <- matrix(1, sum(!safe.matches), 1)
+  one_v <- matrix(1, n, 1)
 
-  Hess[1:d, 1:d] <- crossprod(x[!safe.matches, , drop = FALSE], Xw4)
+  Hess[1:d, 1:d] <- crossprod(x, Xw4)
   Hess[d+1, d+1] <- crossprod(one_v, sweep(one_v, 1, w_sigma2_hess, "*"))
-  Hess[(d+2):ncol(Hess), (d+2):ncol(Hess)] <- crossprod(z[!safe.matches, , drop = FALSE], Deltaw6)
+  Hess[(d+2):ncol(Hess), (d+2):ncol(Hess)] <- crossprod(z, Deltaw6)
 
-  Hess[1:(d+1), (d+2):ncol(Hess)] <- rbind(crossprod(Xw5, z[!safe.matches, , drop = FALSE]),
-                                           crossprod(sweep(one_v, 1, w_sigma_gamma_hess, "*"), z[!safe.matches, , drop = FALSE]))
+  Hess[1:(d+1), (d+2):ncol(Hess)] <- rbind(crossprod(Xw5, z),
+                                           crossprod(sweep(one_v, 1, w_sigma_gamma_hess, "*"), z))
   Hess[(d+2):ncol(Hess), 1:(d+1)] <- t(Hess[1:(d+1), (d+2):ncol(Hess)])
 
-  Hess[1:d, d+1] <- crossprod(x[!safe.matches, , drop = FALSE], sweep(one_v, 1, w_beta_sigma_hess, "*"))
+  Hess[1:d, d+1] <- crossprod(x, sweep(one_v, 1, w_beta_sigma_hess, "*"))
   Hess[d+1, 1:d] <- t(Hess[1:d, d+1])
 
  } else {
-  fymu_all_eval <- (function(eta, sub, family_obj, shape) {
-   y_sub <- y[sub]
-   eta_sub <- eta[sub]
-   mu_sub <- family_obj$linkinv(eta_sub)
+  fymu_all_eval <- (function(eta, family_obj, shape) {
+   mu_sub <- family_obj$linkinv(eta)
 
    if (family_obj$family %in% c("poisson", "Gamma")) mu_sub <- pmax(mu_sub, 1e-10)
    if (family_obj$family == "binomial") mu_sub <- pmax(pmin(mu_sub, 1 - 1e-10), 1e-10)
 
    if (family_obj$family == "poisson") {
-    fun <- stats::dpois(y_sub, mu_sub)
+    fun <- stats::dpois(y, mu_sub)
    } else if (family_obj$family == "binomial") {
-    fun <- stats::dbinom(y_sub, 1, mu_sub)
+    fun <- stats::dbinom(y, 1, mu_sub)
    } else if (family_obj$family == "Gamma") {
-    fun <- stats::dgamma(y_sub, shape, shape / mu_sub)
+    fun <- stats::dgamma(y, shape, shape / mu_sub)
    } else {
-    fun <- rep(1, length(y_sub))
+    fun <- rep(1, length(y))
    }
 
-   mu_prime <- family_obj$mu.eta(eta_sub)
+   mu_prime <- family_obj$mu.eta(eta)
    var_mu <- family_obj$variance(mu_sub)
 
    if (family_obj$family == "Gamma") {
-    score_eta <- (y_sub - mu_sub) / var_mu * mu_prime * shape
+    score_eta <- (y - mu_sub) / var_mu * mu_prime * shape
     expected_hess <- - (mu_prime^2) / var_mu * shape
    } else {
-    score_eta <- (y_sub - mu_sub) / var_mu * mu_prime
+    score_eta <- (y - mu_sub) / var_mu * mu_prime
     expected_hess <- - (mu_prime^2) / var_mu
    }
 
@@ -407,29 +413,30 @@ glmMixture <- function(x, y, family,
    d2fun <- fun * (score_eta^2 + expected_hess)
 
    list(fun = fun, dfun = dfun, d2fun = d2fun)
-  })(eta_cur, !safe.matches, family, shape_cur)
+  })(eta_cur, family, shape_cur)
 
-  mixprob <- fy[!safe.matches] * (1 - hgamma_eval$fun) + hgamma_eval$fun * fymu_all_eval$fun
+  mixprob <- pmax(fy * (1 - hgamma_eval$fun) + hgamma_eval$fun * fymu_all_eval$fun, 1e-10)
+
   w_beta_score <- (-1) * fymu_all_eval$dfun * hgamma_eval$fun / mixprob
-  w_gamma_score <- (-1) * (fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$dfun / mixprob
+  w_gamma_score <- (-1) * (fymu_all_eval$fun - fy) * hgamma_eval$dfun / mixprob
 
-  Xw1 <- sweep(x[!safe.matches, , drop = FALSE], 1, w_beta_score, "*")
-  Deltaw3 <- sweep(z[!safe.matches, , drop = FALSE], 1, w_gamma_score, "*")
+  Xw1 <- sweep(x, 1, w_beta_score, "*")
+  Deltaw3 <- sweep(z, 1, w_gamma_score, "*")
   meat <- crossprod(cbind(Xw1, Deltaw3))
 
   w_beta2_hess <- (-(hgamma_eval$fun * fymu_all_eval$d2fun) / mixprob) + w_beta_score^2
-  w_gamma2_hess <- ((-(fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$d2fun) / mixprob) + w_gamma_score^2
+  w_gamma2_hess <- ((-(fymu_all_eval$fun - fy) * hgamma_eval$d2fun) / mixprob) + w_gamma_score^2
   w_beta_gamma_hess <- (-(fymu_all_eval$dfun * hgamma_eval$dfun) / mixprob) +
-   ((fymu_all_eval$fun - fy[!safe.matches]) * hgamma_eval$fun * hgamma_eval$dfun * fymu_all_eval$dfun) / (mixprob^2)
+   ((fymu_all_eval$fun - fy) * hgamma_eval$fun * hgamma_eval$dfun * fymu_all_eval$dfun) / (mixprob^2)
 
-  Xw4 <- sweep(x[!safe.matches, , drop = FALSE], 1, w_beta2_hess, "*")
-  Deltaw6 <- sweep(z[!safe.matches, , drop = FALSE], 1, w_gamma2_hess, "*")
-  Xw5 <- sweep(x[!safe.matches, , drop = FALSE], 1, w_beta_gamma_hess, "*")
+  Xw4 <- sweep(x, 1, w_beta2_hess, "*")
+  Deltaw6 <- sweep(z, 1, w_gamma2_hess, "*")
+  Xw5 <- sweep(x, 1, w_beta_gamma_hess, "*")
 
   Hess <- matrix(0, d + ncol(z), d + ncol(z))
-  Hess[1:d, 1:d] <- crossprod(x[!safe.matches, , drop = FALSE], Xw4)
-  Hess[(d+1):ncol(Hess), (d+1):ncol(Hess)] <- crossprod(z[!safe.matches, , drop = FALSE], Deltaw6)
-  Hess[1:d, (d+1):ncol(Hess)] <- crossprod(Xw5, z[!safe.matches, , drop = FALSE])
+  Hess[1:d, 1:d] <- crossprod(x, Xw4)
+  Hess[(d+1):ncol(Hess), (d+1):ncol(Hess)] <- crossprod(z, Deltaw6)
+  Hess[1:d, (d+1):ncol(Hess)] <- crossprod(Xw5, z)
   Hess[(d+1):ncol(Hess), 1:d] <- t(Hess[1:d, (d+1):ncol(Hess)])
  }
 
@@ -479,7 +486,7 @@ glmMixture <- function(x, y, family,
              rank = p,
              family = family,
              converged = converged_flag,
-             match.prob = as.numeric(hs),
+             match.prob = as.numeric(p_cur),
              var = covhat,
              objective = objs[1:iter],
              call = match.call())
@@ -517,6 +524,7 @@ fitglm.adjMixture <- function(x, y, family, adjustment, control, ...) {
   }
   # Assume the user provided the exact same dataset in the same order
   data_subset <- full_data
+  idx_map <- seq_len(nrow(full_data))
  } else {
   # Match by name. Using strict matching ensures order is preserved.
   # Note: data.frames are guaranteed to have unique row names in R.
@@ -579,12 +587,8 @@ fitglm.adjMixture <- function(x, y, family, adjustment, control, ...) {
  safe_matches_sub <- NULL
 
  if (!is.null(safe_matches_all)) {
-  # Ensure the safe.matches vector aligns with the final subset of data
-  if (!is.null(subset_names)) {
-   safe_matches_sub <- safe_matches_all[idx_map]
-  } else {
-   safe_matches_sub <- safe_matches_all[1:nrow(x)]
-  }
+  # So the safe.matches vector aligns with the final subset of data
+  safe_matches_sub <- safe_matches_all[idx_map]
  }
 
  # 6. Dispatch to Computational Engine
