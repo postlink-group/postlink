@@ -16,7 +16,7 @@
 
 # ── Internal: provider detection ──────────────────────────────────────────────
 
-#' Detect provider from env vars or explicit argument
+#' Detect Provider from Env Vars or Explicit Argument
 #' @noRd
 .detect_provider <- function(provider = NULL) {
   if (!is.null(provider)) return(provider)
@@ -27,7 +27,7 @@
 }
 
 
-#' Resolve the API key: explicit argument > environment variable
+#' Resolve the API Key: Explicit Argument > Environment Variable
 #' @noRd
 .resolve_key <- function(api_key, provider) {
   if (!is.null(api_key) && nchar(api_key) > 0) return(api_key)
@@ -57,7 +57,7 @@
 }
 
 
-#' Check httr2 is available
+#' Check Httr2 is Available
 #' @noRd
 .check_httr2 <- function() {
   if (!requireNamespace("httr2", quietly = TRUE))
@@ -66,7 +66,7 @@
 }
 
 
-#' Resolve context: inline text or file path
+#' Resolve Context: Inline Text or File Path
 #' @noRd
 .resolve_context <- function(context) {
   if (is.null(context)) return(NULL)
@@ -80,7 +80,7 @@
 
 # ── Internal: LLM dispatch ────────────────────────────────────────────────────
 
-#' Unified LLM call — dispatches to correct provider
+#' Unified LLM Call — Dispatches to Correct Provider
 #' Returns a list: list(text = "...", metadata = list(...))
 #' @noRd
 .call_llm <- function(user_msg, system_msg, provider, api_key,
@@ -387,7 +387,7 @@
 
 # ── Internal: coefficient extraction ─────────────────────────────────────────
 
-#' Extract outcome model coefficients as a data frame with significance
+#' Extract Outcome Model Coefficients as a Data Frame with Significance
 #' Uses summary() to get accurate p-values rather than rule-of-thumb |z|>2
 #' @noRd
 .get_coef_df <- function(fit) {
@@ -490,7 +490,7 @@
 }
 
 
-#' Format coefficient data frame as text for LLM prompt
+#' Format Coefficient Data Frame as Text for LLM Prompt
 #' @noRd
 .format_coef_lines <- function(coef_df) {
   has_p <- "p_value" %in% names(coef_df)
@@ -510,7 +510,7 @@
 }
 
 
-#' Extract mismatch model coefficients (m.coefficients) as text
+#' Extract Mismatch Model Coefficients (M.coefficients) as Text
 #' @noRd
 .get_mismatch_coef_text <- function(fit) {
   mc <- fit$m.coefficients
